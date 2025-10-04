@@ -33,15 +33,21 @@ class AuthServiceImplementation implements AuthServiceInterface
             $user->password
         );
 
-        
+
         if (!$user || !$isCorrectPassword) {
+            return ResultPattern::failure(
+                "¡Credenciales incorrectas!"
+            );
         }
 
 
         if ($user->activo === 0) {
+             return ResultPattern::failure(
+                "¡Su cuenta se encuentra inactiva!"
+            );
         }
 
-        return ResultPattern::success("");
+        return ResultPattern::success();
     }
 
     public function logOut(): void {}
