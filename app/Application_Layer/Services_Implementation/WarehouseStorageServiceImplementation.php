@@ -1,14 +1,14 @@
 <?php
 
-namespace app\Application_Layer\Services_Implementation;
+namespace App\Application_Layer\Services_Implementation;
 
 use App\Contracts\WarehouseStorageRepositoryInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
-use app\Models\Warehouse;
+use App\Models\Warehouse;
 use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\WarehouseDTO;
 
-class WarehouseStorageService implements WarehouseStorageServiceInterface
+class WarehouseStorageServiceImplementation implements WarehouseStorageServiceInterface
 {
 
     private WarehouseStorageRepositoryInterface $warehouseStorageRepository;

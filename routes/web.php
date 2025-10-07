@@ -29,6 +29,11 @@ Route::get(
     [WarehouseRegistrationController::class, 'index']
 )->name('warehouses.create');
 
+Route::post(
+    '/register-warehouse',
+    [WarehouseRegistrationController::class, 'registerWarehouse']
+)->name('warehouses.store');
+
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');
 

@@ -2,7 +2,7 @@
 
 namespace App\Contracts;
 
-use App\Models\Warehouse;
+use App\Enterprise_Layer\Warehouse;
 
 interface WarehouseStorageRepositoryInterface
 {
@@ -14,6 +14,4 @@ interface WarehouseStorageRepositoryInterface
         int $warehouseId,
         array $fields
     ): Warehouse;
-
-    
 }

@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Warehouse extends Model
+
+class WarehouseModel extends Model
 {
 
     protected $table = "warehouses";
@@ -20,8 +21,5 @@ class Warehouse extends Model
         'phone_number',
         'email',
         'warehouse_type',
-        'maximum_capacity'
     ];
-
-    
 }

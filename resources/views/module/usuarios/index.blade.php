@@ -13,7 +13,7 @@
         <div class="card shadow border-0 mb-4">
           <div class="card-header bg-primary text-white d-flex align-items-center">
             <h5 class="card-title mb-0"><i class="fa-solid fa-user-gear me-2"></i>Administrar Cuentas de Usuario</h5>
-            <a href="{{ route("usuarios.create") }}" class="btn btn-success ms-auto">
+            <a href="{{ route('usuarios.create')}}" class="btn btn-success ms-auto">
               <i class="fa-solid fa-user-plus me-2"></i> Nuevo Usuario
             </a>
           </div>

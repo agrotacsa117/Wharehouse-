@@ -4,7 +4,9 @@ namespace app\Mappers\DTO;
 
 class WarehouseDTO
 {
-
+    private int $userId;
+    private int $userLastUpdate;
+    private int $warehouseId;
     private string $warehouseKey;
     private string $warehouseName;
     private string $responsiblePersonName;
@@ -13,6 +15,8 @@ class WarehouseDTO
     private string $warehouseType;
 
     public function __construct(
+        int $userId,
+        int $warehouseId,
         string $warehouseKey,
         string $warehouseName,
         string $responsiblePersonName,
@@ -20,12 +24,42 @@ class WarehouseDTO
         string $email,
         string $warehouseType
     ) {
+        $this->userId = $userId;
+        $this->warehouseId = $warehouseId;
         $this->warehouseKey = $warehouseKey;
         $this->warehouseName = $warehouseName;
         $this->responsiblePersonName = $responsiblePersonName;
         $this->phoneNumber = $phoneNumber;
         $this->email = $email;
         $this->warehouseType = $warehouseType;
+    }
+
+    public function getUserLastUpdate(): int
+    {
+        return $this->userLastUpdate;
+    }
+
+    public function setUserLastUpdate(int $userLastUpdate): void
+    {
+        $this->userLastUpdate = $userLastUpdate;
+    }
+
+    public function getUserId(): int
+    {
+        return $this->userId;
+    }
+    public function getWarehouseId(): int
+    {
+        return $this->warehouseId;
+    }
+
+    public function setUserId(int $userId): void
+    {
+        $this->userId = $userId;
+    }
+    public function setWarehouseId(int $warehouseId): void
+    {
+        $this->warehouseId = $warehouseId;
     }
 
     public function getWarehouseKey(): string

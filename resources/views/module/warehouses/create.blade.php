@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,6 +47,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -73,6 +75,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -116,6 +119,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -177,7 +181,9 @@
             font-weight: normal;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             padding: 12px 16px;
             border: 2px solid var(--border-color);
             border-radius: 8px;
@@ -187,23 +193,31 @@
             background: var(--white);
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: var(--tacsa-red);
             box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
             transform: translateY(-1px);
         }
 
-        input:hover, select:hover, textarea:hover {
+        input:hover,
+        select:hover,
+        textarea:hover {
             border-color: var(--tacsa-red-light);
         }
 
-        input.error, select.error, textarea.error {
+        input.error,
+        select.error,
+        textarea.error {
             border-color: var(--error);
             background: rgba(244, 67, 54, 0.05);
         }
 
-        input.success, select.success, textarea.success {
+        input.success,
+        select.success,
+        textarea.success {
             border-color: var(--success);
         }
 
@@ -216,9 +230,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
         }
 
         .error-message.show {
@@ -352,10 +376,152 @@
                 padding: 20px 15px;
             }
         }
+
+        .alert-success {
+            position: relative;
+            display: flex;
+            align-items: center;
+            color:#FFFFFF;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #59b6dbff 0%, #3eabd0ff 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.2);
+            animation: slideInDown 0.5s ease-out;
+            overflow: hidden;
+        }
+
+        .alert-success::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.5) 100%);
+        }
+
+        .alert-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: scaleIn 0.6s ease-out 0.2s both;
+        }
+
+        .alert-icon svg {
+            width: 28px;
+            height: 28px;
+            color: #ffffff;
+            stroke-width: 2.5;
+        }
+
+        .alert-content {
+            flex: 1;
+            color: #ffffff;
+        }
+
+        .alert-title {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .alert-message {
+            margin: 0;
+            font-size: 0.9375rem;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+
+        .alert-close {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .alert-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .alert-close svg {
+            width: 18px;
+            height: 18px;
+            color: #ffffff;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .alert-success {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .alert-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .alert-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .alert-title {
+                font-size: 1rem;
+            }
+
+            .alert-message {
+                font-size: 0.875rem;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
+
+
+
         <div class="header">
             <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-3pBfz8jhasVBCCRAl1NOQFuUdXmn8i.png" alt="TACSA Logo" class="logo">
             <h1>Registro de Almacenes</h1>
@@ -363,7 +529,13 @@
         </div>
 
         <div class="form-container">
-            <form id="warehouseForm" novalidate>
+            @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+            <form method="POST" action="{{ route('warehouses.store') }}" id="warehouseForm" novalidate>
+                @csrf
                 <!-- Información General -->
                 <div class="form-section">
                     <h2 class="section-title">Información General</h2>
@@ -372,15 +544,14 @@
                             <label for="clave">
                                 Clave del Almacén <span class="required">*</span>
                             </label>
-                            <input 
-                                type="text" 
-                                id="clave" 
-                                name="clave" 
+                            <input
+                                type="text"
+                                id="clave"
+                                name="key"
                                 placeholder="Ej: ALM-001"
                                 required
                                 pattern="[A-Z0-9-]+"
-                                maxlength="20"
-                            >
+                                maxlength="20">
                             <span class="error-message">La clave es obligatoria (solo mayúsculas, números y guiones)</span>
                         </div>
 
@@ -388,15 +559,14 @@
                             <label for="nombre">
                                 Nombre del Almacén <span class="required">*</span>
                             </label>
-                            <input 
-                                type="text" 
-                                id="nombre" 
-                                name="nombre" 
+                            <input
+                                type="text"
+                                id="nombre"
+                                name="warehouse_name"
                                 placeholder="Ej: Almacén Central"
                                 required
                                 minlength="3"
-                                maxlength="100"
-                            >
+                                maxlength="100">
                             <span class="error-message">El nombre es obligatorio (mínimo 3 caracteres)</span>
                         </div>
                     </div>
@@ -410,15 +580,14 @@
                             <label for="responsable">
                                 Responsable <span class="required">*</span>
                             </label>
-                            <input 
-                                type="text" 
-                                id="responsable" 
-                                name="responsable" 
+                            <input
+                                type="text"
+                                id="responsable"
+                                name="name_person_responsible"
                                 placeholder="Nombre completo del responsable"
                                 required
                                 minlength="3"
-                                maxlength="100"
-                            >
+                                maxlength="100">
                             <span class="error-message">El nombre del responsable es obligatorio</span>
                         </div>
                     </div>
@@ -428,15 +597,14 @@
                             <label for="telefono">
                                 Teléfono <span class="required">*</span>
                             </label>
-                            <input 
-                                type="tel" 
-                                id="telefono" 
-                                name="telefono" 
+                            <input
+                                type="tel"
+                                id="telefono"
+                                name="phone_number"
                                 placeholder="10 dígitos"
                                 required
                                 pattern="[0-9]{10}"
-                                maxlength="10"
-                            >
+                                maxlength="10">
                             <span class="error-message">Ingrese un teléfono válido de 10 dígitos</span>
                         </div>
 
@@ -444,13 +612,12 @@
                             <label for="email">
                                 Email <span class="required">*</span>
                             </label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
                                 placeholder="correo@ejemplo.com"
-                                required
-                            >
+                                required>
                             <span class="error-message">Ingrese un email válido</span>
                         </div>
                     </div>
@@ -464,103 +631,98 @@
                             <label for="tipo_almacen">
                                 Tipo de Almacén <span class="required">*</span>
                             </label>
-                             <input 
-                                type="text" 
-                                id="tipo_almacen" 
-                                name="tipo_almacen" 
+                            <input
+                                type="text"
+                                id="tipo_almacen"
+                                name="type_warehouse"
                                 placeholder="Tipo de almacén"
                                 required
                                 minlength="3"
-                                maxlength="100"
-                            >
-                        </div>
-                </div>
-
-                <!-- Condiciones de Almacenamiento (Condicional) -->
-                <div class="form-section conditional-section" id="condiciones-section">
-                    <h2 class="section-title">Condiciones de Almacenamiento</h2>
-                    <div class="info-box">
-                        Los campos de temperatura son obligatorios para almacenes refrigerados o congelados. Los campos de humedad son opcionales.
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="temperatura_min">
-                                Temperatura Mínima (°C) <span class="required" id="temp-required">*</span>
-                            </label>
-                            <input 
-                                type="number" 
-                                id="temperatura_min" 
-                                name="temperatura_min" 
-                                placeholder="Ej: -18"
-                                step="0.1"
-                            >
-                            <span class="error-message">Ingrese una temperatura mínima válida</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="temperatura_max">
-                                Temperatura Máxima (°C) <span class="required" id="temp-max-required">*</span>
-                            </label>
-                            <input 
-                                type="number" 
-                                id="temperatura_max" 
-                                name="temperatura_max" 
-                                placeholder="Ej: -15"
-                                step="0.1"
-                            >
-                            <span class="error-message">Ingrese una temperatura máxima válida</span>
+                                maxlength="100">
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="humedad_min">
-                                Humedad Mínima (%) <span class="optional">(Opcional)</span>
-                            </label>
-                            <input 
-                                type="number" 
-                                id="humedad_min" 
-                                name="humedad_min" 
-                                placeholder="Ej: 40"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                            >
-                            <span class="error-message">Ingrese un valor entre 0 y 100</span>
+                    <!-- Condiciones de Almacenamiento (Condicional) -->
+                    <div class="form-section conditional-section" id="condiciones-section">
+                        <h2 class="section-title">Condiciones de Almacenamiento</h2>
+                        <div class="info-box">
+                            Los campos de temperatura son obligatorios para almacenes refrigerados o congelados. Los campos de humedad son opcionales.
                         </div>
 
-                        <div class="form-group">
-                            <label for="humedad_max">
-                                Humedad Máxima (%) <span class="optional">(Opcional)</span>
-                            </label>
-                            <input 
-                                type="number" 
-                                id="humedad_max" 
-                                name="humedad_max" 
-                                placeholder="Ej: 60"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                            >
-                            <span class="error-message">Ingrese un valor entre 0 y 100</span>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="temperatura_min">
+                                    Temperatura Mínima (°C) <span class="required" id="temp-required">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    id="temperatura_min"
+                                    name="temperatura_min"
+                                    placeholder="Ej: -18"
+                                    step="0.1">
+                                <span class="error-message">Ingrese una temperatura mínima válida</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="temperatura_max">
+                                    Temperatura Máxima (°C) <span class="required" id="temp-max-required">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    id="temperatura_max"
+                                    name="temperatura_max"
+                                    placeholder="Ej: -15"
+                                    step="0.1">
+                                <span class="error-message">Ingrese una temperatura máxima válida</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="humedad_min">
+                                    Humedad Mínima (%) <span class="optional">(Opcional)</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    id="humedad_min"
+                                    name="humedad_min"
+                                    placeholder="Ej: 40"
+                                    min="0"
+                                    max="100"
+                                    step="0.1">
+                                <span class="error-message">Ingrese un valor entre 0 y 100</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="humedad_max">
+                                    Humedad Máxima (%) <span class="optional">(Opcional)</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    id="humedad_max"
+                                    name="humedad_max"
+                                    placeholder="Ej: 60"
+                                    min="0"
+                                    max="100"
+                                    step="0.1">
+                                <span class="error-message">Ingrese un valor entre 0 y 100</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Botones de Acción -->
-                <div class="button-group">
-                    <button type="button" class="btn-secondary" id="cancelBtn">
-                        ✕ Cancelar
-                    </button>
-                    <button type="submit" class="btn-primary">
-                        ✓ Guardar Almacén
-                    </button>
-                </div>
+                    <!-- Botones de Acción -->
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" id="cancelBtn">
+                            ✕ Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            ✓ Guardar Almacén
+                        </button>
+                    </div>
             </form>
         </div>
     </div>
-
+    <!-- 
     <script>
         // Referencias a elementos del DOM
         const form = document.getElementById('warehouseForm');
@@ -581,7 +743,7 @@
         // Mostrar/ocultar sección de condiciones según tipo de almacén
         tipoAlmacen.addEventListener('change', function() {
             const tipo = this.value;
-            
+
             if (tipo === 'refrigerado' || tipo === 'congelado') {
                 condicionesSection.classList.add('show');
                 temperaturaMin.required = true;
@@ -746,7 +908,10 @@
                 // Hacer scroll al primer error
                 const firstError = form.querySelector('.error');
                 if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
                     firstError.focus();
                 }
                 return;
@@ -767,7 +932,7 @@
             if (tipoAlmacen.value === 'refrigerado' || tipoAlmacen.value === 'congelado') {
                 formData.temperatura_min = parseFloat(temperaturaMin.value);
                 formData.temperatura_max = parseFloat(temperaturaMax.value);
-                
+
                 if (humedadMin.value) {
                     formData.humedad_min = parseFloat(humedadMin.value);
                 }
@@ -778,10 +943,10 @@
 
             // Aquí iría la lógica para enviar los datos al backend
             console.log('Datos del formulario:', formData);
-            
+
             // Simulación de envío exitoso
             alert('¡Almacén registrado exitosamente!\n\nClave: ' + formData.clave + '\nNombre: ' + formData.nombre);
-            
+
             // Opcional: Limpiar formulario después del envío
             // form.reset();
             // condicionesSection.classList.remove('show');
@@ -792,7 +957,7 @@
             if (confirm('¿Está seguro de que desea cancelar? Se perderán todos los datos ingresados.')) {
                 form.reset();
                 condicionesSection.classList.remove('show');
-                
+
                 // Limpiar todos los estados de error/éxito
                 inputs.forEach(input => {
                     clearFieldError(input);
@@ -800,5 +965,7 @@
             }
         });
     </script>
+                    -->
 </body>
+
 </html>
