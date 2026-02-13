@@ -2,24 +2,31 @@
 
 namespace App\Models;
 
+use App\Enterprise_Layer\Warehouse;
+use App\Enterprise_Layer\WarehouseType;
 use Illuminate\Database\Eloquent\Model;
-
 
 class WarehouseModel extends Model
 {
-
     protected $table = "warehouses";
 
     protected $fillable = [
         'warehouses_name',
         'user_id',
-        'creation_date',
-        'last_update_date',
-        'user_last_update',
         'warehouses_key',
         'warehouse_manager',
         'phone_number',
         'email',
-        'warehouse_type',
+        'warehouse_type_id',
     ];
+
+
+    public function warehouseType()
+    {
+        return $this->belongsTo(
+            WarehouseTypeModel::class,
+            'warehouse_type_id',
+            'id'
+        );
+    }
 }

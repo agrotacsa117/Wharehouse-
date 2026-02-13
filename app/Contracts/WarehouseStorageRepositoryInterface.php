@@ -2,16 +2,22 @@
 
 namespace App\Contracts;
 
+use App\Application_Layer\ResultPattern;
 use App\Enterprise_Layer\Warehouse;
+use App\Models\WarehouseModel;
 
-interface WarehouseStorageRepositoryInterface
-{
-    public function save(Warehouse $warehouse): Warehouse;
-    public function delete(Warehouse $warehouse): bool;
-    public function deleteByWarehouseId(int $warehouseId): bool;
-    public function update(Warehouse $warehouse): Warehouse;
+interface WarehouseStorageRepositoryInterface {
+
+    public function saveWarehouse(Warehouse $warehouse): ResultPattern;
+
+    public function deleteWarehouseByWarehouseId(int $warehouseId): ResultPattern;
+
+    public function updateWarehouse(Warehouse $warehouse): ResultPattern;
+
     public function updateFieldsByWarehouseId(
-        int $warehouseId,
-        array $fields
-    ): Warehouse;
+            int $warehouseId,
+            array $fields
+    ): ResultPattern;
+
+    public function findWarehouseById(int $warehouseId): ?WarehouseModel;
 }

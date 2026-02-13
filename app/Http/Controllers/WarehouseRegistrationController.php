@@ -6,12 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\Warehouse;
 use App\Mappers\DTO\WarehouseDTO;
 use App\Contracts\WarehouseStorageServiceInterface;
+use App\Contracts\LocationServiceInterface;
 
 class WarehouseRegistrationController extends Controller
 {
+    private LocationServiceInterface $locationService;
+
+    public function __construct(LocationServiceInterface $locationService)
+    {
+        $this->locationService = $locationService;
+    }
+
     public function index()
     {
-        return view('module.warehouses.create');
+        $headquarters = $this->locationService->listHeadquartersNames();
+
+        return view('module.warehouses.create', [
+            'headquarters' => $headquarters
+        ]);
     }
 
     public function registerWarehouse(Request $request)

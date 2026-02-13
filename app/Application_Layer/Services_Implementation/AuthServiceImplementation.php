@@ -47,7 +47,7 @@ class AuthServiceImplementation implements AuthServiceInterface
             );
         }
 
-        return ResultPattern::success();
+        return ResultPattern::success("¡Bienvenido!");
     }
 
     public function logOut(): void {}

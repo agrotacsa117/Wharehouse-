@@ -64,6 +64,7 @@ Route::prefix('productos')->middleware(['auth'])->group(function () {
     Route::get('/cambiar-estado/{id}/{estado}', [Productos::class, 'estado'])->name('productos.estado');
     Route::get('/productos/vencer', [Productos::class, 'vencer'])->name('productos.vencer');
 });
+
 Route::prefix('proveedores')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [Proveedores::class, 'index'])->name(('proveedores'));
     Route::get('/create', [Proveedores::class, 'create'])->name(('proveedores.create'));
@@ -73,6 +74,7 @@ Route::prefix('proveedores')->middleware(['auth', 'role:admin'])->group(function
     Route::get('/show/{id}', [Proveedores::class, 'show'])->name('proveedores.show');
     Route::delete('/destroy/{id}', [Proveedores::class, 'destroy'])->name('proveedores.destroy');
 });
+
 Route::prefix('usuarios')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [Usuarios::class, 'index'])->name(('usuarios'));
     Route::get('/create', [Usuarios::class, 'create'])->name(('usuarios.create'));
@@ -83,6 +85,7 @@ Route::prefix('usuarios')->middleware(['auth', 'role:admin'])->group(function ()
     Route::get('/cambiar-estado/{id}/{estado}', [Usuarios::class, 'estado'])->name('usuarios.estado');
     Route::get('/cambiar-password/{id}/{password}', [Usuarios::class, 'cambio_password'])->name('usuarios.password');
 });
+
 Route::prefix('salida-productos')->middleware(['auth'])->group(function () {
     Route::get('/', [Ventas::class, 'index'])->name('salida-productos');
     Route::post('/agregar/{id}', [Ventas::class, 'agregarSalida'])->name('salida-productos.agregar');
@@ -92,6 +95,7 @@ Route::prefix('salida-productos')->middleware(['auth'])->group(function () {
     Route::get('/comprobante/{id}', [Ventas::class, 'comprobanteSalida'])->name('salida-productos.comprobante');
     Route::get('/salida-productos/ticket-carrito', [Ventas::class, 'ticketCarrito'])->name('salida-productos.ticket-carrito');
 });
+
 Route::post('/salida-productos/finalizar', [Ventas::class, 'finalizarSalida'])->name('salida-productos.finalizar');
 Route::get('/reporte-salidas', [Ventas::class, 'reporteSalidas'])->name('reporte.salidas');
 Route::delete('/salida-productos/{id}', [Ventas::class, 'destroySalida'])->name('salida-productos.destroy');

@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    /**
-     * Muestra la lista de productos
-     */
+    
     public function index()
     {
         $products = Product::with('category')

@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Application_Layer\RepositoryImplementation;
+namespace App\Application_Layer\Repository_Implementation;
+
 use App\Contracts\UserManagerRepositoryInterface;
 use App\Models\User;
 

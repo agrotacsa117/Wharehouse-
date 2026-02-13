@@ -1,6 +1,7 @@
 <?php
 
-namespace app\Mappers\DTO;
+namespace App\Mappers\DTO;
+
 
 class WarehouseDTO
 {

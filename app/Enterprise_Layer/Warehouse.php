@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enterprise_Layer;
 
+use App\Enterprise_Layer\WarehouseBuilder;
 use DateTime;
 
 class Warehouse
@@ -16,28 +19,28 @@ class Warehouse
     private string $warehouseManager;
     private string $phoneNumber;
     private string $email;
-    private string $warehouseType;
+    private int $warehouseTypeId;
+    private int $locationId;
 
     public function __construct(
-        string $warehouseName,
-        int $userId,
-        int $userLastUpdate,
-        string $warehouseKey,
-        string $warehouseManager,
-        string $phoneNumber,
-        string $email,
-        string $warehouseType
+        WarehouseBuilder $warehouseBuilder
     ) {
-        $this->warehouseName = $warehouseName;
-        $this->userId = $userId;
+        $this->warehouseName = $warehouseBuilder->getWarehousesName();
+        $this->userId = $warehouseBuilder->getUserId();
         $this->creationDate = new DateTime();
         $this->lastUpdateDate = new DateTime();
-        $this->userLastUpdate = $userLastUpdate;
-        $this->warehouseKey = $warehouseKey;
-        $this->warehouseManager = $warehouseManager;
-        $this->phoneNumber = $phoneNumber;
-        $this->email = $email;
-        $this->warehouseType = $warehouseType;
+        $this->userLastUpdate = $warehouseBuilder->getUserLastUpdate();
+        $this->warehouseKey = $warehouseBuilder->getWarehouseKey();
+        $this->warehouseManager = $warehouseBuilder->getWarehouseManager();
+        $this->phoneNumber = $warehouseBuilder->getPhoneNumber();
+        $this->email = $warehouseBuilder->getEmail();
+        $this->warehouseTypeId = $warehouseBuilder->getWarehouseTypeId();
+        $this->locationId = $warehouseBuilder->getLocationId();
+    }
+
+    public static function builder(): WarehouseBuilder
+    {
+        return new WarehouseBuilder();
     }
 
     // Getters
@@ -82,9 +85,10 @@ class Warehouse
     {
         return $this->email;
     }
-    public function getWarehouseType(): string
+
+    public function getWarehouseTypeId(): int
     {
-        return $this->warehouseType;
+        return $this->warehouseTypeId;
     }
 
     // Setters
@@ -129,8 +133,8 @@ class Warehouse
     {
         $this->email = $email;
     }
-    public function setWarehouseType(string $warehouseType): void
+    public function setWarehouseTypeId(int $warehouseTypeId): void
     {
-        $this->warehouseType = $warehouseType;
+        $this->warehouseTypeId = $warehouseTypeId;
     }
 }

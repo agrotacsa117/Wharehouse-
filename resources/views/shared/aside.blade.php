@@ -107,10 +107,10 @@
         </li>
         @endif
 
-         @if(auth()->user()->rol === 'admin')
+        @if(auth()->user()->rol === 'admin')
         <li class="nav-item mb-2">
-            <a class="nav-link {{ request()->routeIs('usuarios') ? '' : 'collapsed' }}" href="{{ route('warehouses.create') }}">
-                <i class="fa-solid fa-truck-fast align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
+            <a class="nav-link" href="{{ route('warehouses.create') }}">
+                <i class="fa-solid fa-users align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
                 <span class="align-middle fw-bold">Registrar almacén</span>
             </a>
         </li>

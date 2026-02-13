@@ -8,7 +8,7 @@ use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class Productos extends Controller
+class TemporaryProducts extends Controller
 {
     /**
      * Display a listing of the resource.

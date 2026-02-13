@@ -1,18 +1,18 @@
 <?php
 
-namespace app\Contracts;
+namespace App\Contracts;
 
 /**
  * @template TDTO
  * @template TEntity
+ * @interface
  */
-
 interface InterfaceMapperToEntity
 {
 
     /**
-     * @param  TDTO $tDTO
-     *  @return TEntity
+     * @param TDTO $tDTO
+     * @return TEntity
      */
-    public function convertDTOToEntity($tDTO);
+    public function convertDTOToEntity($tDTO) ;
 }

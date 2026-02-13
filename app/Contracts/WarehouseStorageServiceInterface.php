@@ -5,6 +5,7 @@ namespace App\Contracts;
 use App\Application_Layer\ResultPattern;
 use app\Mappers\DTO\WarehouseDTO;
 
+
 interface WarehouseStorageServiceInterface
 {
 
@@ -21,7 +22,9 @@ interface WarehouseStorageServiceInterface
     public function deleteByWarehouseId(int $warehouseId): ResultPattern;
 
     public function updateFieldsByWarehouseId(
-        int $warehouseId,
+        int   $warehouseId,
         array $fields
     ): ResultPattern;
+
+
 }
