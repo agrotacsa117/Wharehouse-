@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests;
+namespace App\Infrastructure;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -34,7 +34,7 @@ class StoreWarehouseRequest extends FormRequest
                 'required',
                 'string',
                 'max:35',
-                'regex: /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/u'
+                'regex:/^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/u'
             ],
 
             'phone_number' => [
@@ -48,7 +48,7 @@ class StoreWarehouseRequest extends FormRequest
                 'required',
                 'string',
                 'min:10',
-                'regex: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'
             ],
             'warehouse_type_id' => 'required|integer|min:1',
             'location_id' => 'required|integer|min:1'

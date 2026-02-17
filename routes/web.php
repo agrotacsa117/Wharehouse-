@@ -1,16 +1,18 @@
 <?php
 
+use App\Enterprise_Layer\Warehouse;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Categorias;
 use App\Http\Controllers\Usuarios;
 use App\Http\Controllers\Productos;
 use App\Http\Controllers\Dashboard;
+use App\Http\Controllers\LocationRegistrationController;
 use App\Http\Controllers\Proveedores;
 use App\Http\Controllers\Reportes_productos;
 use App\Http\Controllers\Ventas;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRegistrationController;
-
+use App\Http\Controllers\WarehouseTypeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +35,27 @@ Route::post(
     '/register-warehouse',
     [WarehouseRegistrationController::class, 'registerWarehouse']
 )->name('warehouses.store');
+
+Route::get(
+    '/register-location',
+    [LocationRegistrationController::class, 'getView']
+)->name('location.store');
+
+Route::post(
+    '/register-location',
+    [LocationRegistrationController::class, 'store']
+)->name('locations.store');
+
+
+Route::get(
+    '/warehouse-type',
+    [WarehouseTypeController::class, 'getView']
+)->name('warehouse-type.get');
+
+Route::post(
+    '/warehouse-type',
+    [WarehouseTypeController::class, 'store']
+)->name('warehouse-type.store');
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');

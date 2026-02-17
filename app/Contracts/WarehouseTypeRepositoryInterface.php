@@ -11,7 +11,7 @@ interface WarehouseTypeRepositoryInterface
     
     public function getAllCategoryWarehouse(): array;
 
-    public function saveLocation(WarehouseType $location): void;
+    public function saveWarehouseType(WarehouseType $warehouseType): void;
 
     public function deleteLocation(int $warehouseTypeId): void;
 

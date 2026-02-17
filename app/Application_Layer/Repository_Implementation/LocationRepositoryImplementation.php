@@ -5,20 +5,20 @@ namespace App\Application_Layer\Repository_Implementation;
 use App\Contracts\LocationRepositoryInterface;
 use App\Models\LocationModel;
 use App\Enterprise_Layer\Location;
-use App\Contracts\ModelMapperToEntityInterface;
-use App\Contracts\EntityToModelMapperInterface;
+use App\Contracts\LocationModelToLocationEntityMapperI;
+use App\Contracts\LocationEntityToLocationModelMapperI;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
 use Illuminate\Database\QueryException;
 
 class LocationRepositoryImplementation implements LocationRepositoryInterface
 {
-    private ModelMapperToEntityInterface $locationModelToEntityMapper;
-    private EntityToModelMapperInterface $locationEntityToLocationModelMapper;
+    private LocationModelToLocationEntityMapperI $locationModelToEntityMapper;
+    private LocationEntityToLocationModelMapperI $locationEntityToLocationModelMapper;
 
     public function __construct(
-        ModelMapperToEntityInterface $locationModelToEntityMapper,
-        EntityToModelMapperInterface $locationEntityToLocationModelMapper
+        LocationModelToLocationEntityMapperI $locationModelToEntityMapper,
+        LocationEntityToLocationModelMapperI $locationEntityToLocationModelMapper
     ) {
         $this->locationModelToEntityMapper = $locationModelToEntityMapper;
         $this->locationEntityToLocationModelMapper = $locationEntityToLocationModelMapper;
@@ -60,6 +60,7 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
 
             $locationModel->save();
         } catch (\Throwable $e) {
+
             throw new CouldNotPersistLocationException(
                 'Error saving Location',
                 0,

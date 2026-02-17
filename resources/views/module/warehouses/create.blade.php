@@ -528,6 +528,9 @@
     </head>
 
     <body>
+
+
+
         <div class="container">
 
             <div class="header" id="header-warehouse">
@@ -538,6 +541,18 @@
             </div>
 
             <div class="form-container">
+
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
@@ -553,7 +568,7 @@
                                 <label for="clave">
                                     Clave del Almacén <span class="required">*</span>
                                 </label>
-                                <input type="text" id="clave" name="key" placeholder="Ej: ALM001" required
+                                <input type="text" id="clave" name="warehouses_key" placeholder="Ej: ALM001" required
                                     pattern="[A-Z0-9-]+" maxlength="20">
                                 <span class="error-message">La clave es obligatoria (solo mayúsculas, números y
                                     guiones)</span>
@@ -563,8 +578,8 @@
                                 <label for="nombre">
                                     Nombre del Almacén <span class="required">*</span>
                                 </label>
-                                <input type="text" id="nombre" name="warehouse_name" placeholder="Ej: Almacén Central"
-                                    required minlength="3" maxlength="100">
+                                <input type="text" id="nombre" name="warehouses_name"
+                                    placeholder="Ej: Almacén Central" required minlength="3" maxlength="100">
                                 <span class="error-message">El nombre es obligatorio (mínimo 3 caracteres)</span>
                             </div>
                         </div>
@@ -578,7 +593,7 @@
                                 <label for="responsable">
                                     Responsable <span class="required">*</span>
                                 </label>
-                                <input type="text" id="responsable" name="name_person_responsible"
+                                <input type="text" id="responsable" name="warehouse_manager"
                                     placeholder="Nombre completo del responsable" required minlength="3" maxlength="100">
                                 <span class="error-message">El nombre del responsable es obligatorio</span>
                             </div>
@@ -633,8 +648,15 @@
                                 <label for="tipo_almacen">
                                     Tipo de Almacén <span class="required">*</span>
                                 </label>
-                                <input type="text" id="tipo_almacen" name="type_warehouse" placeholder="Tipo de almacén"
-                                    required minlength="3" maxlength="100">
+                                <select id="warehouse-types" name="warehouse_type_id" required>
+                                    <option value="">Seleccione el tipo de almacén</option>
+
+                                    @foreach ($warehouseTypes as $warehouseType)
+                                        <option value="{{ $warehouseType->getId() }}">
+                                            {{ $warehouseType->getCategoryWarehouse() }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -701,249 +723,249 @@
             </div>
         </div>
         <!--
-                        <script>
-                            // Referencias a elementos del DOM
-                            const form = document.getElementById('warehouseForm');
-                            const tipoAlmacen = document.getElementById('tipo_almacen');
-                            const condicionesSection = document.getElementById('condiciones-section');
-                            const temperaturaMin = document.getElementById('temperatura_min');
-                            const temperaturaMax = document.getElementById('temperatura_max');
-                            const humedadMin = document.getElementById('humedad_min');
-                            const humedadMax = document.getElementById('humedad_max');
-                            const claveInput = document.getElementById('clave');
-                            const cancelBtn = document.getElementById('cancelBtn');
+                                                        <script>
+                                                            // Referencias a elementos del DOM
+                                                            const form = document.getElementById('warehouseForm');
+                                                            const tipoAlmacen = document.getElementById('tipo_almacen');
+                                                            const condicionesSection = document.getElementById('condiciones-section');
+                                                            const temperaturaMin = document.getElementById('temperatura_min');
+                                                            const temperaturaMax = document.getElementById('temperatura_max');
+                                                            const humedadMin = document.getElementById('humedad_min');
+                                                            const humedadMax = document.getElementById('humedad_max');
+                                                            const claveInput = document.getElementById('clave');
+                                                            const cancelBtn = document.getElementById('cancelBtn');
 
-                            // Convertir clave a mayúsculas automáticamente
-                            claveInput.addEventListener('input', function(e) {
-                                this.value = this.value.toUpperCase();
-                            });
+                                                            // Convertir clave a mayúsculas automáticamente
+                                                            claveInput.addEventListener('input', function(e) {
+                                                                this.value = this.value.toUpperCase();
+                                                            });
 
-                            // Mostrar/ocultar sección de condiciones según tipo de almacén
-                            tipoAlmacen.addEventListener('change', function() {
-                                const tipo = this.value;
+                                                            // Mostrar/ocultar sección de condiciones según tipo de almacén
+                                                            tipoAlmacen.addEventListener('change', function() {
+                                                                const tipo = this.value;
 
-                                if (tipo === 'refrigerado' || tipo === 'congelado') {
-                                    condicionesSection.classList.add('show');
-                                    temperaturaMin.required = true;
-                                    temperaturaMax.required = true;
-                                } else {
-                                    condicionesSection.classList.remove('show');
-                                    temperaturaMin.required = false;
-                                    temperaturaMax.required = false;
-                                    // Limpiar valores cuando se oculta
-                                    temperaturaMin.value = '';
-                                    temperaturaMax.value = '';
-                                    humedadMin.value = '';
-                                    humedadMax.value = '';
-                                    // Limpiar errores
-                                    clearFieldError(temperaturaMin);
-                                    clearFieldError(temperaturaMax);
-                                    clearFieldError(humedadMin);
-                                    clearFieldError(humedadMax);
-                                }
-                            });
+                                                                if (tipo === 'refrigerado' || tipo === 'congelado') {
+                                                                    condicionesSection.classList.add('show');
+                                                                    temperaturaMin.required = true;
+                                                                    temperaturaMax.required = true;
+                                                                } else {
+                                                                    condicionesSection.classList.remove('show');
+                                                                    temperaturaMin.required = false;
+                                                                    temperaturaMax.required = false;
+                                                                    // Limpiar valores cuando se oculta
+                                                                    temperaturaMin.value = '';
+                                                                    temperaturaMax.value = '';
+                                                                    humedadMin.value = '';
+                                                                    humedadMax.value = '';
+                                                                    // Limpiar errores
+                                                                    clearFieldError(temperaturaMin);
+                                                                    clearFieldError(temperaturaMax);
+                                                                    clearFieldError(humedadMin);
+                                                                    clearFieldError(humedadMax);
+                                                                }
+                                                            });
 
-                            // Validación en tiempo real
-                            const inputs = form.querySelectorAll('input, select');
-                            inputs.forEach(input => {
-                                input.addEventListener('blur', function() {
-                                    validateField(this);
-                                });
+                                                            // Validación en tiempo real
+                                                            const inputs = form.querySelectorAll('input, select');
+                                                            inputs.forEach(input => {
+                                                                input.addEventListener('blur', function() {
+                                                                    validateField(this);
+                                                                });
 
-                                input.addEventListener('input', function() {
-                                    if (this.classList.contains('error')) {
-                                        validateField(this);
-                                    }
-                                });
-                            });
+                                                                input.addEventListener('input', function() {
+                                                                    if (this.classList.contains('error')) {
+                                                                        validateField(this);
+                                                                    }
+                                                                });
+                                                            });
 
-                            // Función de validación de campo individual
-                            function validateField(field) {
-                                const errorMessage = field.nextElementSibling;
-                                let isValid = true;
+                                                            // Función de validación de campo individual
+                                                            function validateField(field) {
+                                                                const errorMessage = field.nextElementSibling;
+                                                                let isValid = true;
 
-                                // Limpiar estado previo
-                                field.classList.remove('error', 'success');
-                                if (errorMessage && errorMessage.classList.contains('error-message')) {
-                                    errorMessage.classList.remove('show');
-                                }
+                                                                // Limpiar estado previo
+                                                                field.classList.remove('error', 'success');
+                                                                if (errorMessage && errorMessage.classList.contains('error-message')) {
+                                                                    errorMessage.classList.remove('show');
+                                                                }
 
-                                // Validar campo requerido
-                                if (field.required && !field.value.trim()) {
-                                    isValid = false;
-                                    showError(field, errorMessage);
-                                    return false;
-                                }
+                                                                // Validar campo requerido
+                                                                if (field.required && !field.value.trim()) {
+                                                                    isValid = false;
+                                                                    showError(field, errorMessage);
+                                                                    return false;
+                                                                }
 
-                                // Validaciones específicas por tipo
-                                if (field.value.trim()) {
-                                    switch (field.type) {
-                                        case 'email':
-                                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                            if (!emailRegex.test(field.value)) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            }
-                                            break;
+                                                                // Validaciones específicas por tipo
+                                                                if (field.value.trim()) {
+                                                                    switch (field.type) {
+                                                                        case 'email':
+                                                                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                                                            if (!emailRegex.test(field.value)) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            }
+                                                                            break;
 
-                                        case 'tel':
-                                            const telRegex = /^[0-9]{10}$/;
-                                            if (!telRegex.test(field.value)) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            }
-                                            break;
+                                                                        case 'tel':
+                                                                            const telRegex = /^[0-9]{10}$/;
+                                                                            if (!telRegex.test(field.value)) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            }
+                                                                            break;
 
-                                        case 'number':
-                                            const numValue = parseFloat(field.value);
-                                            if (isNaN(numValue)) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            } else if (field.min && numValue < parseFloat(field.min)) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            } else if (field.max && numValue > parseFloat(field.max)) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            }
-                                            break;
+                                                                        case 'number':
+                                                                            const numValue = parseFloat(field.value);
+                                                                            if (isNaN(numValue)) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            } else if (field.min && numValue < parseFloat(field.min)) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            } else if (field.max && numValue > parseFloat(field.max)) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            }
+                                                                            break;
 
-                                        case 'text':
-                                            if (field.pattern) {
-                                                const regex = new RegExp(field.pattern);
-                                                if (!regex.test(field.value)) {
-                                                    isValid = false;
-                                                    showError(field, errorMessage);
-                                                }
-                                            }
-                                            if (field.minLength && field.value.length < field.minLength) {
-                                                isValid = false;
-                                                showError(field, errorMessage);
-                                            }
-                                            break;
-                                    }
-                                }
+                                                                        case 'text':
+                                                                            if (field.pattern) {
+                                                                                const regex = new RegExp(field.pattern);
+                                                                                if (!regex.test(field.value)) {
+                                                                                    isValid = false;
+                                                                                    showError(field, errorMessage);
+                                                                                }
+                                                                            }
+                                                                            if (field.minLength && field.value.length < field.minLength) {
+                                                                                isValid = false;
+                                                                                showError(field, errorMessage);
+                                                                            }
+                                                                            break;
+                                                                    }
+                                                                }
 
-                                // Validación especial para temperaturas
-                                if (field.id === 'temperatura_max' && temperaturaMin.value && field.value) {
-                                    if (parseFloat(field.value) <= parseFloat(temperaturaMin.value)) {
-                                        isValid = false;
-                                        if (errorMessage) {
-                                            errorMessage.textContent = 'La temperatura máxima debe ser mayor que la mínima';
-                                            showError(field, errorMessage);
-                                        }
-                                    }
-                                }
+                                                                // Validación especial para temperaturas
+                                                                if (field.id === 'temperatura_max' && temperaturaMin.value && field.value) {
+                                                                    if (parseFloat(field.value) <= parseFloat(temperaturaMin.value)) {
+                                                                        isValid = false;
+                                                                        if (errorMessage) {
+                                                                            errorMessage.textContent = 'La temperatura máxima debe ser mayor que la mínima';
+                                                                            showError(field, errorMessage);
+                                                                        }
+                                                                    }
+                                                                }
 
-                                // Validación especial para humedad
-                                if (field.id === 'humedad_max' && humedadMin.value && field.value) {
-                                    if (parseFloat(field.value) <= parseFloat(humedadMin.value)) {
-                                        isValid = false;
-                                        if (errorMessage) {
-                                            errorMessage.textContent = 'La humedad máxima debe ser mayor que la mínima';
-                                            showError(field, errorMessage);
-                                        }
-                                    }
-                                }
+                                                                // Validación especial para humedad
+                                                                if (field.id === 'humedad_max' && humedadMin.value && field.value) {
+                                                                    if (parseFloat(field.value) <= parseFloat(humedadMin.value)) {
+                                                                        isValid = false;
+                                                                        if (errorMessage) {
+                                                                            errorMessage.textContent = 'La humedad máxima debe ser mayor que la mínima';
+                                                                            showError(field, errorMessage);
+                                                                        }
+                                                                    }
+                                                                }
 
-                                if (isValid && field.value.trim()) {
-                                    field.classList.add('success');
-                                }
+                                                                if (isValid && field.value.trim()) {
+                                                                    field.classList.add('success');
+                                                                }
 
-                                return isValid;
-                            }
+                                                                return isValid;
+                                                            }
 
-                            function showError(field, errorMessage) {
-                                field.classList.add('error');
-                                if (errorMessage && errorMessage.classList.contains('error-message')) {
-                                    errorMessage.classList.add('show');
-                                }
-                            }
+                                                            function showError(field, errorMessage) {
+                                                                field.classList.add('error');
+                                                                if (errorMessage && errorMessage.classList.contains('error-message')) {
+                                                                    errorMessage.classList.add('show');
+                                                                }
+                                                            }
 
-                            function clearFieldError(field) {
-                                field.classList.remove('error', 'success');
-                                const errorMessage = field.nextElementSibling;
-                                if (errorMessage && errorMessage.classList.contains('error-message')) {
-                                    errorMessage.classList.remove('show');
-                                }
-                            }
+                                                            function clearFieldError(field) {
+                                                                field.classList.remove('error', 'success');
+                                                                const errorMessage = field.nextElementSibling;
+                                                                if (errorMessage && errorMessage.classList.contains('error-message')) {
+                                                                    errorMessage.classList.remove('show');
+                                                                }
+                                                            }
 
-                            // Manejo del envío del formulario
-                            form.addEventListener('submit', function(e) {
-                                e.preventDefault();
+                                                            // Manejo del envío del formulario
+                                                            form.addEventListener('submit', function(e) {
+                                                                e.preventDefault();
 
-                                let isFormValid = true;
+                                                                let isFormValid = true;
 
-                                // Validar todos los campos
-                                inputs.forEach(input => {
-                                    if (!validateField(input)) {
-                                        isFormValid = false;
-                                    }
-                                });
+                                                                // Validar todos los campos
+                                                                inputs.forEach(input => {
+                                                                    if (!validateField(input)) {
+                                                                        isFormValid = false;
+                                                                    }
+                                                                });
 
-                                if (!isFormValid) {
-                                    alert('Por favor, corrija los errores en el formulario antes de continuar.');
-                                    // Hacer scroll al primer error
-                                    const firstError = form.querySelector('.error');
-                                    if (firstError) {
-                                        firstError.scrollIntoView({
-                                            behavior: 'smooth',
-                                            block: 'center'
-                                        });
-                                        firstError.focus();
-                                    }
-                                    return;
-                                }
+                                                                if (!isFormValid) {
+                                                                    alert('Por favor, corrija los errores en el formulario antes de continuar.');
+                                                                    // Hacer scroll al primer error
+                                                                    const firstError = form.querySelector('.error');
+                                                                    if (firstError) {
+                                                                        firstError.scrollIntoView({
+                                                                            behavior: 'smooth',
+                                                                            block: 'center'
+                                                                        });
+                                                                        firstError.focus();
+                                                                    }
+                                                                    return;
+                                                                }
 
-                                // Recopilar datos del formulario
-                                const formData = {
-                                    clave: document.getElementById('clave').value.trim(),
-                                    nombre: document.getElementById('nombre').value.trim(),
-                                    responsable: document.getElementById('responsable').value.trim(),
-                                    telefono: document.getElementById('telefono').value.trim(),
-                                    email: document.getElementById('email').value.trim(),
-                                    tipo_almacen: document.getElementById('tipo_almacen').value,
-                                    capacidad_maxima: parseFloat(document.getElementById('capacidad_maxima').value)
-                                };
+                                                                // Recopilar datos del formulario
+                                                                const formData = {
+                                                                    clave: document.getElementById('clave').value.trim(),
+                                                                    nombre: document.getElementById('nombre').value.trim(),
+                                                                    responsable: document.getElementById('responsable').value.trim(),
+                                                                    telefono: document.getElementById('telefono').value.trim(),
+                                                                    email: document.getElementById('email').value.trim(),
+                                                                    tipo_almacen: document.getElementById('tipo_almacen').value,
+                                                                    capacidad_maxima: parseFloat(document.getElementById('capacidad_maxima').value)
+                                                                };
 
-                                // Agregar datos condicionales si aplica
-                                if (tipoAlmacen.value === 'refrigerado' || tipoAlmacen.value === 'congelado') {
-                                    formData.temperatura_min = parseFloat(temperaturaMin.value);
-                                    formData.temperatura_max = parseFloat(temperaturaMax.value);
+                                                                // Agregar datos condicionales si aplica
+                                                                if (tipoAlmacen.value === 'refrigerado' || tipoAlmacen.value === 'congelado') {
+                                                                    formData.temperatura_min = parseFloat(temperaturaMin.value);
+                                                                    formData.temperatura_max = parseFloat(temperaturaMax.value);
 
-                                    if (humedadMin.value) {
-                                        formData.humedad_min = parseFloat(humedadMin.value);
-                                    }
-                                    if (humedadMax.value) {
-                                        formData.humedad_max = parseFloat(humedadMax.value);
-                                    }
-                                }
+                                                                    if (humedadMin.value) {
+                                                                        formData.humedad_min = parseFloat(humedadMin.value);
+                                                                    }
+                                                                    if (humedadMax.value) {
+                                                                        formData.humedad_max = parseFloat(humedadMax.value);
+                                                                    }
+                                                                }
 
-                                // Aquí iría la lógica para enviar los datos al backend
-                                console.log('Datos del formulario:', formData);
+                                                                // Aquí iría la lógica para enviar los datos al backend
+                                                                console.log('Datos del formulario:', formData);
 
-                                // Simulación de envío exitoso
-                                alert('¡Almacén registrado exitosamente!\n\nClave: ' + formData.clave + '\nNombre: ' + formData.nombre);
+                                                                // Simulación de envío exitoso
+                                                                alert('¡Almacén registrado exitosamente!\n\nClave: ' + formData.clave + '\nNombre: ' + formData.nombre);
 
-                                // Opcional: Limpiar formulario después del envío
-                                // form.reset();
-                                // condicionesSection.classList.remove('show');
-                            });
+                                                                // Opcional: Limpiar formulario después del envío
+                                                                // form.reset();
+                                                                // condicionesSection.classList.remove('show');
+                                                            });
 
-                            // Manejo del botón cancelar
-                            cancelBtn.addEventListener('click', function() {
-                                if (confirm('¿Está seguro de que desea cancelar? Se perderán todos los datos ingresados.')) {
-                                    form.reset();
-                                    condicionesSection.classList.remove('show');
+                                                            // Manejo del botón cancelar
+                                                            cancelBtn.addEventListener('click', function() {
+                                                                if (confirm('¿Está seguro de que desea cancelar? Se perderán todos los datos ingresados.')) {
+                                                                    form.reset();
+                                                                    condicionesSection.classList.remove('show');
 
-                                    // Limpiar todos los estados de error/éxito
-                                    inputs.forEach(input => {
-                                        clearFieldError(input);
-                                    });
-                                }
-                            });
-                        </script>
-                                        -->
+                                                                    // Limpiar todos los estados de error/éxito
+                                                                    inputs.forEach(input => {
+                                                                        clearFieldError(input);
+                                                                    });
+                                                                }
+                                                            });
+                                                        </script>
+                                                                        -->
     </body>
 
     </html>

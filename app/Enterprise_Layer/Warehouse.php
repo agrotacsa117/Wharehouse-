@@ -11,7 +11,6 @@ class Warehouse
 {
     private int $warehouseId;
     private string $warehouseName;
-    private int $userId;
     private DateTime $creationDate;
     private DateTime $lastUpdateDate;
     private int $userLastUpdate;
@@ -26,7 +25,6 @@ class Warehouse
         WarehouseBuilder $warehouseBuilder
     ) {
         $this->warehouseName = $warehouseBuilder->getWarehousesName();
-        $this->userId = $warehouseBuilder->getUserId();
         $this->creationDate = new DateTime();
         $this->lastUpdateDate = new DateTime();
         $this->userLastUpdate = $warehouseBuilder->getUserLastUpdate();
@@ -37,6 +35,7 @@ class Warehouse
         $this->warehouseTypeId = $warehouseBuilder->getWarehouseTypeId();
         $this->locationId = $warehouseBuilder->getLocationId();
     }
+
 
     public static function builder(): WarehouseBuilder
     {
@@ -53,10 +52,7 @@ class Warehouse
     {
         return $this->warehouseName;
     }
-    public function getUserId(): int
-    {
-        return $this->userId;
-    }
+
     public function getCreationDate(): DateTime
     {
         return $this->creationDate;
@@ -101,10 +97,7 @@ class Warehouse
     {
         $this->warehouseName = $warehousesName;
     }
-    public function setUserId(int $userId): void
-    {
-        $this->userId = $userId;
-    }
+
     public function setCreationDate(DateTime $creationDate): void
     {
         $this->creationDate = $creationDate;
@@ -137,4 +130,15 @@ class Warehouse
     {
         $this->warehouseTypeId = $warehouseTypeId;
     }
+
+    public function getLocationId(): int
+    {
+        return $this->locationId;
+    }
+
+    public function setLocationId(int $locationId): void
+    {
+        $this->locationId = $locationId;
+    }
+
 }

@@ -29,11 +29,15 @@ class Location
         string $city,
         string $address
     ) {
+        $this->validateHeadquartersName($headquartersName);
         $this->headquartersName = $headquartersName;
         $this->validatePostalCode($postalCode);
         $this->postalCode = $postalCode;
+        $this->validateState($state);
         $this->state = $state;
+        $this->validateCity($city);
         $this->city = $city;
+        $this->validateAddress($address);
         $this->address = $address;
     }
 
@@ -142,7 +146,7 @@ class Location
     ): void {
 
         if (!preg_match(
-            "^(?=.{3,50}$)[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s.,#\-\/()°º'&]+$",
+            "/^(?=.{3,50}$)[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s.,#\-\/()°º'&]+$/",
             $address
         )) {
             throw new InvalidAddressException(
@@ -200,10 +204,17 @@ class Location
         int $minLenght,
         int $maxLenght
     ): bool {
-        return preg_match(
-            "^(?=.{".$minLenght.
-            ",".$maxLenght."}$)[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$",
+       
+        $isCorrect = preg_match(
+            "/^(?=.{".$minLenght.
+            ",".$maxLenght."}$)[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/",
             $name
         );
+
+        if ($isCorrect === 0) {
+            return false;
+        }
+
+        return true;
     }
 }

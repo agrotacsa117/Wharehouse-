@@ -89,9 +89,10 @@ class WarehouseBuilder
     }
 
     // Setters
-    public function setLocationId(int $locationId): void
+    public function setLocationId(int $locationId): WarehouseBuilder
     {
         $this->locationId = $locationId;
+        return $this;
     }
 
     public function setWarehouseId(int $warehouseId): WarehouseBuilder

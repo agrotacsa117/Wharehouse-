@@ -2,37 +2,35 @@
 
 namespace App\Mappers\DTO;
 
-
 class WarehouseDTO
 {
-    private int $userId;
     private int $userLastUpdate;
-    private int $warehouseId;
     private string $warehouseKey;
     private string $warehouseName;
     private string $responsiblePersonName;
     private string $phoneNumber;
     private string $email;
-    private string $warehouseType;
+    private int $warehouseTypeId;
+    private int $locationId;
 
     public function __construct(
-        int $userId,
-        int $warehouseId,
         string $warehouseKey,
         string $warehouseName,
         string $responsiblePersonName,
         string $phoneNumber,
         string $email,
-        string $warehouseType
+        int $warehouseTypeId,
+        int $locationId,
+        int $userLastUpdate
     ) {
-        $this->userId = $userId;
-        $this->warehouseId = $warehouseId;
         $this->warehouseKey = $warehouseKey;
         $this->warehouseName = $warehouseName;
         $this->responsiblePersonName = $responsiblePersonName;
         $this->phoneNumber = $phoneNumber;
         $this->email = $email;
-        $this->warehouseType = $warehouseType;
+        $this->warehouseTypeId = $warehouseTypeId;
+        $this->locationId = $locationId;
+        $this->userLastUpdate = $userLastUpdate;
     }
 
     public function getUserLastUpdate(): int
@@ -47,21 +45,15 @@ class WarehouseDTO
 
     public function getUserId(): int
     {
-        return $this->userId;
+        return $this->userLastUpdate;
     }
-    public function getWarehouseId(): int
-    {
-        return $this->warehouseId;
-    }
+
 
     public function setUserId(int $userId): void
     {
-        $this->userId = $userId;
+        $this->userLastUpdate = $userId;
     }
-    public function setWarehouseId(int $warehouseId): void
-    {
-        $this->warehouseId = $warehouseId;
-    }
+
 
     public function getWarehouseKey(): string
     {
@@ -118,13 +110,24 @@ class WarehouseDTO
     }
 
     // Getter y Setter para warehouseType
-    public function getWarehouseType(): string
+    public function getWarehouseTypeId(): int
     {
-        return $this->warehouseType;
+        return $this->warehouseTypeId;
     }
 
-    public function setWarehouseType(string $warehouseType): void
+    public function setWarehouseType(int $warehouseTypeId): void
     {
-        $this->warehouseType = $warehouseType;
+        $this->warehouseTypeId = $warehouseTypeId;
     }
+
+    public function getLocationId(): int
+    {
+        return $this->locationId;
+    }
+
+    public function setLocationId(int $locationId): void
+    {
+        $this->locationId = $locationId;
+    }
+
 }

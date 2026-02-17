@@ -12,12 +12,15 @@ class WarehouseModel extends Model
 
     protected $fillable = [
         'warehouses_name',
-        'user_id',
+        'created_at',
+        'updated_at',
+        'user_last_update',
         'warehouses_key',
         'warehouse_manager',
         'phone_number',
         'email',
         'warehouse_type_id',
+        'location_id'
     ];
 
 
@@ -26,6 +29,15 @@ class WarehouseModel extends Model
         return $this->belongsTo(
             WarehouseTypeModel::class,
             'warehouse_type_id',
+            'id'
+        );
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(
+            LocationModel::class,
+            'location_id',
             'id'
         );
     }

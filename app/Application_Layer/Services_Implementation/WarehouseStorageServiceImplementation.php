@@ -2,44 +2,71 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\WarehouseDTOToEntityMapperInterface;
 use App\Contracts\WarehouseStorageRepositoryInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Models\WarehouseModel;
 use App\Application_Layer\ResultPattern;
+use App\Enterprise_Layer\Warehouse;
 use App\Mappers\DTO\WarehouseDTO;
 
 class WarehouseStorageServiceImplementation implements WarehouseStorageServiceInterface
 {
-
     private WarehouseStorageRepositoryInterface $warehouseStorageRepository;
-    private InterfaceMapperToEntity $dTOToEntityMapper;
-
+    private WarehouseDTOToEntityMapperInterface $dTOToEntityMapper;
+    private Warehouse $warehouseEntity;
     public function __construct(
         WarehouseStorageRepositoryInterface $warehouseStorageRepository,
-        InterfaceMapperToEntity             $dTOToEntityMapper
-    )
-    {
+        WarehouseDTOToEntityMapperInterface             $dTOToEntityMapper
+    ) {
         $this->warehouseStorageRepository = $warehouseStorageRepository;
-        $this->$dTOToEntityMapper = $dTOToEntityMapper;
+        $this->dTOToEntityMapper = $dTOToEntityMapper;
     }
 
 
     public function registerWarehouse(WarehouseDTO $warehouseDTO): ResultPattern
     {
-        $warehouseEntity = $this->dTOToEntityMapper->convertDTOToEntity(
-            $warehouseDTO);
+        $this->warehouseEntity = $this->dTOToEntityMapper->convertDTOToEntity(
+            $warehouseDTO
+        );
 
-        $this->warehouseStorageRepository->saveWarehouse(
-            $warehouseEntity);
+        $this->warehouseEntity->setCreationDate(
+            new \DateTime(
+                'now',
+                new \DateTimeZone(
+                    'America/Mexico_City'
+                )
+            )
+        );
+
+        $this->warehouseEntity->setLastUpdateDate(
+            new \DateTime(
+                'now',
+                new \DateTimeZone(
+                    'America/Mexico_City'
+                )
+            )
+        );
+        
+        $result =  $this->warehouseStorageRepository->saveWarehouse(
+            $this->warehouseEntity
+        );
+
+
+        if ($result->isFailure()) {
+            return ResultPattern::failure($result->getError());
+        }
+
         return ResultPattern::success(
-            "Warehouse has been registered");
+            "¡Almacén registrado con éxito!"
+        );
     }
 
     public function updateWarehouse(WarehouseDTO $warehouseDTO): ResultPattern
     {
         $warehouseEntity = $this->dTOToEntityMapper->convertDTOToEntity(
-            $warehouseDTO);
+            $warehouseDTO
+        );
         $this->warehouseStorageRepository->updateWarehouse($warehouseEntity);
         return ResultPattern::success("Warehouse has been updated");
 
@@ -59,7 +86,9 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
     public function updateFieldsByWarehouseId(int $warehouseId, array $fields): ResultPattern
     {
         $this->warehouseStorageRepository->updateFieldsByWarehouseId(
-            $warehouseId, $fields);
+            $warehouseId,
+            $fields
+        );
         return ResultPattern::success("Warehouse has been updated");
     }
 }

@@ -2,16 +2,14 @@
 
 namespace App\Mappers;
 
-use App\Contracts\ModelMapperToEntityInterface;
+use App\Contracts\LocationModelToLocationEntityMapperI;
 use App\Models\LocationModel;
 use App\Enterprise_Layer\Location;
 
-/**
- * @implements ModelMapperToEntityInterface<LocationModel, Location>
- */
-class LocationModelToLocationEntityMapper implements ModelMapperToEntityInterface
+
+class LocationModelToLocationEntityMapper implements LocationModelToLocationEntityMapperI
 {
-    public function convertModelToEntity($model): Location
+    public function convertModelToEntity(LocationModel $model): Location
     {
         /** @var LocationModel $model */
         $entity = new Location(

@@ -2,16 +2,14 @@
 
 namespace App\Mappers;
 
-use App\Contracts\InterfaceEntityToDTOMapper;
+use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
 use App\Enterprise_Layer\Location;
 use App\Mappers\DTO\LocationDetailDTO;
 
-/**
- * @implements InterfaceMapperToEntity<LocationDetailDTO, Location>
- */
-class LocationEntityToLocationDetailDTO implements InterfaceEntityToDTOMapper
+
+class LocationEntityToLocationDetailDTO implements LocationEntityToLocationDetailDTOMapperI
 {
-    public function convertEntityToDTO($location)
+    public function convertEntityToDTO(Location $location): LocationDetailDTO
     {
         return new LocationDetailDTO(
             $location->getId(),

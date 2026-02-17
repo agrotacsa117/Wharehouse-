@@ -6,7 +6,7 @@ use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\WarehouseDTO;
 use App\Mappers\DTO\WarehouseTypeListDTO;
 use App\Mappers\DTO\WarehouseTypeDetailDTO;
-use App\Mappers\DTO\Requests\WarehouseRequestDTO;
+use App\Mappers\DTO\Requests\WarehouseTypeRequestDTO;
 
 interface WarehouseTypeServiceInterface
 {
@@ -14,13 +14,12 @@ interface WarehouseTypeServiceInterface
 
     public function listWarehouseTypesNames(): array;
 
-    public function createWarehouseType(WarehouseRequestDTO $dto): ResultPattern;
+    public function createWarehouseType(WarehouseTypeRequestDTO $dto): ResultPattern;
 
     public function updateWarehouseType(
         int $id,
-        WarehouseRequestDTO $dto
+        WarehouseTypeRequestDTO $dto
     ): ResultPattern;
 
     public function deleteWarehouseType(int $id): ResultPattern;
 }
-//app\Contracts\WarehouseTypeServiceInterface.php

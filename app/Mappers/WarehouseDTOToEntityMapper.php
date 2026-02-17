@@ -2,25 +2,21 @@
 
 namespace App\Mappers;
 
-use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\WarehouseDTOToEntityMapperInterface;
 use App\Mappers\DTO\WarehouseDTO;
 use App\Enterprise_Layer\Warehouse;
 
 /**
- * @implements InterfaceMapperToEntity<WarehouseDTO, Warehouse>
+ * @implements WarehouseDTOToEntityMapperInterface<WarehouseDTO, Warehouse>
  */
-class WarehouseDTOToEntityMapper implements InterfaceMapperToEntity
+class WarehouseDTOToEntityMapper implements WarehouseDTOToEntityMapperInterface
 {
     public function convertDTOToEntity($tDTO): Warehouse
     {
-        return Warehouse::builder()->setWarehouseId(
-            $tDTO->getWarehouseId()
-        )->setUserId(
+        return Warehouse::builder()->setUserId(
             $tDTO->getUserId()
         )->setWarehousesName(
             $tDTO->getWarehouseName()
-        )->setWarehouseId(
-            $tDTO->getWarehouseId()
         )->setWarehousesKey(
             $tDTO->getWarehouseKey()
         )->setWarehouseManager(
@@ -30,9 +26,9 @@ class WarehouseDTOToEntityMapper implements InterfaceMapperToEntity
         )->setEmail(
             $tDTO->getEmail()
         )->setWarehouseTypeId(
-            $tDTO->getWarehouseType()
+            $tDTO->getWarehouseTypeId()
         )->setUserLastUpdate(
             $tDTO->getUserLastUpdate()
-        )->build();
+        )->setLocationId($tDTO->getLocationId())->build();
     }
 }

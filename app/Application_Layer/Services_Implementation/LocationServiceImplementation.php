@@ -8,24 +8,24 @@ use App\Contracts\LocationRepositoryInterface;
 use App\Mappers\DTO\Requests\LocationRequestDTO;
 use App\Mappers\DTO\LocationListDTO;
 use LDAP\Result;
-use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Enterprise_Layer\Location;
-use App\Contracts\InterfaceEntityToDTOMapper;
+use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
 
 class LocationServiceImplementation implements LocationServiceInterface
 {
     private LocationRepositoryInterface $locationRepository;
 
-    private InterfaceMapperToEntity $locationRequestDTOToLocation;
+    private LocationRequestDTOToLocationEntityMapperI $locationRequestDTOToLocation;
 
     private Location $updatedLocationEntity;
 
-    private InterfaceEntityToDTOMapper $entityToDTOMapper;
-    
+    private LocationEntityToLocationDetailDTOMapperI $entityToDTOMapper;
+
     public function __construct(
         LocationRepositoryInterface $locationRepository,
-        InterfaceMapperToEntity $locationRequestDTOToLocation,
-        InterfaceEntityToDTOMapper $entityToDTOMapper
+        LocationRequestDTOToLocationEntityMapperI $locationRequestDTOToLocation,
+        LocationEntityToLocationDetailDTOMapperI $entityToDTOMapper
     ) {
         $this->locationRepository = $locationRepository;
         $this->locationRequestDTOToLocation = $locationRequestDTOToLocation;
@@ -48,7 +48,7 @@ class LocationServiceImplementation implements LocationServiceInterface
             );
         }
 
-        $this->entityToDTOMapper->convertEntityToDTO($locationEntity);
+        $locationEntity = $this->entityToDTOMapper->convertEntityToDTO($locationEntity);
         return ResultPattern::success($locationEntity);
     }
 
@@ -68,15 +68,31 @@ class LocationServiceImplementation implements LocationServiceInterface
 
     public function createLocation(LocationRequestDTO $locationRequestDTO): ResultPattern
     {
+
         try {
             $locationEntity =  $this->locationRequestDTOToLocation
             ->convertDTOToEntity(
                 $locationRequestDTO
             );
 
+            $createdAt = new \DateTime(
+                'now',
+                new \DateTimeZone(
+                    'America/Mexico_City'
+                )
+            );
+
+            $locationEntity->setCreatedAt(
+                $createdAt
+            );
+
+            $locationEntity->setUpdatedAt($createdAt);
+            $locationEntity->setUpdatedAt($createdAt);
             $this->locationRepository->saveLocation(
                 $locationEntity
             );
+
+
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }

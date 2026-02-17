@@ -4,24 +4,26 @@ namespace App\Application_Layer\Repository_Implementation;
 
 use App\Contracts\WarehouseTypeRepositoryInterface;
 use App\Enterprise_Layer\WarehouseType;
-use App\Contracts\ModelMapperToEntityInterface;
-use App\Contracts\EntityToModelMapperInterface;
+use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
+use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
 use App\Models\WarehouseTypeModel;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
+use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
 use Illuminate\Database\QueryException;
 
 class WarehouseTypeRepositoryImplementation implements WarehouseTypeRepositoryInterface
 {
-    private ModelMapperToEntityInterface $warehouseTypeModelToWarehouseTypeMapper;
-    private EntityToModelMapperInterface $WarehouseTypeEntityToWarehouseTypeModelMapper;
+    private WarehouseTypeModelToWarehouseTypeEntityMapperI $warehouseTypeModelToWarehouseTypeMapper;
+    private WarehouseTypeEntityToWarehouseTypeModelMapperI $warehouseTypeEntityToWarehouseTypeModelMapper;
 
     public function __construct(
-        ModelMapperToEntityInterface $warehouseTypeModelToWarehouseTypeMapper,
-        EntityToModelMapperInterface $WarehouseTypeEntityToWarehouseTypeModelMapper
+        WarehouseTypeModelToWarehouseTypeEntityMapperI $warehouseTypeModelToWarehouseTypeMapper,
+        WarehouseTypeEntityToWarehouseTypeModelMapperI $warehouseTypeEntityToWarehouseTypeModelMapper
     ) {
         $this->warehouseTypeModelToWarehouseTypeMapper = $warehouseTypeModelToWarehouseTypeMapper;
-        $this->WarehouseTypeEntityToWarehouseTypeModelMapper = $WarehouseTypeEntityToWarehouseTypeModelMapper;
+        $this->warehouseTypeEntityToWarehouseTypeModelMapper = $warehouseTypeEntityToWarehouseTypeModelMapper;
     }
 
     public function findById(int $id): ?WarehouseType
@@ -33,7 +35,7 @@ class WarehouseTypeRepositoryImplementation implements WarehouseTypeRepositoryIn
         }
 
         return $this->warehouseTypeModelToWarehouseTypeMapper
-        ->convertModelToEntity(
+        ->convertWarehouseTypeModelToWarehouseTypeEntity(
             $warehouseTypeModel
         );
     }
@@ -49,12 +51,12 @@ class WarehouseTypeRepositoryImplementation implements WarehouseTypeRepositoryIn
         return $warehouseType;
     }
 
-    public function saveLocation(WarehouseType $location): void
+    public function saveWarehouseType(WarehouseType $warehouseType): void
     {
 
         try {
-            $warehouseType = $this->WarehouseTypeEntityToWarehouseTypeModelMapper
-            ->convertDomainEntityToModel($location);
+            $warehouseType = $this->warehouseTypeEntityToWarehouseTypeModelMapper
+            ->convertWarehouseTypeDomainEntityToWarehouseTypeModel($warehouseType);
 
             $warehouseType->save();
         } catch (\Throwable $th) {
@@ -85,8 +87,8 @@ class WarehouseTypeRepositoryImplementation implements WarehouseTypeRepositoryIn
 
     public function updateLocation(WarehouseType $location): void
     {
-        $warehouseTypeModel = $this->WarehouseTypeEntityToWarehouseTypeModelMapper
-        ->convertDomainEntityToModel(
+        $warehouseTypeModel = $this->warehouseTypeEntityToWarehouseTypeModelMapper
+        ->convertWarehouseTypeDomainEntityToWarehouseTypeModel(
             $location
         );
 

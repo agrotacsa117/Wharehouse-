@@ -17,5 +17,14 @@ class LocationModel extends Model
         'updated_at',
         'adress'
     ];
-    
+
+    public function warehouses()
+    {
+        return $this->hasMany(
+            WarehouseModel::class,
+            'location_id',
+            'id'
+        );
+    }
+
 }

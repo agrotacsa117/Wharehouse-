@@ -6,22 +6,15 @@ namespace App\Mappers;
 
 use App\Enterprise_Layer\Location;
 use App\Models\LocationModel;
-use App\Contracts\EntityToModelMapperInterface;
+use App\Contracts\LocationEntityToLocationModelMapperI;
 
-/**
- * @implements EntityToModelMapperInterface<Location, LocationModel>
- */
-class LocationEntityToLocationModel implements EntityToModelMapperInterface
+
+class LocationEntityToLocationModel implements LocationEntityToLocationModelMapperI
 {
-    public function convertDomainEntityToModel($tEntity): LocationModel
+    public function convertDomainEntityToModel(Location $tEntity): LocationModel
     {
         /** @var Location $entity */
         $model = new LocationModel();
-
-
-        if ($tEntity->getId() !== 0) {
-            $model->id = $tEntity->getId();
-        }
 
         $model->headquarters_name = $tEntity->getHeadquartersName();
         $model->postal_code = $tEntity->getPostalCode();

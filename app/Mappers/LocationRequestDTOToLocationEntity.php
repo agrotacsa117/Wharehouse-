@@ -2,20 +2,15 @@
 
 namespace App\Mappers;
 
-use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Enterprise_Layer\Location;
 use App\Mappers\DTO\Requests\LocationRequestDTO;
 
-/**
- * @implements InterfaceMapperToEntity<LocationRequestDTO, Location>
- */
-class LocationRequestDTOToLocationEntity implements InterfaceMapperToEntity
+
+class LocationRequestDTOToLocationEntity implements LocationRequestDTOToLocationEntityMapperI
 {
-    /**
-     * @param TDTO $tDTO
-     * @return TEntity
-     */
-    public function convertDTOToEntity($tDTO): Location
+
+    public function convertDTOToEntity(LocationRequestDTO $tDTO): Location
     {
         return new Location(
             $tDTO->getHeadquartersName(),

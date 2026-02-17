@@ -2,16 +2,14 @@
 
 namespace App\Mappers;
 
-use App\Contracts\ModelMapperToEntityInterface;
+use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
 use App\Models\WarehouseTypeModel;
 use App\Enterprise_Layer\WarehouseType;
 
-/**
- * @implements ModelMapperToEntityInterface<WarehouseTypeModel, WarehouseType>
- */
-class WarehouseTypeModelToWarehouseTypeEntityMapper implements ModelMapperToEntityInterface
+
+class WarehouseTypeModelToWarehouseTypeEntityMapper implements WarehouseTypeModelToWarehouseTypeEntityMapperI
 {
-    public function convertModelToEntity($model): WarehouseType
+    public function convertWarehouseTypeModelToWarehouseTypeEntity(WarehouseTypeModel $model): WarehouseType
     {
         if (!$model instanceof WarehouseTypeModel) {
             throw new \InvalidArgumentException(

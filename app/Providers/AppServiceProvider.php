@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Application_Layer\Repository_Implementation\LocationRepositoryImplementation;
 use Illuminate\Support\ServiceProvider;
 use App\Application_Layer\Repository_Implementation\UserFinderRepositoryImplementation;
+use App\Application_Layer\Repository_Implementation\WarehouseStorageRepositoryImplementation;
+use App\Application_Layer\Repository_Implementation\WarehouseTypeRepositoryImplementation;
 use App\Contracts\AuthServiceInterface;
 use App\Contracts\UserFinderRepositoryInterface;
 use App\Application_Layer\Services_Implementation\AuthServiceImplementation;
@@ -13,17 +15,37 @@ use App\Contracts\WarehouseStorageRepositoryInterface;
 use App\Application_Layer\Services_Implementation\WarehouseStorageServiceImplementation;
 use App\Contracts\LocationServiceInterface;
 use App\Application_Layer\Services_Implementation\LocationServiceImplementation;
+use App\Application_Layer\Services_Implementation\WarehouseTypeServiceImplementation;
 use App\Contracts\EntityToModelMapperInterface;
 use App\Contracts\InterfaceEntityToDTOMapper;
 use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
+use App\Contracts\LocationEntityToLocationModelMapperI;
+use App\Contracts\LocationModelToLocationEntityMapperI;
 use App\Contracts\LocationRepositoryInterface;
+use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Contracts\ModelMapperToEntityInterface;
+use App\Contracts\WarehouseTypeRepositoryInterface;
+use App\Contracts\WarehouseTypeServiceInterface;
 use App\Enterprise_Layer\Location;
+use App\Enterprise_Layer\WarehouseType;
 use App\Mappers\LocationRequestDTOToLocationEntity;
 use App\Mappers\LocationEntityToLocationDetailDTO;
 use App\Mappers\LocationEntityToLocationModel;
 use App\Mappers\LocationModelToLocationEntityMapper;
+use App\Mappers\WarehouseDTOToEntityMapper;
+use App\Mappers\WarehouseToWarehouseModelMapper;
+use App\Mappers\WarehouseTypeEntityToWarehouseTypeDetailDTO;
+use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
 use Dom\Entity;
+use App\Mappers\WarehouseTypeModelToWarehouseTypeEntityMapper;
+use App\Mappers\WarehouseTypeRequestDTOToWarehouseTypeEntity;
+use App\Contracts\WarehouseDTOToEntityMapperInterface;
+use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
+use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI;
+use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
             LocationServiceInterface::class,
             LocationServiceImplementation::class
         );
-        //
+
 
         $this->app->bind(
             LocationRepositoryInterface::class,
@@ -46,22 +68,22 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            ModelMapperToEntityInterface::class,
+            LocationModelToLocationEntityMapperI::class,
             LocationModelToLocationEntityMapper::class
         );
 
         $this->app->bind(
-            EntityToModelMapperInterface::class,
+            LocationEntityToLocationModelMapperI::class,
             LocationEntityToLocationModel::class
         );
 
         $this->app->bind(
-            InterfaceMapperToEntity::class,
+            LocationRequestDTOToLocationEntityMapperI::class,
             LocationRequestDTOToLocationEntity::class
         );
 
         $this->app->bind(
-            InterfaceEntityToDTOMapper::class,
+            LocationEntityToLocationDetailDTOMapperI::class,
             LocationEntityToLocationDetailDTO::class
         );
 
@@ -77,6 +99,54 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseStorageServiceInterface::class,
             WarehouseStorageServiceImplementation::class
+        );
+
+        $this->app->bind(
+            WarehouseStorageRepositoryInterface::class,
+            WarehouseStorageRepositoryImplementation::class
+        );
+
+        $this->app->bind(
+            WarehouseEntityToWarehouseModelMapperI::class,
+            WarehouseToWarehouseModelMapper::class
+        );
+
+        $this->app->bind(
+            WarehouseDTOToEntityMapperInterface::class,
+            WarehouseDTOToEntityMapper::class
+        );
+
+
+        $this->app->bind(
+            WarehouseTypeServiceInterface::class,
+            WarehouseTypeServiceImplementation::class
+        );
+
+        $this->app->bind(
+            WarehouseTypeRepositoryInterface::class,
+            WarehouseTypeRepositoryImplementation::class
+        );
+
+
+        $this->app->bind(
+            WarehouseTypeModelToWarehouseTypeEntityMapperI::class,
+            WarehouseTypeModelToWarehouseTypeEntityMapper::class
+        );
+
+        $this->app->bind(
+            WarehouseTypeEntityToWarehouseTypeModelMapperI::class,
+            WarehouseTypeEntityToWarehouseTypeModel::class
+        );
+
+
+        $this->app->bind(
+            WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI::class,
+            WarehouseTypeEntityToWarehouseTypeDetailDTO::class
+        );
+
+        $this->app->bind(
+            WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI::class,
+            WarehouseTypeRequestDTOToWarehouseTypeEntity::class
         );
     }
 
