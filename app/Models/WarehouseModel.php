@@ -41,4 +41,14 @@ class WarehouseModel extends Model
             'id'
         );
     }
+
+    public function inventories()
+    {
+        return $this->hasMany(
+            WarehouseInventoryModel::class,
+            'warehouse_id',
+            'id'
+        );
+    }
+
 }

@@ -90,4 +90,14 @@ class WarehouseStorageRepositoryImplementation implements
 
         return ResultPattern::success("Warehouse updated successfully");
     }
+
+    public function getIdAndName(): array
+    {
+        $listWarehouses = WarehouseModel::select(
+            'id',
+            'warehouses_name'
+        )->get()->toArray();
+
+        return $listWarehouses;
+    }
 }

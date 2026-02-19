@@ -20,4 +20,6 @@ interface WarehouseStorageRepositoryInterface {
     ): ResultPattern;
 
     public function findWarehouseById(int $warehouseId): ?WarehouseModel;
+
+    function getIdAndName(): array;
 }

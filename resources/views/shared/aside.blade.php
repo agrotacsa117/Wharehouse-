@@ -123,32 +123,6 @@
             </li>
         @endif
 
-        @if (auth()->user()->rol === 'admin')
-            <li class="nav-item mb-2">
-                <a class="nav-link" href="{{ route('warehouses.create') }}">
-                    <i class="fa-solid fa-users align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
-                    <span class="align-middle fw-bold">Registrar almacén</span>
-                </a>
-            </li>
-        @endif
-
-        @if (auth()->user()->rol === 'admin')
-            <li class="nav-item mb-2">
-                <a class="nav-link" href="{{ route('location.store') }}">
-                    <i class="fa-solid fa-map-marker-alt align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
-                    <span class="align-middle fw-bold">Registrar ubicación</span>
-                </a>
-            </li>
-        @endif
-
-        @if (auth()->user()->rol === 'admin')
-            <li class="nav-item mb-2">
-                <a class="nav-link" href="{{ route('warehouse-type.get') }}">
-                    <i class="fa-solid fa-boxes-stacked align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
-                    <span class="align-middle fw-bold">Registrar tipo de almacén</span>
-                </a>
-            </li>
-        @endif
 
         @php
             $warehouseRelatedRoutes = ['warehouses.create', 'location.store', 'warehouse-type.get'];
@@ -198,6 +172,17 @@
                 @endif
 
             </ul>
+
+
+            @if (auth()->user()->rol === 'admin')
+        <li class="nav-item mb-2">
+            <a class="nav-link {{ request()->routeIs('operation.get') ? '' : 'collapsed' }}"
+                href="{{ route('operation.get') }}">
+                <i class="fa-solid fa-truck align-middle me-2 fs-5"></i> {{-- Considera fa-truck-ramp-box o bi-person-rolodex --}}
+                <span class="align-middle fw-bold">Nueva entrada</span>
+            </a>
+        </li>
+        @endif
         </li>
 
 

@@ -102,6 +102,5 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
             );
         }
 
-
     }
 }

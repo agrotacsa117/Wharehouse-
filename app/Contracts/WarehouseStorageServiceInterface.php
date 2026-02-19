@@ -5,10 +5,8 @@ namespace App\Contracts;
 use App\Application_Layer\ResultPattern;
 use app\Mappers\DTO\WarehouseDTO;
 
-
 interface WarehouseStorageServiceInterface
 {
-
     public function registerWarehouse(WarehouseDTO $warehouse): ResultPattern;
 
     public function updateWarehouse(
@@ -26,5 +24,6 @@ interface WarehouseStorageServiceInterface
         array $fields
     ): ResultPattern;
 
+    public function getWarehouseIdAndName(): array;
 
 }

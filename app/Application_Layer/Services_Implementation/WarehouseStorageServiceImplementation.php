@@ -9,6 +9,7 @@ use App\Models\WarehouseModel;
 use App\Application_Layer\ResultPattern;
 use App\Enterprise_Layer\Warehouse;
 use App\Mappers\DTO\WarehouseDTO;
+use App\Mappers\DTO\WarehouseListDTO;
 
 class WarehouseStorageServiceImplementation implements WarehouseStorageServiceInterface
 {
@@ -47,7 +48,7 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
                 )
             )
         );
-        
+
         $result =  $this->warehouseStorageRepository->saveWarehouse(
             $this->warehouseEntity
         );
@@ -90,5 +91,19 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
             $fields
         );
         return ResultPattern::success("Warehouse has been updated");
+    }
+
+    public function getWarehouseIdAndName(): array
+    {
+        $warehouses = $this->warehouseStorageRepository->getIdAndName();
+
+        for ($i = 0; $i < count($warehouses); $i++) {
+            $warehouses[$i] = new WarehouseListDTO(
+                $warehouses[$i]['id'],
+                $warehouses[$i]['warehouses_name']
+            );
+        }
+
+        return $warehouses;
     }
 }

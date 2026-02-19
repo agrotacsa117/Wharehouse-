@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Mappers;
+
+use App\Contracts\WarehouseInventoryEntityToWarehouseInventoryModelMapperI;
+use App\Models\WarehouseInventoryModel;
+use App\Enterprise_Layer\WarehouseInventory;
+
+class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements WarehouseInventoryEntityToWarehouseInventoryModelMapperI
+{
+    public function warehouseInventoryEntityToWarehouseInventoryModel(
+        WarehouseInventory $warehouseInventory
+    ): WarehouseInventoryModel {
+
+        $warehouseInventoryModel = new WarehouseInventoryModel();
+
+        $warehouseInventoryModel->id = $warehouseInventory->getId();
+        $warehouseInventoryModel->warehouse_id = $warehouseInventory->getWarehouseId();
+        $warehouseInventoryModel->product_id = $warehouseInventory->getProductId();
+        $warehouseInventoryModel->rack = $warehouseInventory->getRack();
+        $warehouseInventoryModel->_level = $warehouseInventory->getLevel();
+        $warehouseInventoryModel->warehouse_name = $warehouseInventory->getWarehouseName();
+        $warehouseInventoryModel->quantity = $warehouseInventory->getQuantity();
+        $warehouseInventoryModel->lot_number = $warehouseInventory->getLotNumber();
+        $warehouseInventoryModel->reason = $warehouseInventory->getReason();
+        $warehouseInventoryModel->created_at = $warehouseInventory->getCreatedAt()->format('Y-m-d H:i:s');
+        $warehouseInventoryModel->updated_at = $warehouseInventory->getUpdatedAt()->format('Y-m-d H:i:s');
+        return $warehouseInventoryModel;
+    }
+}

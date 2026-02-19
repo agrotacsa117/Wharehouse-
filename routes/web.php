@@ -1,6 +1,7 @@
 <?php
 
 use App\Enterprise_Layer\Warehouse;
+use App\Enterprise_Layer\WarehouseInventory;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Categorias;
 use App\Http\Controllers\Usuarios;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Ventas;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRegistrationController;
 use App\Http\Controllers\WarehouseTypeController;
+use App\Http\Controllers\WareouseInventoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +53,12 @@ Route::get(
     '/warehouse-type',
     [WarehouseTypeController::class, 'getView']
 )->name('warehouse-type.get');
+
+Route::get(
+    '/operation',
+    [WareouseInventoryController::class, 'getView']
+)->name('operation.get');
+
 
 Route::post(
     '/warehouse-type',
