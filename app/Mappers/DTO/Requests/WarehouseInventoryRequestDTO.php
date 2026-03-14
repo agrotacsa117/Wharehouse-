@@ -4,7 +4,7 @@ namespace App\Mappers\DTO\Requests;
 
 class WarehouseInventoryRequestDTO
 {
-    private int $productId;
+    private string $productId;
     private int $warehouseId;
     private string $rack;
     private int $level;
@@ -14,7 +14,7 @@ class WarehouseInventoryRequestDTO
     private string $loteNumber;
 
     public function __construct(
-        int $productId,
+        string $productId,
         int $warehouseId,
         string $rack,
         int $level,
@@ -33,12 +33,12 @@ class WarehouseInventoryRequestDTO
         $this->loteNumber = $loteNumber;
     }
 
-    public function getProductId(): int
+    public function getProductId(): string
     {
         return $this->productId;
     }
 
-    public function setProductId(int $productId): void
+    public function setProductId(string $productId): void
     {
         $this->productId = $productId;
     }

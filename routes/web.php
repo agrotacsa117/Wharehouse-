@@ -8,9 +8,12 @@ use App\Http\Controllers\Usuarios;
 use App\Http\Controllers\Productos;
 use App\Http\Controllers\Dashboard;
 use App\Http\Controllers\LocationRegistrationController;
+use App\Http\Controllers\MovementsController;
+use App\Http\Controllers\OutputController;
 use App\Http\Controllers\Proveedores;
 use App\Http\Controllers\Reportes_productos;
 use App\Http\Controllers\Ventas;
+use App\Http\Controllers\WarehouseManagmentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRegistrationController;
 use App\Http\Controllers\WarehouseTypeController;
@@ -61,12 +64,49 @@ Route::get(
 
 
 Route::post(
+    '/operation',
+    [WareouseInventoryController::class, 'store']
+)->name('operation.get.store');
+
+
+Route::post(
     '/warehouse-type',
     [WarehouseTypeController::class, 'store']
 )->name('warehouse-type.store');
 
+Route::get(
+    '/warehouse-managment',
+    [WarehouseManagmentController::class, 'getView']
+)->name('warehouse-managment.get');
+
+Route::get(
+    '/warehouse-movements',
+    [MovementsController::class, 'getView']
+)->name('warehouse-movements.get');
+
+
+Route::post(
+    '/warehouse-movements/report',
+    [MovementsController::class, 'reportByPeriod']
+)->name('warehouse-movements.report');
+
+
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');
+
+Route::get(
+    '/output',
+    [OutputController::class,
+    'getView']
+)->name('output.get');
+
+
+Route::get('/output/{id}/inventory', [OutputController::class,
+'getInventory'])->name('output.inventory.get');
+
+Route::post('/output/process', [
+    OutputController::class,
+    'processOutput'])->name('output.inventory.process');
 
 Route::middleware("auth")->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');

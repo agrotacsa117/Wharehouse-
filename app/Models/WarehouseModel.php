@@ -51,4 +51,11 @@ class WarehouseModel extends Model
         );
     }
 
+    public function userLastUpdate(){
+        return $this->belongsTo(
+            User::class,
+            'user_last_update',
+            'id'
+        );
+    }
 }

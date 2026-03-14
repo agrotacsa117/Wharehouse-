@@ -29,7 +29,7 @@ class WarehouseRegistrationController extends Controller
 
     public function index()
     {
-        
+
         $headquarters = $this->locationService->listHeadquartersNames();
 
         $warehouseTypes = $this->warehouseTypeService->listWarehouseTypesNames();

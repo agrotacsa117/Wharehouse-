@@ -10,27 +10,29 @@ class WarehouseInventory
 {
     private int $id;
     private int $warehouseId;
-    private int $productId;
+    private string $productId;
     private string $rack;
     private int $level;
     private DateTime $createdAt;
     private DateTime $updatedAt;
-    private string $warehouseName;
+    private $warehouseName;
     private int $quantity;
     private string $lotNumber;
     private string $reason;
+    private \DateTime $expirationDate;
 
     public function __construct(
         int $warehouseId,
-        int $productId,
+        string $productId,
         string $rack,
         int $level,
         DateTime $createdAt,
         DateTime $updatedAt,
-        string $warehouseName,
+        $warehouseName,
         int $quantity,
         string $lotNumber,
-        string $reason
+        string $reason,
+        \DateTime $expirationDate
     ) {
         $this->warehouseId = $warehouseId;
         $this->productId = $productId;
@@ -42,6 +44,17 @@ class WarehouseInventory
         $this->quantity = $quantity;
         $this->lotNumber =  $lotNumber;
         $this->reason = $reason;
+        $this->expirationDate = $expirationDate;
+    }
+
+    public function getExpirationDate(): \DateTime
+    {
+        return $this->expirationDate;
+    }
+
+    public function setExpirationDate(\DateTime $expirationDate): void
+    {
+        $this->expirationDate = $expirationDate;
     }
 
     // ID
@@ -67,12 +80,12 @@ class WarehouseInventory
     }
 
     // Product ID
-    public function getProductId(): int
+    public function getProductId(): string
     {
         return $this->productId;
     }
 
-    public function setProductId(int $productId): void
+    public function setProductId(string $productId): void
     {
         $this->productId = $productId;
     }
@@ -122,13 +135,13 @@ class WarehouseInventory
     }
 
     // Getter para warehouseName
-    public function getWarehouseName(): string
+    public function getWarehouseName()
     {
         return $this->warehouseName;
     }
 
     // Setter para warehouseName
-    public function setWarehouseName(string $warehouseName): void
+    public function setWarehouseName($warehouseName): void
     {
         $this->warehouseName = $warehouseName;
     }

@@ -20,6 +20,7 @@ class Warehouse
     private string $email;
     private int $warehouseTypeId;
     private int $locationId;
+    
 
     public function __construct(
         WarehouseBuilder $warehouseBuilder

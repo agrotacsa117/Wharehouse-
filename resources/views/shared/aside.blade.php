@@ -10,41 +10,7 @@
         </li>
 
         @auth
-            @if (in_array(auth()->user()->rol, ['admin', 'tapachula', 'bodega_dorado']))
-                <li class="nav-item mb-2">
-                    <a class="nav-link {{ request()->routeIs('ventas-nueva', 'reporte.salidas') ? '' : 'collapsed' }}"
-                        data-bs-target="#salidas-nav" data-bs-toggle="collapse" href="#">
-                        <i class="fa-solid fa-truck-fast align-middle me-2 fs-5"></i>
-                        <span class="align-middle fw-bold">Salida del Almacen</span>
-                        <i class="bi bi-chevron-down ms-auto align-middle"></i>
-                    </a>
-                    <ul id="salidas-nav"
-                        class="nav-content collapse {{ request()->routeIs('ventas-nueva', 'reporte.salidas') ? 'show' : '' }}"
-                        data-bs-parent="#sidebar-nav">
-                        <li>
-                            <a href="{{ route('salida-productos') }}"
-                                class="{{ request()->routeIs('salida-productos') ? 'active' : '' }}">
-                                <span class="sub-item-text">Salida de Productos</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('reporte.salidas') }}"
-                                class="{{ request()->routeIs('reporte.salidas') ? 'active' : '' }}">
-                                <span class="sub-item-text">Reporte de Salidas</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endif
-
             @if (auth()->user()->rol === 'admin')
-                <li class="nav-item mb-2">
-                    <a class="nav-link {{ request()->routeIs('categorias.index') ? '' : 'collapsed' }}"
-                        href="{{ route('categorias.index') }}">
-                        <i class="fa-solid fa-layer-group align-middle me-2 fs-5"></i>
-                        <span class="align-middle fw-bold">Categorías</span>
-                    </a>
-                </li>
                 <li class="nav-item mb-2">
                     <a class="nav-link {{ request()->routeIs('rack.index') ? '' : 'collapsed' }}"
                         href="{{ route('rack.index') }}">
@@ -105,16 +71,6 @@
 
         @if (auth()->user()->rol === 'admin')
             <li class="nav-item mb-2">
-                <a class="nav-link {{ request()->routeIs('proveedores') ? '' : 'collapsed' }}"
-                    href="{{ route('proveedores') }}">
-                    <i class="fa-solid fa-truck align-middle me-2 fs-5"></i> {{-- Considera fa-truck-ramp-box o bi-person-rolodex --}}
-                    <span class="align-middle fw-bold">Proveedores</span>
-                </a>
-            </li>
-        @endif
-
-        @if (auth()->user()->rol === 'admin')
-            <li class="nav-item mb-2">
                 <a class="nav-link {{ request()->routeIs('usuarios') ? '' : 'collapsed' }}"
                     href="{{ route('usuarios') }}">
                     <i class="fa-solid fa-users align-middle me-2 fs-5"></i> {{-- Considera fa-users-cog o bi-people-fill --}}
@@ -125,7 +81,12 @@
 
 
         @php
-            $warehouseRelatedRoutes = ['warehouses.create', 'location.store', 'warehouse-type.get'];
+            $warehouseRelatedRoutes = [
+                'warehouses.create',
+                'location.store',
+                'warehouse-type.get',
+                'warehouse-managment.get',
+            ];
         @endphp
 
         <li class="nav-item mb-2">
@@ -171,15 +132,26 @@
                     </li>
                 @endif
 
+                @if (auth()->user()->rol === 'admin')
+                    <li>
+                        <a href="{{ route('warehouse-managment.get') }}"
+                            class="{{ request()->routeIs('warehouse-managment.get') ? 'active' : '' }}">
+                            <span class="sub-item-text">Administrar almacén</span>
+                        </a>
+                    </li>
+                @endif
+
             </ul>
 
 
-            @if (auth()->user()->rol === 'admin')
+          
+
+          @if (auth()->user()->rol === 'admin')
         <li class="nav-item mb-2">
-            <a class="nav-link {{ request()->routeIs('operation.get') ? '' : 'collapsed' }}"
-                href="{{ route('operation.get') }}">
-                <i class="fa-solid fa-truck align-middle me-2 fs-5"></i> {{-- Considera fa-truck-ramp-box o bi-person-rolodex --}}
-                <span class="align-middle fw-bold">Nueva entrada</span>
+            <a class="nav-link {{ request()->routeIs('warehouse-movements.get') ? '' : 'collapsed' }}"
+                href="{{ route('warehouse-movements.get') }}">
+                <i class="fa-solid fa-right-left align-middle me-2 fs-5"></i> {{-- Considera fa-truck-ramp-box o bi-person-rolodex --}}
+                <span class="align-middle fw-bold">Movimientos</span>
             </a>
         </li>
         @endif

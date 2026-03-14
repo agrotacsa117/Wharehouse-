@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts;
+namespace App\Application_Layer\Repository_Implementation;
 
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Enterprise_Layer\WarehouseInventory;
@@ -8,34 +8,31 @@ use App\Models\WarehouseInventoryModel;
 use App\Contracts\WarehouseInventoryEntityToWarehouseInventoryModelMapperI;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
+use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
-    private WarehouseInventoryEntityToWarehouseInventoryModelMapperI $WarehouseInventoryMapper;
+    private WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper;
+    
 
     public function __construct(
         WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper
     ) {
-        $this->WarehouseInventoryMapper = $warehouseInventoryMapper;
+        $this->warehouseInventoryMapper = $warehouseInventoryMapper;
     }
 
     public function findAll(): array
     {
-        $warehouseInventory = WarehouseInventoryModel::all();
-        $inventories = array();
-        $index = 0;
+        $warehouseInventory = WarehouseInventoryModel::with(
+            'warehouse'
+        )->get()->toArray();
 
-        foreach ($warehouseInventory as $inventory) {
-            $inventories[$index] = $inventory;
-            $index++;
-        }
-
-        return $inventories;
+        return $warehouseInventory;
     }
 
-    public function save(WarehouseInventory $warehouseInventory): void
+    public function save(WarehouseInventory $warehouseInventory): WarehouseInventory
     {
-        $warehouseInventoryModel = $this->WarehouseInventoryMapper
+        $warehouseInventoryModel = $this->warehouseInventoryMapper
         ->warehouseInventoryEntityToWarehouseInventoryModel(
             $warehouseInventory
         );
@@ -43,6 +40,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
         try {
             $warehouseInventoryModel->save();
+            $warehouseInventory->setId($warehouseInventoryModel->id);
         } catch (\Throwable $th) {
             throw new CouldNotPersistLocationException(
                 'Error saving inventory',
@@ -50,6 +48,8 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 $th
             );
         }
+
+        return  $warehouseInventory;
     }
 
     public function update(WarehouseInventory $warehouseInventory): void
@@ -82,4 +82,50 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         }
     }
 
+    public function existById(int $warehouseId, string $productId): bool
+    {
+        return WarehouseInventoryModel::where(
+            'product_id',
+            $productId
+        )->where(
+            'warehouse_id',
+            $warehouseId
+        )->exists();
+    }
+
+    function countDistinctByWarehouseId() : array{
+        $warehouseIds = WarehouseInventoryModel::select(
+            'warehouse_id')->distinct()->get();
+
+        $warehouseIds = $warehouseIds->toArray();
+        return $warehouseIds;    
+    }
+
+    public function findInventoryByWarehouseId(int $warehouseId) : array{
+        $inventory = WarehouseInventoryModel::where(
+            'warehouse_id', 
+            $warehouseId)->get();
+
+        $inventory = $inventory->toArray();
+
+        return $inventory;
+    }
+
+    function updateQuantity(
+        int $warehouseInventoryId, 
+        int $quantity) : bool{
+
+        return WarehouseInventoryModel::where(
+            'id', 
+            $warehouseInventoryId)->update(
+                ['quantity' => $quantity]) > 0;
+    }
+
+
+    function findQuantityById(
+        int $warehouseInventoryId) : int{
+        return WarehouseInventoryModel::where(
+            'id', $warehouseInventoryId)->value(
+            'quantity');
+    }
 }

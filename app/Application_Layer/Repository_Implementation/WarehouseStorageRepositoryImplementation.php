@@ -100,4 +100,44 @@ class WarehouseStorageRepositoryImplementation implements
 
         return $listWarehouses;
     }
+
+    public function getNameById(int $warehouseId): string
+    {
+        $warehousesName =  WarehouseModel::where(
+            'id',
+            $warehouseId
+        )->value('warehouses_name');
+
+        return $warehousesName;
+    }
+
+    public function findAll(): array
+    {
+        $warehouses = WarehouseModel::with([
+        'userLastUpdate:id,name',
+        'location:id,headquarters_name',
+        'warehouseType:id,category_warehouse'
+        ])->get();
+
+        return $warehouses->toArray();
+    }
+
+    public function count(): int
+    {
+        return WarehouseModel::count();
+    }
+
+    public function findWereIn(array $warehouseIds) : array{
+        $warehouse = WarehouseModel::select(
+            'id', 
+            'warehouses_name',
+            'location_id')->with('location:id,headquarters_name')
+            ->whereIn('id', $warehouseIds)
+            ->get();;
+        $warehouse = $warehouse->toArray();
+
+        return $warehouse;
+    }
+
+    
 }

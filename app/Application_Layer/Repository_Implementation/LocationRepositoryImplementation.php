@@ -103,4 +103,8 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
         }
 
     }
+
+    public function count(): int{
+        return LocationModel::count();
+    }
 }

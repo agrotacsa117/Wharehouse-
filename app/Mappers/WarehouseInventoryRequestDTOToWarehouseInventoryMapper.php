@@ -26,7 +26,8 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
             $warehouseName ?? '', // si no lo mandas queda vacío
             $warehouseInventoryRequestDTO->getQuantity(),
             $warehouseInventoryRequestDTO->getLoteNumber(),
-            $warehouseInventoryRequestDTO->getReason()
+            $warehouseInventoryRequestDTO->getReason(),
+            $warehouseInventoryRequestDTO->getExpirationDate()
         );
     }
 }

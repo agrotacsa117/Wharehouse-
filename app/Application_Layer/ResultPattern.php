@@ -24,6 +24,14 @@ class ResultPattern
         $this->value = $value;
     }
 
+    /**
+ * @return T|null
+ */
+    public function getValue()
+    {
+        return $this->value;
+    }
+
     public function isSuccess(): bool
     {
         return $this->isSuccess;

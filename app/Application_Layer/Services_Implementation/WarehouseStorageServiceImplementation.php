@@ -10,6 +10,8 @@ use App\Application_Layer\ResultPattern;
 use App\Enterprise_Layer\Warehouse;
 use App\Mappers\DTO\WarehouseDTO;
 use App\Mappers\DTO\WarehouseListDTO;
+use App\Mappers\DTO\WarehouseListDetailDTO;
+use App\Mappers\DTO\WarehouseWithLocationResponseDTO;
 
 class WarehouseStorageServiceImplementation implements WarehouseStorageServiceInterface
 {
@@ -101,6 +103,62 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
             $warehouses[$i] = new WarehouseListDTO(
                 $warehouses[$i]['id'],
                 $warehouses[$i]['warehouses_name']
+            );
+        }
+
+        return $warehouses;
+    }
+
+    public function getWarehouseNameById(int $warehouseId): string
+    {
+        return  $this->warehouseStorageRepository->getNameById(
+            $warehouseId
+        );
+    }
+
+    public function listAllWarehouses(): array
+    {
+        $warehouses = $this->warehouseStorageRepository
+        ->findAll();
+
+        for ($i = 0; $i < count($warehouses) ; $i++) {
+            $warehouses[$i] = new WarehouseListDetailDTO(
+                $warehouses[$i]['id'],
+                $warehouses[$i]['warehouses_name'],
+                new \DateTime($warehouses[$i]['created_at']),
+                new \DateTime($warehouses[$i]['updated_at']),
+                $warehouses[$i]['user_last_update']['id'],
+                $warehouses[$i]['user_last_update']['name'],
+                $warehouses[$i]['warehouses_key'],
+                $warehouses[$i]['warehouse_manager'],
+                $warehouses[$i]['phone_number'],
+                $warehouses[$i]['email'],
+                $warehouses[$i]['warehouse_type']['id'],
+                $warehouses[$i]['warehouse_type']['category_warehouse'],
+                $warehouses[$i]['location']['id'],
+                $warehouses[$i]['location']['headquarters_name'],
+            );
+        }
+
+        return  $warehouses;
+    }
+
+
+    public function getTotalWarehouse(): int
+    {
+        return $this->warehouseStorageRepository->count();
+    }
+
+    public function getListAllWarehousesWithLocation(
+        array $warehouseIds) :  array{
+        $warehouses = $this->warehouseStorageRepository
+        ->findWereIn($warehouseIds);
+
+        for ($i=0; $i <count($warehouseIds) ; $i++) { 
+            $warehouses[$i] = new WarehouseWithLocationResponseDTO(
+                $warehouses[$i]["id"],
+                $warehouses[$i]["warehouses_name"],
+                $warehouses[$i]["location"]["headquarters_name"]
             );
         }
 

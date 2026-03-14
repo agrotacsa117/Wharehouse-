@@ -15,4 +15,6 @@ interface LocationRepositoryInterface
     public function deleteLocation(int $idLocation): void;
 
     public function updateLocation(Location $location): void;
+
+    public function count(): int;
 }

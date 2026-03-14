@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Mappers;
+
+use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
+use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Models\WarehouseInventoryMovementsModel;
+
+class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInventoryMovementsEntityToModelMapperI
+{
+    public function mapToInventoryMovementsModel(
+        WarehouseInventoryMovements $warehouseInventoryMovements
+    ): WarehouseInventoryMovementsModel {
+        $model = new WarehouseInventoryMovementsModel();
+
+        $model->folio = $warehouseInventoryMovements->getFolio();
+        $model->warehouse_inventory_id = $warehouseInventoryMovements->getWarehouseInventoryId();
+        $model->movement_type = $warehouseInventoryMovements->getMovementType();
+        $model->quantity = $warehouseInventoryMovements->getQuantity();
+        $model->reason = $warehouseInventoryMovements->getReason();
+        $model->user_id = $warehouseInventoryMovements->getUserId();
+
+        // Si la entidad ya trae ID (caso update)
+        if ($warehouseInventoryMovements->getId() !== null) {
+            $model->id = $warehouseInventoryMovements->getId();
+        }
+
+        return $model;
+    }
+}

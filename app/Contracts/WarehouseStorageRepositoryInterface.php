@@ -6,8 +6,8 @@ use App\Application_Layer\ResultPattern;
 use App\Enterprise_Layer\Warehouse;
 use App\Models\WarehouseModel;
 
-interface WarehouseStorageRepositoryInterface {
-
+interface WarehouseStorageRepositoryInterface
+{
     public function saveWarehouse(Warehouse $warehouse): ResultPattern;
 
     public function deleteWarehouseByWarehouseId(int $warehouseId): ResultPattern;
@@ -15,11 +15,19 @@ interface WarehouseStorageRepositoryInterface {
     public function updateWarehouse(Warehouse $warehouse): ResultPattern;
 
     public function updateFieldsByWarehouseId(
-            int $warehouseId,
-            array $fields
+        int $warehouseId,
+        array $fields
     ): ResultPattern;
 
     public function findWarehouseById(int $warehouseId): ?WarehouseModel;
 
-    function getIdAndName(): array;
+    public function getIdAndName(): array;
+
+    public function getNameById(int $warehouseId): string;
+
+    public function findAll(): array;
+
+    public function count(): int;
+
+    public function findWereIn(array $ids) : array;
 }

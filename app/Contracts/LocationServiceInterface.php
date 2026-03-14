@@ -20,4 +20,6 @@ interface LocationServiceInterface
     ): ResultPattern;
 
     public function deleteLocation(int $id): ResultPattern;
+
+    function getTotalLocation() : int;
 }

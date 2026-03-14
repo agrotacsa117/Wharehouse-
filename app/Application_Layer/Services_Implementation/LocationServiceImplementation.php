@@ -150,4 +150,8 @@ class LocationServiceImplementation implements LocationServiceInterface
         }
         return ResultPattern::success(null);
     }
+
+    function getTotalLocation() : int{
+        return $this->locationRepository->count();
+    }
 }

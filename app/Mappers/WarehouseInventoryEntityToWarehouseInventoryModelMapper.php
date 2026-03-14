@@ -16,7 +16,6 @@ class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements Warehou
 
         $warehouseInventoryModel = new WarehouseInventoryModel();
 
-        $warehouseInventoryModel->id = $warehouseInventory->getId();
         $warehouseInventoryModel->warehouse_id = $warehouseInventory->getWarehouseId();
         $warehouseInventoryModel->product_id = $warehouseInventory->getProductId();
         $warehouseInventoryModel->rack = $warehouseInventory->getRack();
@@ -27,6 +26,7 @@ class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements Warehou
         $warehouseInventoryModel->reason = $warehouseInventory->getReason();
         $warehouseInventoryModel->created_at = $warehouseInventory->getCreatedAt()->format('Y-m-d H:i:s');
         $warehouseInventoryModel->updated_at = $warehouseInventory->getUpdatedAt()->format('Y-m-d H:i:s');
+        $warehouseInventoryModel->expiration_date = $warehouseInventory->getExpirationDate();
         return $warehouseInventoryModel;
     }
 }
