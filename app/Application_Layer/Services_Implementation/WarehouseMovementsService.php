@@ -82,13 +82,13 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         $finalFiltered = array();
         $match = true;
         $index = 0;
-        $hasFilter = false;
+        $hasFilter = true;
 
         if (!$movementsByPeriodFilterDTO
         ->getWarehouseId()
         && !$movementsByPeriodFilterDTO
         ->getMovementType()) {
-            $hasFilter = true;
+            $hasFilter = false;
         }
 
         for ($i = 0; $i < count($movementsFiltered) ; $i++) {
