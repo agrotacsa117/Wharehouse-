@@ -73,12 +73,23 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern {
 
-        $finalMovementsFiltered = array();
-        $match = false;
+
         $movementsFiltered = $this->warehouseMovementsRepository->findByDateRange(
             $movementsByPeriodFilterDTO->getStartDate(),
             $movementsByPeriodFilterDTO->getEndDate()
         );
+
+        $finalFiltered = array();
+        $match = true;
+        $index = 0;
+        $hasFilter = false;
+
+        if (!$movementsByPeriodFilterDTO
+        ->getWarehouseId()
+        && !$movementsByPeriodFilterDTO
+        ->getMovementType()) {
+            $hasFilter = true;
+        }
 
         for ($i = 0; $i < count($movementsFiltered) ; $i++) {
             $movementType =  $movementsFiltered[$i]['movement_type'];
@@ -98,18 +109,25 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
             $movementsFiltered[$i]['movement_type'] = $movementType;
 
-            $movementsFiltered[$i] = WarehouseMovementsListDetailDTO::fromModel(
+            $register = WarehouseMovementsListDetailDTO::fromModel(
                 $movementsFiltered[$i]
             );
 
-            if ($match) {
-                $finalMovementsFiltered[$i] = WarehouseMovementsListDetailDTO::fromModel(
-                    $movementsFiltered[$i]
-                );
+            $match = true;
+
+            if ($hasFilter && $register->getWarehouseId()
+                !== $movementsByPeriodFilterDTO->getWarehouseId()) {
+                $match = false;
             }
+
+            if ($match) {
+                $finalFiltered[$index] = $register;
+                $index++;
+            }
+
         }
 
-        return ResultPattern::success($finalMovementsFiltered);
+        return ResultPattern::success($finalFiltered);
     }
 
     public function generateMovementFolio(): string

@@ -51,7 +51,7 @@ class MovementsByPeriodFilterDTO
         $this->movementType = $movementType;
     }
 
-    public function getWarehouseId(): int
+    public function getWarehouseId(): ?int
     {
         return $this->warehouseId;
     }
