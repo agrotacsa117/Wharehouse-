@@ -6,9 +6,18 @@ use App\Models\Producto;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Contracts\WarehouseInventoryServiceInterface;
 
 class Dashboard extends Controller
 {
+    private WarehouseInventoryServiceInterface $warehouseInventoryService;
+
+    public function __construct(
+        WarehouseInventoryServiceInterface $warehouseInventoryService
+    ) {
+        $this->warehouseInventoryService = $warehouseInventoryService;
+    }
+
     public function index()
     {
         $titulo = "Panel de Control";
@@ -139,6 +148,13 @@ class Dashboard extends Controller
         $porcentajePorVencerTapachulaBarra = ($totalTapachula > 0) ? round(($porVencerYVencidosTapachula / $totalTapachula) * 100, 1) : 0;
         $porcentajePorVencerDoradoBarra = ($totalDorado > 0) ? round(($porVencerYVencidosDorado / $totalDorado) * 100, 1) : 0;
 
+        $stats = $this->warehouseInventoryService->getInventoryStatsByState();
+
+        $critical =  $stats[0] ?? 0;
+        $attention = $stats[1] ?? 0;
+        $ok = $stats[2] ?? 0;
+
+
         return view('module.dashboard.home', compact(
             'titulo',
             'totalTapachula',
@@ -169,7 +185,10 @@ class Dashboard extends Controller
             'porVencerYVencidosTapachula',
             'porVencerYVencidosDorado',
             'porcentajePorVencerTapachulaBarra',
-            'porcentajePorVencerDoradoBarra'
+            'porcentajePorVencerDoradoBarra',
+            'critical',
+            'attention',
+            'ok'
         ));
     }
 }

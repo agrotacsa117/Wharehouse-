@@ -93,7 +93,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
         for ($i = 0; $i < count($movementsFiltered) ; $i++) {
             $movementType =  $movementsFiltered[$i]['movement_type'];
-
+            $saveMovementType = $movementType;
             switch ($movementType) {
                 case 'IN':
                     $movementType = "Entrada";
@@ -106,6 +106,15 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                     break;
             }
 
+            $match = true;
+
+
+
+            if ($hasFilter
+            && $movementsByPeriodFilterDTO->getMovementType()
+            && $saveMovementType !== $movementsByPeriodFilterDTO->getMovementType()) {
+                $match = false;
+            }
 
             $movementsFiltered[$i]['movement_type'] = $movementType;
 
@@ -113,9 +122,8 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                 $movementsFiltered[$i]
             );
 
-            $match = true;
-
-            if ($hasFilter && $register->getWarehouseId()
+            if ($hasFilter && $movementsByPeriodFilterDTO->getWarehouseId()
+                && $register->getWarehouseId()
                 !== $movementsByPeriodFilterDTO->getWarehouseId()) {
                 $match = false;
             }
@@ -139,4 +147,6 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             STR_PAD_LEFT
         );
     }
+
+    
 }

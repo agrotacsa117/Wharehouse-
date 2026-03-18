@@ -52,9 +52,9 @@
                             <h5 class="card-title d-flex align-items-center gap-2 mb-4">
                                 <i class="bi bi-clock-history text-primary"></i>
                                 <span>Semáforo de Caducidad</span>
-                                @if (isset($criticoTotal) && $criticoTotal > 0)
+                                @if ( $critical->getTotalStock() > 0)
                                     <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $criticoTotal }} críticos
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $critical->getTotalStock() }} críticos
                                     </span>
                                 @endif
                             </h5>
@@ -72,7 +72,7 @@
                                                 <span class="fw-semibold text-danger">Crítico</span>
                                             </div>
                                             <h2 class="fw-bold mb-2" style="color: #dc2626; font-size: 2.5rem;">
-                                                {{ number_format($criticoTotal ?? 0, 0, ',', '.') }}
+                                                {{ number_format($critical->getTotalStock() ?? 0, 0, ',', '.') }}
                                             </h2>
                                             <p class="text-danger mb-3 small fw-medium">
                                                 <i class="bi bi-calendar-x me-1"></i>Menos de 90 días
@@ -108,7 +108,7 @@
                                                 <span class="fw-semibold" style="color: #a16207;">Atención</span>
                                             </div>
                                             <h2 class="fw-bold mb-2" style="color: #ca8a04; font-size: 2.5rem;">
-                                                {{ number_format($atencionTotal ?? 0, 0, ',', '.') }}
+                                                {{ number_format($attention->getTotalStock() ?? 0, 0, ',', '.') }}
                                             </h2>
                                             <p class="small fw-medium mb-3" style="color: #a16207;">
                                                 <i class="bi bi-calendar-event me-1"></i>Entre 90 y 120 días
@@ -144,7 +144,7 @@
                                                 <span class="fw-semibold text-success">OK</span>
                                             </div>
                                             <h2 class="fw-bold mb-2" style="color: #16a34a; font-size: 2.5rem;">
-                                                {{ number_format($okTotal ?? 0, 0, ',', '.') }}
+                                                {{ number_format($ok->getTotalStock() ?? 0, 0, ',', '.') }}
                                             </h2>
                                             <p class="text-success mb-3 small fw-medium">
                                                 <i class="bi bi-calendar-check me-1"></i>Más de 120 días

@@ -1735,9 +1735,9 @@
                         <label class="field-label">Tipo de movimiento</label>
                         <select class="tacsa-select" id="rptPeriodoTipoInline">
                             <option value="">Todos</option>
-                            <option value="Entrada">Entradas</option>
-                            <option value="Salida">Salidas</option>
-                            <option value="Ajuste">Ajustes</option>
+                            <option value="IN">Entradas</option>
+                            <option value="OUT">Salidas</option>
+                            <option value="ADJUSTMENT">Ajustes</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -2485,7 +2485,6 @@
                         .then(result => {
 
                             data = result.data;
-                            alert((JSON.stringify(data, null, 2)));
                             headers = [
                                 'Folio',
                                 'Fecha',

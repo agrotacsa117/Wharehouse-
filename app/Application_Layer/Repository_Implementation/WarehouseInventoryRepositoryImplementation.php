@@ -13,7 +13,7 @@ use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
     private WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper;
-    
+
 
     public function __construct(
         WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper
@@ -93,39 +93,67 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         )->exists();
     }
 
-    function countDistinctByWarehouseId() : array{
+    public function countDistinctByWarehouseId(): array
+    {
         $warehouseIds = WarehouseInventoryModel::select(
-            'warehouse_id')->distinct()->get();
+            'warehouse_id'
+        )->distinct()->get();
 
         $warehouseIds = $warehouseIds->toArray();
-        return $warehouseIds;    
+        return $warehouseIds;
     }
 
-    public function findInventoryByWarehouseId(int $warehouseId) : array{
+    public function findInventoryByWarehouseId(int $warehouseId): array
+    {
         $inventory = WarehouseInventoryModel::where(
-            'warehouse_id', 
-            $warehouseId)->get();
+            'warehouse_id',
+            $warehouseId
+        )->get();
 
         $inventory = $inventory->toArray();
 
         return $inventory;
     }
 
-    function updateQuantity(
-        int $warehouseInventoryId, 
-        int $quantity) : bool{
+    public function updateQuantity(
+        int $warehouseInventoryId,
+        int $quantity
+    ): bool {
 
         return WarehouseInventoryModel::where(
-            'id', 
-            $warehouseInventoryId)->update(
-                ['quantity' => $quantity]) > 0;
+            'id',
+            $warehouseInventoryId
+        )->update(
+            ['quantity' => $quantity]
+        ) > 0;
     }
 
 
-    function findQuantityById(
-        int $warehouseInventoryId) : int{
+    public function findQuantityById(
+        int $warehouseInventoryId
+    ): int {
         return WarehouseInventoryModel::where(
-            'id', $warehouseInventoryId)->value(
-            'quantity');
+            'id',
+            $warehouseInventoryId
+        )->value(
+            'quantity'
+        );
+    }
+
+    public function getInventoryStatsByState(): array
+    {
+        $query = WarehouseInventoryModel::selectRaw("
+            CASE 
+                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
+                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
+                ELSE 1
+            END AS state,
+            SUM(quantity) AS total_stock
+        ");
+
+        return $query->groupBy('state')
+            ->orderBy('state', 'DESC')
+            ->get()
+            ->toArray();
     }
 }

@@ -29,5 +29,5 @@ interface WarehouseInventoryRepositoryInterface
     function findQuantityById(
         int $warehouseInventoryId) : int;
 
-
+   public function getInventoryStatsByState(): array;
 }

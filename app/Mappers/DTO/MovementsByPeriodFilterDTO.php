@@ -2,7 +2,7 @@
 
 namespace App\Mappers\DTO;
 
-class MovementsByPeriodFilterDTO
+class MovementsByPeriodFilterDTO  implements \JsonSerializable
 {
     private string $startDate;
     private string $endDate;
@@ -59,5 +59,15 @@ class MovementsByPeriodFilterDTO
     public function setWarehouseId(?int $warehouseId): void
     {
         $this->warehouseId = $warehouseId;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'movementType' => $this->movementType,
+            'warehouseId' => $this->warehouseId,
+        ];
     }
 }

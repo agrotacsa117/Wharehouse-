@@ -21,12 +21,16 @@ interface WarehouseInventoryServiceInterface
         string $productId
     ): bool;
 
-    public function getWarehouseIdsWithInventory() : array;
+    public function getWarehouseIdsWithInventory(): array;
 
     public function getWarehouseInventoryByWarehouseId(
-        int $warehouseId) : array;
+        int $warehouseId
+    ): array;
 
     public function processInventoryOutput(
         RemoveWarehouseInventoryStockDTO $output
-    ) : ResultPattern; 
+    ): ResultPattern;
+
+
+    public function getInventoryStatsByState(): array;
 }

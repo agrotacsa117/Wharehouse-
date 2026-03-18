@@ -23,4 +23,7 @@ interface WarehouseMovementsServiceI
     public function filterTransactionsByDateRange(
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern;
+
+
+   
 }

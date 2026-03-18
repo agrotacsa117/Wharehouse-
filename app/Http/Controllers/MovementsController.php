@@ -68,6 +68,7 @@ class MovementsController extends Controller
         'warehouse_id' => 'nullable|integer'
         ]);
 
+        
         $startDate = $data['fecha_inicio'];
         $endDate = $data['fecha_fin'];
         

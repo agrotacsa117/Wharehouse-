@@ -16,6 +16,7 @@ use App\Mappers\DTO\WarehouseInventoryDetailDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\InventoryStatsByStateDTO;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -98,7 +99,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
 
             $folio = $this->warehouseMovementsService
-            ->generateMovementFolio(); 
+            ->generateMovementFolio();
 
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
@@ -107,8 +108,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $warehouseInventoryDTO->getQuantity(),
                 $warehouseInventoryDTO->getReason(),
                 auth()->id()
-             );
-           
+            );
+
 
             $this->warehouseMovementsService->saveWarehouseMovement(
                 $this->warehouseMovementsDTO
@@ -145,99 +146,115 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         );
     }
 
-    public function getWarehouseIdsWithInventory() : array{
+    public function getWarehouseIdsWithInventory(): array
+    {
         return $this->warehouseInventoryRepository
         ->countDistinctByWarehouseId();
     }
 
-    
+
     public function getWarehouseInventoryByWarehouseId(
-        int $warehouseId) : array{
-            $inventory =  $this->warehouseInventoryRepository
-            ->findInventoryByWarehouseId(
-                $warehouseId
-            );
+        int $warehouseId
+    ): array {
+        $inventory =  $this->warehouseInventoryRepository
+        ->findInventoryByWarehouseId(
+            $warehouseId
+        );
 
-            for ($i=0; $i <count($inventory) ; $i++) { 
-                $inventory[$i] = new WarehouseInventoryOutDetailDTO(
-                    $inventory[$i]['id'],
-                    $inventory[$i]['warehouse_id'],
-                    $inventory[$i]['rack'],
-                    $inventory[$i]['_level'],
-                    $inventory[$i]['product_id'],
-                    $inventory[$i]['warehouse_name'],
-                    $inventory[$i]['quantity'],
-                    $inventory[$i]['lot_number'],
-                    $inventory[$i]['expiration_date']
-                );
-            }
-
-            return $inventory;
-        }
-
-        public function processInventoryOutput(
-            RemoveWarehouseInventoryStockDTO $output
-        ) : ResultPattern{
-            
-            $quantity = $this->warehouseInventoryRepository
-            ->findQuantityById(
-                $output->getWarehouseInventoryId()
-            );
-
-            if ($output->getQuantity() > $quantity) {
-                return ResultPattern::failure(
-                    "¡Error! No puede retirar una cantidad "
-                    ."mayor al stock disponible."
-                );
-            }
-
-            $quantityUpdated = $quantity - $output->getQuantity(); 
-             
-            $updated = $this->warehouseInventoryRepository->updateQuantity(
-                $output->getWarehouseInventoryId(),
-                $quantityUpdated
-            );
-            
-            $folio = $this->warehouseMovementsService
-            ->generateMovementFolio();
-
-            $this->warehouseMovementsDTO =  $this->generateWarehouseMovementsDTO(
-                $folio,
-                $output->getWarehouseInventoryId(),
-                'OUT',
-                $output->getQuantity(),
-                $output->getReason(),
-                auth()->id()
-            );
-
-            $this->warehouseMovementsService->saveWarehouseMovement(
-                $this->warehouseMovementsDTO
-            );
-
-            if (!$updated) {
-                return ResultPattern::failure(
-                    "Error: no fue posible actualizar el inventario");
-            }
-
-            return ResultPattern::success($output);
-        }
-
-        public function generateWarehouseMovementsDTO(
-            string $folio,
-            int $warehouseInventoryId,
-            string $typeMovement,
-            int $quantity,
-            string $reason,
-            int $userId
-        ) : WarehouseMovementsDTO {
-
-            return new WarehouseMovementsDTO(
-                $folio,
-                $warehouseInventoryId,
-                $typeMovement,
-                $quantity,
-                $reason,
-                $userId
+        for ($i = 0; $i < count($inventory) ; $i++) {
+            $inventory[$i] = new WarehouseInventoryOutDetailDTO(
+                $inventory[$i]['id'],
+                $inventory[$i]['warehouse_id'],
+                $inventory[$i]['rack'],
+                $inventory[$i]['_level'],
+                $inventory[$i]['product_id'],
+                $inventory[$i]['warehouse_name'],
+                $inventory[$i]['quantity'],
+                $inventory[$i]['lot_number'],
+                $inventory[$i]['expiration_date']
             );
         }
+
+        return $inventory;
+    }
+
+    public function processInventoryOutput(
+        RemoveWarehouseInventoryStockDTO $output
+    ): ResultPattern {
+
+        $quantity = $this->warehouseInventoryRepository
+        ->findQuantityById(
+            $output->getWarehouseInventoryId()
+        );
+
+        if ($output->getQuantity() > $quantity) {
+            return ResultPattern::failure(
+                "¡Error! No puede retirar una cantidad "
+                ."mayor al stock disponible."
+            );
+        }
+
+        $quantityUpdated = $quantity - $output->getQuantity();
+
+        $updated = $this->warehouseInventoryRepository->updateQuantity(
+            $output->getWarehouseInventoryId(),
+            $quantityUpdated
+        );
+
+        $folio = $this->warehouseMovementsService
+        ->generateMovementFolio();
+
+        $this->warehouseMovementsDTO =  $this->generateWarehouseMovementsDTO(
+            $folio,
+            $output->getWarehouseInventoryId(),
+            'OUT',
+            $output->getQuantity(),
+            $output->getReason(),
+            auth()->id()
+        );
+
+        $this->warehouseMovementsService->saveWarehouseMovement(
+            $this->warehouseMovementsDTO
+        );
+
+        if (!$updated) {
+            return ResultPattern::failure(
+                "Error: no fue posible actualizar el inventario"
+            );
+        }
+
+        return ResultPattern::success($output);
+    }
+
+    public function getInventoryStatsByState(): array
+    {
+        $stats  = $this->warehouseInventoryRepository->getInventoryStatsByState();
+
+        foreach ($stats as $key => $stat) {
+            $stats[$key] = new InventoryStatsByStateDTO(
+                (int)($stat['state']),
+                (int)($stat['total_stock'])
+            );
+        }
+        return $stats;
+    }
+
+    public function generateWarehouseMovementsDTO(
+        string $folio,
+        int $warehouseInventoryId,
+        string $typeMovement,
+        int $quantity,
+        string $reason,
+        int $userId
+    ): WarehouseMovementsDTO {
+
+        return new WarehouseMovementsDTO(
+            $folio,
+            $warehouseInventoryId,
+            $typeMovement,
+            $quantity,
+            $reason,
+            $userId
+        );
+    }
 }
