@@ -52,9 +52,10 @@
                             <h5 class="card-title d-flex align-items-center gap-2 mb-4">
                                 <i class="bi bi-clock-history text-primary"></i>
                                 <span>Semáforo de Caducidad</span>
-                                @if ( $critical->getTotalStock() > 0)
+                                @if ($critical->getTotalStock() > 0)
                                     <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $critical->getTotalStock() }} críticos
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $critical->getTotalStock() }}
+                                        críticos
                                     </span>
                                 @endif
                             </h5>
@@ -78,16 +79,19 @@
                                                 <i class="bi bi-calendar-x me-1"></i>Menos de 90 días
                                             </p>
                                             <hr class="my-2" style="border-color: rgba(220, 38, 38, 0.2);">
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Tapachula:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #dc2626;">{{ number_format($criticoTapachula ?? 0, 0, ',', '.') }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Dorado:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #dc2626;">{{ number_format($criticoDorado ?? 0, 0, ',', '.') }}</span>
-                                            </div>
+                                            @forelse ($statsWarehouses[3] ?? [] as $warehouseStat)
+                                                <div class="d-flex justify-content-between small">
+                                                    <span
+                                                        class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #dc2626;">{{ number_format($warehouseStat->getTotalStock() ?? 0, 0, ',', '.') }}</span>
+                                                </div>
+                                            @empty
+                                                <div class="d-flex justify-content-between small">
+                                                    <span class="text-muted">Sin datos</span>
+                                                    <span class="fw-bold" style="color: #dc2626;">0</span>
+                                                </div>
+                                            @endforelse
                                         </div>
                                         {{-- Icono decorativo de fondo --}}
                                         <i class="bi bi-exclamation-triangle-fill position-absolute"
@@ -114,16 +118,19 @@
                                                 <i class="bi bi-calendar-event me-1"></i>Entre 90 y 120 días
                                             </p>
                                             <hr class="my-2" style="border-color: rgba(202, 138, 4, 0.2);">
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Tapachula:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #ca8a04;">{{ number_format($atencionTapachula ?? 0, 0, ',', '.') }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Dorado:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #ca8a04;">{{ number_format($atencionDorado ?? 0, 0, ',', '.') }}</span>
-                                            </div>
+                                            @forelse ($statsWarehouses[2] ?? [] as $warehouseStat)
+                                                <div class="d-flex justify-content-between small">
+                                                    <span
+                                                        class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #ca8a04;">{{ number_format($warehouseStat->getTotalStock() ?? 0, 0, ',', '.') }}</span>
+                                                </div>
+                                            @empty
+                                                <div class="d-flex justify-content-between small">
+                                                    <span class="text-muted">Sin datos</span>
+                                                    <span class="fw-bold" style="color: #ca8a04;">0</span>
+                                                </div>
+                                            @endforelse
                                         </div>
                                         {{-- Icono decorativo de fondo --}}
                                         <i class="bi bi-clock-fill position-absolute"
@@ -150,16 +157,19 @@
                                                 <i class="bi bi-calendar-check me-1"></i>Más de 120 días
                                             </p>
                                             <hr class="my-2" style="border-color: rgba(22, 163, 74, 0.2);">
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Tapachula:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #16a34a;">{{ number_format($okTapachula ?? 0, 0, ',', '.') }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between small">
-                                                <span class="text-muted">Dorado:</span>
-                                                <span class="fw-bold"
-                                                    style="color: #16a34a;">{{ number_format($okDorado ?? 0, 0, ',', '.') }}</span>
-                                            </div>
+                                            @forelse ($statsWarehouses[1] ?? [] as $warehouseStat)
+                                                <div class="d-flex justify-content-between small">
+                                                    <span
+                                                        class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
+                                                    <span class="fw-bold"
+                                                        style="color: #16a34a;">{{ number_format($warehouseStat->getTotalStock() ?? 0, 0, ',', '.') }}</span>
+                                                </div>
+                                            @empty
+                                                <div class="d-flex justify-content-between small">
+                                                    <span class="text-muted">Sin datos</span>
+                                                    <span class="fw-bold" style="color: #16a34a;">0</span>
+                                                </div>
+                                            @endforelse
                                         </div>
                                         {{-- Icono decorativo de fondo --}}
                                         <i class="bi bi-check-circle-fill position-absolute"

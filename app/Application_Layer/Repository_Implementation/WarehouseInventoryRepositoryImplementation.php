@@ -140,6 +140,8 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         );
     }
 
+
+    
     public function getInventoryStatsByState(): array
     {
         $query = WarehouseInventoryModel::selectRaw("
@@ -152,6 +154,26 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ");
 
         return $query->groupBy('state')
+            ->orderBy('state', 'DESC')
+            ->get()
+            ->toArray();
+    }
+
+    public function getInventoryStatsByStateAndWarehouse(): array
+    {
+        $query = WarehouseInventoryModel::selectRaw("
+            w.warehouses_name,
+            CASE 
+                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
+                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
+                ELSE 1
+            END AS state,
+            SUM(i.quantity) AS total_stock
+        ")
+        ->from('warehouse_inventory as i')
+        ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+
+        return $query->groupBy('w.warehouses_name', 'state')
             ->orderBy('state', 'DESC')
             ->get()
             ->toArray();

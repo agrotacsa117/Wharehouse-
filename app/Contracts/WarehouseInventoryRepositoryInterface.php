@@ -30,4 +30,6 @@ interface WarehouseInventoryRepositoryInterface
         int $warehouseInventoryId) : int;
 
    public function getInventoryStatsByState(): array;
+
+   public function getInventoryStatsByStateAndWarehouse(): array;
 }

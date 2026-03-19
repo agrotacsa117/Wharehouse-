@@ -7,6 +7,7 @@ use App\Http\Controllers\Categorias;
 use App\Http\Controllers\Usuarios;
 use App\Http\Controllers\Productos;
 use App\Http\Controllers\Dashboard;
+use App\Http\Controllers\DetailInventory;
 use App\Http\Controllers\LocationRegistrationController;
 use App\Http\Controllers\MovementsController;
 use App\Http\Controllers\OutputController;
@@ -100,6 +101,11 @@ Route::get(
     'getView']
 )->name('output.get');
 
+Route::get(
+    '/expiration-report',
+    [DetailInventory::class,
+'getView']
+);
 
 Route::get('/output/{id}/inventory', [OutputController::class,
 'getInventory'])->name('output.inventory.get');

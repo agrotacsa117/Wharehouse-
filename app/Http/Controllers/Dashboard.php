@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Contracts\WarehouseInventoryServiceInterface;
+use App\Mappers\DTO\InventoryStatsByStateDTO;
 
 class Dashboard extends Controller
 {
@@ -150,10 +151,38 @@ class Dashboard extends Controller
 
         $stats = $this->warehouseInventoryService->getInventoryStatsByState();
 
-        $critical =  $stats[0] ?? 0;
-        $attention = $stats[1] ?? 0;
-        $ok = $stats[2] ?? 0;
+        $statsWarehouses = $this->warehouseInventoryService
+        ->getInventoryStatsByStateAndWarehouse();
 
+        foreach ($stats as $key => $stat) {
+
+            switch ($stat->getState()) {
+                case 3:
+                    $critical = $stat;
+                    break;
+
+                case 2:
+                    $attention = $stat;
+                    break;
+
+                case 1:
+                    $ok = $stat;
+                    break;
+            }
+        }
+
+        $critical =  $critical ?? new InventoryStatsByStateDTO(
+            3,
+            0
+        );
+        $attention = $attention ?? new InventoryStatsByStateDTO(
+            2,
+            0
+        );
+        $ok = $ok ?? new InventoryStatsByStateDTO(
+            1,
+            0
+        );
 
         return view('module.dashboard.home', compact(
             'titulo',
@@ -188,7 +217,8 @@ class Dashboard extends Controller
             'porcentajePorVencerDoradoBarra',
             'critical',
             'attention',
-            'ok'
+            'ok',
+            'statsWarehouses'
         ));
     }
 }

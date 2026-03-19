@@ -239,6 +239,28 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $stats;
     }
 
+    public function getInventoryStatsByStateAndWarehouse(): array
+    {
+        $stats  = $this->warehouseInventoryRepository->getInventoryStatsByStateAndWarehouse();
+
+        $groupedStats = [
+            1 => [],
+            2 => [],
+            3 => []
+        ];
+
+        foreach ($stats as $stat) {
+            $state = (int)($stat['state']);
+            $groupedStats[$state][] = new InventoryStatsByStateDTO(
+                $state,
+                (int)($stat['total_stock']),
+                $stat['warehouses_name'] ?? ''
+            );
+        }
+
+        return $groupedStats;
+    }
+
     public function generateWarehouseMovementsDTO(
         string $folio,
         int $warehouseInventoryId,

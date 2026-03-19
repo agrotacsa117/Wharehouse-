@@ -24,6 +24,6 @@ interface WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern;
 
-
+    
    
 }

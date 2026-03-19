@@ -33,4 +33,6 @@ interface WarehouseInventoryServiceInterface
 
 
     public function getInventoryStatsByState(): array;
+
+    public function getInventoryStatsByStateAndWarehouse(): array;
 }
