@@ -141,6 +141,15 @@
                     </li>
                 @endif
 
+                @if (in_array(auth()->user()->rol, ['admin', 'tapachula', 'bodega_dorado']))
+                    <li>
+                        <a href="{{ route('inventory.management') }}"
+                            class="{{ request()->routeIs('inventory.management') ? 'active' : '' }}">
+                            <span class="sub-item-text">Gestión de Inventario</span>
+                        </a>
+                    </li>
+                @endif
+
             </ul>
 
 

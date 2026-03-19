@@ -17,6 +17,7 @@ use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
+use App\Mappers\DTO\TransferInventoryDTO;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -60,6 +61,11 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return $inventory;
+    }
+
+    public function getAllInventoryForManagement(): array
+    {
+        return $this->warehouseInventoryRepository->findAll();
     }
 
     public function create(
@@ -237,6 +243,151 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
         }
         return $stats;
+    }
+
+    public function getInventoryStatsByStateAndWarehouse(): array
+    {
+        $stats  = $this->warehouseInventoryRepository->getInventoryStatsByStateAndWarehouse();
+
+        $groupedStats = [
+            1 => [],
+            2 => [],
+            3 => []
+        ];
+
+        foreach ($stats as $stat) {
+            $state = (int)($stat['state']);
+            $groupedStats[$state][] = new InventoryStatsByStateDTO(
+                $state,
+                (int)($stat['total_stock']),
+                $stat['warehouses_name'] ?? ''
+            );
+        }
+
+        return $groupedStats;
+    }
+
+    public function getInventoryByState(int $state): array
+    {
+        return $this->warehouseInventoryRepository->getInventoryByState($state);
+    }
+
+    public function getInventoryById(int $id): ?array
+    {
+        return $this->warehouseInventoryRepository->findById($id);
+    }
+
+    public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): ResultPattern
+    {
+        $currentInventory = $this->warehouseInventoryRepository->findById($dto->getId());
+
+        if (!$currentInventory) {
+            return ResultPattern::failure("Inventario no encontrado.");
+        }
+
+        $quantityDiff = $dto->getQuantity() - (int)$currentInventory['quantity'];
+
+        $hasChanges = 
+            $quantityDiff !== 0 ||
+            $dto->getRack() !== $currentInventory['rack'] ||
+            $dto->getLevel() !== (int)$currentInventory['_level'] ||
+            $dto->getLotNumber() !== $currentInventory['lot_number'] ||
+            $dto->getExpirationDate() !== $currentInventory['expiration_date'];
+
+        try {
+            $updated = $this->warehouseInventoryRepository->updateById($dto->getId(), [
+                'rack' => $dto->getRack(),
+                '_level' => $dto->getLevel(),
+                'lot_number' => $dto->getLotNumber(),
+                'quantity' => $dto->getQuantity(),
+                'expiration_date' => $dto->getExpirationDate(),
+                'updated_at' => now()
+            ]);
+
+            if (!$updated) {
+                return ResultPattern::failure("No se pudo actualizar el inventario.");
+            }
+
+            if ($hasChanges) {
+                $folio = $this->warehouseMovementsService->generateMovementFolio();
+                $reason = "Edición: " . $dto->getReason();
+
+                $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
+                    $folio,
+                    $dto->getId(),
+                    'ADJUSTMENT',
+                    abs($quantityDiff),
+                    $reason,
+                    auth()->id()
+                );
+
+                $this->warehouseMovementsService->saveWarehouseMovement(
+                    $this->warehouseMovementsDTO
+                );
+            }
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure($th->getMessage());
+        }
+
+        return ResultPattern::success(null);
+    }
+
+    public function transferInventory(TransferInventoryDTO $dto): ResultPattern
+    {
+        $fromWarehouseName = $this->warehouseStorageService->getWarehouseNameById($dto->getFromWarehouseId());
+        $toWarehouseName = $this->warehouseStorageService->getWarehouseNameById($dto->getToWarehouseId());
+
+        if ($dto->getFromWarehouseId() === $dto->getToWarehouseId()) {
+            return ResultPattern::failure("No se puede transferir al mismo almacén.");
+        }
+
+        try {
+            $result = $this->warehouseInventoryRepository->transferInventory(
+                $dto->getInventoryId(),
+                $dto->getFromWarehouseId(),
+                $dto->getToWarehouseId(),
+                $dto->getRack(),
+                $dto->getLevel(),
+                $dto->getLotNumber(),
+                $dto->getQuantity(),
+                ''
+            );
+
+            if (!$result['success']) {
+                return ResultPattern::failure($result['error']);
+            }
+
+            $folioOut = $this->warehouseMovementsService->generateMovementFolio();
+            $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
+                $folioOut,
+                $dto->getInventoryId(),
+                'TRANSFER_OUT',
+                $dto->getQuantity(),
+                "Transferencia de {$fromWarehouseName} a {$toWarehouseName}: " . $dto->getReason(),
+                auth()->id()
+            );
+            $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
+
+            $folioIn = $this->warehouseMovementsService->generateMovementFolio();
+            $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
+                $folioIn,
+                $result['newInventoryId'],
+                'TRANSFER_IN',
+                $dto->getQuantity(),
+                "Recibido de {$fromWarehouseName}: " . $dto->getReason(),
+                auth()->id()
+            );
+            $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure($th->getMessage());
+        }
+
+        return ResultPattern::success([
+            'newInventoryId' => $result['newInventoryId'],
+            'remainingQuantity' => $result['remainingQuantity'] ?? 0
+        ]);
     }
 
     public function generateWarehouseMovementsDTO(

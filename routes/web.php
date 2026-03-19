@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRegistrationController;
 use App\Http\Controllers\WarehouseTypeController;
 use App\Http\Controllers\WareouseInventoryController;
+use App\Http\Controllers\InventoryManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -185,3 +186,9 @@ Route::get('/salidas/ticket-grupal/{ticket_pdf}', [Ventas::class, 'mostrarTicket
     ->where('ticket_pdf', '.*')
     ->name('salidas.ticket_grupal');
 Route::post('/salida-productos/actualizarGlobal', [Ventas::class, 'actualizarGlobal'])->name('salida-productos.actualizarGlobal');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/inventory-management', [InventoryManagementController::class, 'index'])->name('inventory.management');
+    Route::post('/inventory-management/update', [InventoryManagementController::class, 'update'])->name('inventory.update');
+    Route::post('/inventory-management/transfer', [InventoryManagementController::class, 'transfer'])->name('inventory.transfer');
+});

@@ -156,4 +156,119 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->get()
             ->toArray();
     }
+
+    public function getInventoryStatsByStateAndWarehouse(): array
+    {
+        $query = WarehouseInventoryModel::selectRaw("
+            w.warehouses_name,
+            CASE 
+                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
+                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
+                ELSE 1
+            END AS state,
+            SUM(i.quantity) AS total_stock
+        ")
+        ->from('warehouse_inventory as i')
+        ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+
+        return $query->groupBy('i.warehouse_id', 'state')
+            ->orderBy('state', 'DESC')
+            ->get()
+            ->toArray();
+    }
+
+    public function getInventoryByState(int $state): array
+    {
+        $query = WarehouseInventoryModel::selectRaw("
+            i.*,
+            w.warehouses_name,
+            DATEDIFF(i.expiration_date, CURDATE()) as days_remaining
+        ")
+        ->from('warehouse_inventory as i')
+        ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+
+        switch ($state) {
+            case 3:
+                $query->whereRaw('DATEDIFF(i.expiration_date, CURDATE()) < 90');
+                break;
+            case 2:
+                $query->whereRaw('DATEDIFF(i.expiration_date, CURDATE()) BETWEEN 90 AND 120');
+                break;
+            case 1:
+                $query->whereRaw('DATEDIFF(i.expiration_date, CURDATE()) > 120');
+                break;
+        }
+
+        return $query->orderBy('i.expiration_date', 'ASC')
+            ->get()
+            ->toArray();
+    }
+
+    public function findById(int $id): ?array
+    {
+        $inventory = WarehouseInventoryModel::with('warehouse')
+            ->where('id', $id)
+            ->first();
+
+        if (!$inventory) {
+            return null;
+        }
+
+        return $inventory->toArray();
+    }
+
+    public function updateById(int $id, array $data): bool
+    {
+        return WarehouseInventoryModel::where('id', $id)->update($data) > 0;
+    }
+
+    public function transferInventory(
+        int $inventoryId,
+        int $fromWarehouseId,
+        int $toWarehouseId,
+        string $rack,
+        int $level,
+        string $lotNumber,
+        int $quantity,
+        string $expirationDate
+    ): array {
+        $inventory = WarehouseInventoryModel::find($inventoryId);
+
+        if (!$inventory) {
+            return ['success' => false, 'error' => 'Inventario no encontrado'];
+        }
+
+        if ($inventory->warehouse_id !== $fromWarehouseId) {
+            return ['success' => false, 'error' => 'El inventario no pertenece al almacén de origen'];
+        }
+
+        if ($inventory->quantity < $quantity) {
+            return ['success' => false, 'error' => 'Cantidad insuficiente en el inventario'];
+        }
+
+        if ($inventory->quantity == $quantity) {
+            $inventory->delete();
+        } else {
+            $inventory->quantity = $inventory->quantity - $quantity;
+            $inventory->save();
+        }
+
+        $newInventory = new WarehouseInventoryModel();
+        $newInventory->warehouse_id = $toWarehouseId;
+        $newInventory->product_id = $inventory->product_id;
+        $newInventory->rack = $rack;
+        $newInventory->_level = $level;
+        $newInventory->warehouse_name = $inventory->warehouse_name;
+        $newInventory->quantity = $quantity;
+        $newInventory->lot_number = $lotNumber;
+        $newInventory->reason = "Transferencia";
+        $newInventory->expiration_date = $expirationDate;
+        $newInventory->save();
+
+        return [
+            'success' => true,
+            'newInventoryId' => $newInventory->id,
+            'remainingQuantity' => $inventory->quantity ?? 0
+        ];
+    }
 }

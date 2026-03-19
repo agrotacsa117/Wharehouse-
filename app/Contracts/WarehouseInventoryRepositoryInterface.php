@@ -30,4 +30,23 @@ interface WarehouseInventoryRepositoryInterface
         int $warehouseInventoryId) : int;
 
    public function getInventoryStatsByState(): array;
+
+   public function getInventoryStatsByStateAndWarehouse(): array;
+
+   public function getInventoryByState(int $state): array;
+
+   public function findById(int $id): ?array;
+
+   public function updateById(int $id, array $data): bool;
+
+   public function transferInventory(
+       int $inventoryId,
+       int $fromWarehouseId,
+       int $toWarehouseId,
+       string $rack,
+       int $level,
+       string $lotNumber,
+       int $quantity,
+       string $expirationDate
+   ): array;
 }

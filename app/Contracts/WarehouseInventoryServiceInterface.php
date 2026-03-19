@@ -33,4 +33,16 @@ interface WarehouseInventoryServiceInterface
 
 
     public function getInventoryStatsByState(): array;
+
+    public function getInventoryStatsByStateAndWarehouse(): array;
+
+    public function getInventoryByState(int $state): array;
+
+    public function getInventoryById(int $id): ?array;
+
+    public function getAllInventoryForManagement(): array;
+
+    public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): \App\Application_Layer\ResultPattern;
+
+    public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
 }
