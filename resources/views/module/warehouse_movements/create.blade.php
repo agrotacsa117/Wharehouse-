@@ -436,6 +436,16 @@
             color: var(--tacsa-blue);
         }
 
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: #8B5CF6;
+        }
+
+        .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.15);
+            color: #F97316;
+        }
+
         .stat-info h3 {
             font-size: 1.375rem;
             font-weight: 700;
@@ -727,6 +737,52 @@
             font-size: 0.75rem;
         }
 
+        .badge-transferencia-in {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            background: var(--tacsa-blue-light);
+            color: var(--tacsa-blue);
+        }
+
+        .badge-transferencia-out {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            background: rgba(124, 58, 237, 0.1);
+            color: #7c3aed;
+        }
+
+        .badge-traslado {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            background: rgba(124, 58, 237, 0.15);
+            color: #6d28d9;
+        }
+
+        .transfer-warehouse {
+            color: var(--tacsa-red);
+            font-weight: 500;
+        }
+
+        .transfer-warehouse-dest {
+            color: #6d28d9;
+            font-weight: 600;
+        }
+
         .badge-product {
             display: inline-block;
             padding: 0.25rem 0.625rem;
@@ -835,6 +891,11 @@
             background: var(--tacsa-red);
             color: #ffffff;
             border-color: var(--tacsa-red);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* ══════════════════════════════════
@@ -969,9 +1030,27 @@
         /* ══════════════════════════════════
            MODALS
         ══════════════════════════════════ */
+        .modal {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal.show {
+            display: block !important;
+        }
+        .modal.show .modal-dialog {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
         .modal-content {
             border: none;
             border-radius: 12px;
+            position: relative;
+            z-index: 1060;
         }
 
         .modal-header {
@@ -1385,6 +1464,24 @@
                     <span>Salidas</span>
                 </div>
             </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="bi bi-arrows-move"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ $movementsTotalTRANSFER }}</h3>
+                    <span>Traslados</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ $movementsTotalADJUSTMENT }}</h3>
+                    <span>Ajustes</span>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs -->
@@ -1419,6 +1516,7 @@
                             <option value="">Todos los tipos</option>
                             <option value="entrada">Entrada</option>
                             <option value="salida">Salida</option>
+                            <option value="traslado">Traslado</option>
                             <option value="ajuste">Ajuste</option>
                         </select>
                     </div>
@@ -1451,13 +1549,11 @@
                     <p>Los movimientos de entrada y salida se mostraran aqui</p>
                 </div>
                 <div class="table-footer" id="historialFooter">
-                    <span>Mostrando <strong id="showingCount">8</strong> de <strong>156</strong> movimientos</span>
-                    <div class="pagination-btns">
-                        <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+                    <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de <strong id="showingTotal">0</strong> movimientos</span>
+                    <div class="pagination-btns" id="paginationBtns">
+                        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i class="bi bi-chevron-left"></i></button>
+                        <span id="pageNumbers"></span>
+                        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i class="bi bi-chevron-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -1737,6 +1833,7 @@
                             <option value="">Todos</option>
                             <option value="IN">Entradas</option>
                             <option value="OUT">Salidas</option>
+                            <option value="TRANSFER">Traslados</option>
                             <option value="ADJUSTMENT">Ajustes</option>
                         </select>
                     </div>
@@ -1911,22 +2008,22 @@
 
     <!-- ══════════════════════════════════════════════
          MODAL: VER DETALLE
-    ══════════════════════════════════════════════ -->
+     ══════════════════════════════════════════════ -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="section-title">
                         <span class="bar"></span>
                         <h5>Detalle del Movimiento</h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" onclick="closeDetailModal()" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body" id="detailBody">
                     <!-- Filled by JS -->
                 </div>
                 <div class="modal-footer justify-content-end">
-                    <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
+                    <button type="button" class="btn-tacsa-cancel" onclick="closeDetailModal()">
                         <i class="bi bi-x-lg"></i> Cerrar
                     </button>
                 </div>
@@ -1973,13 +2070,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ══════════════════════════════════
-        //  SAMPLE DATA
+        //  DATA
         // ══════════════════════════════════
-        const movements = @json($movements);
+        const allMovements = @json($movements);
         const inventoryData = @json($inventories);
+        const paginationInfo = @json($paginationInfo);
+        
+        let filteredMovements = [...allMovements];
+        let pagination = {
+            total: paginationInfo ? paginationInfo.total : allMovements.length,
+            per_page: paginationInfo ? paginationInfo.per_page : 15,
+            current_page: 1,
+            last_page: Math.ceil(allMovements.length / (paginationInfo ? paginationInfo.per_page : 15))
+        };
 
         let deleteTarget = null;
         renderInventorySelects();
+        updatePagination();
+        renderMovements();
 
 
 
@@ -2026,13 +2134,17 @@
         // ══════════════════════════════════
         //  RENDER TABLE
         // ══════════════════════════════════
-        function renderMovements(data) {
+        function renderMovements() {
             const tbody = document.getElementById('movementsBody');
             const fragment = document.createDocumentFragment();
 
             tbody.innerHTML = '';
 
-            data.forEach(m => {
+            const start = (pagination.current_page - 1) * pagination.per_page;
+            const end = start + pagination.per_page;
+            const pageData = filteredMovements.slice(start, end);
+
+            pageData.forEach(m => {
 
                 let badgeClass, badgeIcon, badgeLabel;
 
@@ -2044,6 +2156,10 @@
                     badgeClass = 'badge-salida';
                     badgeIcon = 'bi-box-arrow-up';
                     badgeLabel = 'Salida';
+                } else if (m.movementType === 'TRANSFER') {
+                    badgeClass = 'badge-transferencia';
+                    badgeIcon = 'bi-arrow-left-right';
+                    badgeLabel = 'Traslado';
                 } else {
                     badgeClass = 'badge-ajuste';
                     badgeIcon = 'bi-arrow-repeat';
@@ -2052,6 +2168,14 @@
 
                 const qtyClass = m.quantity > 0 ? 'positive' : 'negative';
                 const qtyPrefix = m.movementType === 'IN' ? '+' : '-';
+
+                let warehouseDisplay = m.warehousesName;
+                if (m.movementType === 'TRANSFER' && m.reason) {
+                    const match = m.reason.match(/Traslado de\s+(.+?)\s+a\s+(.+?):/);
+                    if (match) {
+                        warehouseDisplay = `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.65rem;margin:0 3px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
+                    }
+                }
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -2062,7 +2186,7 @@
                 <div style="font-weight:500;">${m.productName}</div>
                 <div style="font-size:0.6875rem; color:var(--text-secondary);">${m.productId}</div>
             </td>
-            <td>${m.warehousesName}</td>
+            <td>${warehouseDisplay}</td>
             <td><span class="cell-qty ${qtyClass}">${qtyPrefix}${m.quantity}</span></td>
             <td><span class="badge-product">${m.lotNumber}</span></td>
             <td>
@@ -2083,6 +2207,57 @@
             tbody.appendChild(fragment);
         }
 
+        // ══════════════════════════════════
+        //  PAGINATION
+        // ══════════════════════════════════
+        function updatePagination() {
+            const from = (pagination.current_page - 1) * pagination.per_page + 1;
+            const to = Math.min(pagination.current_page * pagination.per_page, pagination.total);
+            
+            document.getElementById('showingFrom').textContent = pagination.total > 0 ? from : 0;
+            document.getElementById('showingTo').textContent = to;
+            document.getElementById('showingTotal').textContent = pagination.total;
+
+            document.getElementById('prevPageBtn').disabled = pagination.current_page <= 1;
+            document.getElementById('nextPageBtn').disabled = pagination.current_page >= pagination.last_page;
+
+            const pageNumbers = document.getElementById('pageNumbers');
+            pageNumbers.innerHTML = '';
+
+            let startPage = Math.max(1, pagination.current_page - 2);
+            let endPage = Math.min(pagination.last_page, pagination.current_page + 2);
+
+            if (endPage - startPage < 4) {
+                if (startPage === 1) {
+                    endPage = Math.min(5, pagination.last_page);
+                } else {
+                    startPage = Math.max(1, pagination.last_page - 4);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${i === pagination.current_page ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => goToPage(i);
+                pageNumbers.appendChild(btn);
+            }
+        }
+
+        function changePage(direction) {
+            const newPage = pagination.current_page + direction;
+            if (newPage >= 1 && newPage <= pagination.last_page) {
+                goToPage(newPage);
+            }
+        }
+
+        function goToPage(page) {
+            pagination.current_page = page;
+            updatePagination();
+            renderMovements();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function formatDate(dateStr) {
             const d = new Date(dateStr);
             return d.toLocaleDateString('es-MX', {
@@ -2096,21 +2271,39 @@
         //  FILTER
         // ══════════════════════════════════
         function filterMovements() {
-            alert("Entered here!");
             const search = document.getElementById('searchMovements').value.toLowerCase();
             const typeFilter = document.getElementById('filterType').value;
 
-            const filtered = movements.filter(m => {
+            filteredMovements = allMovements.filter(m => {
                 const matchesSearch = !search ||
-                    m.product.toLowerCase().includes(search) ||
-                    m.lote.toLowerCase().includes(search) ||
-                    m.id.toLowerCase().includes(search) ||
-                    m.warehouse.toLowerCase().includes(search);
-                const matchesType = !typeFilter || m.type === typeFilter;
-                return matchesSearch && matchesType;
+                    (m.productName && m.productName.toLowerCase().includes(search)) ||
+                    (m.productId && m.productId.toLowerCase().includes(search)) ||
+                    (m.lotNumber && m.lotNumber.toLowerCase().includes(search)) ||
+                    (m.warehousesName && m.warehousesName.toLowerCase().includes(search)) ||
+                    (m.folio && m.folio.toLowerCase().includes(search));
+
+                let typeMatch = false;
+                if (!typeFilter) {
+                    typeMatch = true;
+                } else if (typeFilter === 'entrada' && m.movementType === 'IN') {
+                    typeMatch = true;
+                } else if (typeFilter === 'salida' && m.movementType === 'OUT') {
+                    typeMatch = true;
+                } else if (typeFilter === 'traslado' && m.movementType === 'TRANSFER') {
+                    typeMatch = true;
+                } else if (typeFilter === 'ajuste' && m.movementType === 'ADJUSTMENT') {
+                    typeMatch = true;
+                }
+
+                return matchesSearch && typeMatch;
             });
 
-            renderMovements(filtered);
+            pagination.current_page = 1;
+            pagination.total = filteredMovements.length;
+            pagination.last_page = Math.ceil(filteredMovements.length / pagination.per_page) || 1;
+
+            updatePagination();
+            renderMovements();
         }
 
         // ══════════════════════════════════
@@ -2126,30 +2319,87 @@
         // ══════════════════════════════════
         //  VIEW DETAIL
         // ══════════════════════════════════
-        function viewDetail(id) {
-            const m = movements.find(x => x.id === id);
-            if (!m) return;
+        function viewDetail(folio) {
+            const m = movements.find(x => x.folio === folio);
+            if (!m) {
+                console.log('Movimiento no encontrado para folio:', folio);
+                return;
+            }
 
             let badgeHtml;
-            if (m.type === 'entrada') badgeHtml =
+            if (m.movementType === 'IN') badgeHtml =
                 '<span class="badge-entrada"><i class="bi bi-box-arrow-in-down"></i> Entrada</span>';
-            else if (m.type === 'salida') badgeHtml =
+            else if (m.movementType === 'OUT') badgeHtml =
                 '<span class="badge-salida"><i class="bi bi-box-arrow-up"></i> Salida</span>';
+            else if (m.movementType === 'TRANSFER') badgeHtml =
+                '<span class="badge-traslado"><i class="bi bi-arrow-left-right"></i> Traslado</span>';
             else badgeHtml = '<span class="badge-ajuste"><i class="bi bi-arrow-repeat"></i> Ajuste</span>';
 
+            let warehouseDisplay = m.warehousesName;
+            let warehouseLabel = 'Almacén';
+            if (m.movementType === 'TRANSFER' && m.reason) {
+                const match = m.reason.match(/Traslado de\s+(.+?)\s+a\s+(.+?):/);
+                if (match) {
+                    warehouseDisplay = `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.8rem;margin:0 5px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
+                    warehouseLabel = 'Origen → Destino';
+                }
+            }
+
             document.getElementById('detailBody').innerHTML = `
-                <div class="detail-row"><span class="detail-label">Folio</span><span class="detail-value" style="font-weight:600; color:var(--tacsa-red);">${m.id}</span></div>
-                <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-value">${formatDate(m.date)}</span></div>
+                <div class="detail-row"><span class="detail-label">Folio</span><span class="detail-value" style="font-weight:600; color:var(--tacsa-red);">${m.folio}</span></div>
+                <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-value">${formatDate(m.createdAt)}</span></div>
                 <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-value">${badgeHtml}</span></div>
-                <div class="detail-row"><span class="detail-label">Producto</span><span class="detail-value">${m.product} (${m.sku})</span></div>
-                <div class="detail-row"><span class="detail-label">Almacen</span><span class="detail-value">${m.warehouse}</span></div>
-                <div class="detail-row"><span class="detail-label">Cantidad</span><span class="detail-value cell-qty ${m.qty > 0 ? 'positive' : 'negative'}">${m.qty > 0 ? '+' : ''}${m.qty}</span></div>
-                <div class="detail-row"><span class="detail-label">Lote</span><span class="detail-value"><span class="badge-product">${m.lote}</span></span></div>
-                <div class="detail-row"><span class="detail-label">Rack / Nivel</span><span class="detail-value">${m.rack} / ${m.level}</span></div>
-                <div class="detail-row"><span class="detail-label">Motivo</span><span class="detail-value">${m.reason}</span></div>
+                <div class="detail-row"><span class="detail-label">Producto</span><span class="detail-value">${m.productName} (${m.productId})</span></div>
+                <div class="detail-row"><span class="detail-label">${warehouseLabel}</span><span class="detail-value">${warehouseDisplay}</span></div>
+                <div class="detail-row"><span class="detail-label">Cantidad</span><span class="detail-value cell-qty ${m.quantity > 0 ? 'positive' : 'negative'}">${m.quantity > 0 ? '+' : ''}${m.quantity}</span></div>
+                <div class="detail-row"><span class="detail-label">Lote</span><span class="detail-value"><span class="badge-product">${m.lotNumber}</span></span></div>
+                <div class="detail-row"><span class="detail-label">Rack / nivel</span><span class="detail-value">${m.rack} / ${m.level}</span></div>
+                <div class="detail-row"><span class="detail-label">Motivo</span><span class="detail-value">${m.reason || '-'}</span></div>
+                <div class="detail-row"><span class="detail-label">Usuario</span><span class="detail-value">${m.userName || '-'}</span></div>
             `;
 
-            new bootstrap.Modal(document.getElementById('detailModal')).show();
+            const modalEl = document.getElementById('detailModal');
+            if (modalEl) {
+                modalEl.style.display = 'block';
+                modalEl.classList.add('show');
+                modalEl.removeAttribute('aria-hidden');
+                modalEl.setAttribute('aria-modal', 'true');
+                modalEl.setAttribute('role', 'dialog');
+                
+                // Create backdrop if not exists
+                let backdrop = document.querySelector('.modal-backdrop.show');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop show';
+                    backdrop.style.position = 'fixed';
+                    backdrop.style.top = '0';
+                    backdrop.style.left = '0';
+                    backdrop.style.width = '100vw';
+                    backdrop.style.height = '100vh';
+                    backdrop.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                    backdrop.style.zIndex = '1050';
+                    document.body.appendChild(backdrop);
+                }
+                
+                // Close on backdrop click
+                backdrop.onclick = function() {
+                    closeDetailModal();
+                };
+            } else {
+                console.error('Modal no encontrado');
+            }
+        }
+
+        function closeDetailModal() {
+            const modalEl = document.getElementById('detailModal');
+            const backdrop = document.querySelector('.modal-backdrop.show');
+            if (modalEl) {
+                modalEl.style.display = 'none';
+                modalEl.classList.remove('show');
+            }
+            if (backdrop) {
+                backdrop.remove();
+            }
         }
 
         // ══════════════════════════════════
@@ -2555,10 +2805,11 @@
                             let typeBadge = '<span class="movement-badge badge-entry">Entrada</span>';
                             if (d.movementType === 'OUT') typeBadge =
                                 '<span class="movement-badge badge-exit">Salida</span>';
+                            else if (d.movementType === 'TRANSFER') typeBadge =
+                                '<span class="movement-badge badge-transfer">Traslado</span>';
                             else if (d.movementType === 'ADJUSTMENT') typeBadge =
                                 '<span class="movement-badge badge-adjust">Ajuste</span>';
-                            rows += '<tr><td>' + d.folio + '</td><td>' + d.createdAt + '</td><td>' + d
-                                .movementType +
+                            rows += '<tr><td>' + d.folio + '</td><td>' + d.createdAt + '</td><td>' + typeBadge +
                                 '</td><td>' + d.productName + '</td><td>' + d.warehousesName + '</td><td>' + d
                                 .quantity +'</td><td>' + d.lotNumber + '</td><td>' + '</td></tr>';
                             break;

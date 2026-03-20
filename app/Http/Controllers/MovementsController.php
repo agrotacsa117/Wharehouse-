@@ -25,9 +25,12 @@ class MovementsController extends Controller
         $this->warehouseStorageService = $warehouseStorageService;
     }
 
-    public function getView()
+    public function getView(Request $request)
     {
-        $movements =  $this->warehouseMovementsService->listAllMovements();
+        $page = (int) $request->get('page', 1);
+        $perPage = 15;
+
+        $movementsResult = $this->warehouseMovementsService->listAllMovementsPaginated($page, $perPage);
 
         $warehouses = $this->warehouseStorageService->getWarehouseIdAndName();
         $inventories  =  $this->warehouseInventoryService
@@ -41,11 +44,42 @@ class MovementsController extends Controller
             "IN"
         );
 
-        //enum('IN','','ADJUSTMENT')
         $movementsTotalOUT = $this->warehouseMovementsService
         ->countByMovementType(
             "OUT"
         );
+
+        $movementsTotalTRANSFER = $this->warehouseMovementsService
+        ->countByMovementType(
+            "TRANSFER"
+        );
+
+        $movementsTotalADJUSTMENT = $this->warehouseMovementsService
+        ->countByMovementType(
+            "ADJUSTMENT"
+        );
+
+        $movements = $this->warehouseMovementsService->listAllMovements();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'movements' => $movementsResult['data'],
+                'pagination' => [
+                    'total' => $movementsResult['total'],
+                    'per_page' => $movementsResult['per_page'],
+                    'current_page' => $movementsResult['current_page'],
+                    'last_page' => $movementsResult['last_page']
+                ]
+            ]);
+        }
+
+        $paginationInfo = [
+            'total' => $movementsResult['total'],
+            'per_page' => $movementsResult['per_page'],
+            'current_page' => $movementsResult['current_page'],
+            'last_page' => $movementsResult['last_page']
+        ];
+
         return view(
             'module.warehouse_movements.create',
             compact(
@@ -54,7 +88,10 @@ class MovementsController extends Controller
                 'movementsTotal',
                 'movementsTotalIN',
                 'movementsTotalOUT',
-                'warehouses'
+                'movementsTotalTRANSFER',
+                'movementsTotalADJUSTMENT',
+                'warehouses',
+                'paginationInfo'
             )
         );
     }

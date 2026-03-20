@@ -11,6 +11,7 @@ class WarehouseInventoryMovements
     public const TYPE_IN = 'IN';
     public const TYPE_OUT = 'OUT';
     public const TYPE_ADJUSTMENT = 'ADJUSTMENT';
+    public const TYPE_TRANSFER = 'TRANSFER';
 
     private $id;
     private $folio;
@@ -50,7 +51,8 @@ class WarehouseInventoryMovements
         $allowed = [
             self::TYPE_IN,
             self::TYPE_OUT,
-            self::TYPE_ADJUSTMENT
+            self::TYPE_ADJUSTMENT,
+            self::TYPE_TRANSFER
         ];
 
         if (!in_array($type, $allowed, true)) {

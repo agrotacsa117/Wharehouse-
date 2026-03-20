@@ -35,6 +35,24 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         return  $movements;
     }
 
+    public function listAllMovementsPaginated(int $page = 1, int $perPage = 15): array
+    {
+        $result = $this->warehouseMovementsRepository->findAllPaginated($perPage);
+
+        $movements = [];
+        foreach ($result['data'] as $movement) {
+            $movements[] = WarehouseMovementsListDetailDTO::fromModel($movement);
+        }
+
+        return [
+            'data' => $movements,
+            'total' => $result['total'],
+            'per_page' => $result['per_page'],
+            'current_page' => $result['current_page'],
+            'last_page' => $result['last_page']
+        ];
+    }
+
     public function getTotalOfMovements(): int
     {
         return $this->warehouseMovementsRepository->count();
@@ -103,6 +121,9 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                     break;
                 case 'ADJUSTMENT':
                     $movementType = "Ajuste";
+                    break;
+                case 'TRANSFER':
+                    $movementType = "Traslado";
                     break;
             }
 

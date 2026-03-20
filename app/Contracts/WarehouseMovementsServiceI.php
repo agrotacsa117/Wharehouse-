@@ -10,6 +10,8 @@ interface WarehouseMovementsServiceI
 {
     public function listAllMovements(): array;
 
+    public function listAllMovementsPaginated(int $page = 1, int $perPage = 15): array;
+
     public function getTotalOfMovements(): int;
 
     public function countByMovementType(string $movementType): int;

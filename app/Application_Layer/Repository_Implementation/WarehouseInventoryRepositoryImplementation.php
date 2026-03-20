@@ -229,8 +229,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         string $rack,
         int $level,
         string $lotNumber,
-        int $quantity,
-        string $expirationDate
+        int $quantity
     ): array {
         $inventory = WarehouseInventoryModel::find($inventoryId);
 
@@ -262,7 +261,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $newInventory->quantity = $quantity;
         $newInventory->lot_number = $lotNumber;
         $newInventory->reason = "Transferencia";
-        $newInventory->expiration_date = $expirationDate;
+        $newInventory->expiration_date = $inventory->expiration_date;
         $newInventory->save();
 
         return [

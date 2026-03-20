@@ -1,11 +1,9 @@
 # AGENTS.md - Warehouse Management System
 
 ## Project Overview
-- **Type**: Laravel 8 PHP Application
-- **PHP**: ^7.4.1
+- **Type**: Laravel 8 PHP Application (PHP ^7.4.1)
 - **Architecture**: Enterprise_Layer, Application_Layer, Infrastructure layers
-
----
+- **Primary Author**: 808 Labs
 
 ## Build / Lint / Test Commands
 
@@ -16,8 +14,8 @@ composer install && npm install && cp .env.example .env && php artisan key:gener
 
 ### Development
 ```bash
-php artisan serve              # Start server
-npm run watch                  # Watch assets (hot reload)
+php artisan serve              # Start server on localhost:8000
+npm run watch                  # Hot reload assets
 npm run dev | npm run prod     # Build assets
 ```
 
@@ -51,38 +49,33 @@ php artisan test               # Run all tests
 php artisan migrate
 php artisan migrate:fresh --seed   # Fresh DB (destructive)
 php artisan db:seed
-php artisan tinker                 # Interactive REPL
+php artisan tinker                # Interactive REPL
 ```
-
----
 
 ## Code Style
 
-### EditorConfig (.editorconfig)
-- **Indentation**: 4 spaces
-- **Line endings**: LF
-- **Charset**: UTF-8
-- **Final newline**: Yes
-- **Trailing whitespace**: Remove
+### EditorConfig
+- **Indentation**: 4 spaces | **YAML**: 2 spaces
+- **Line endings**: LF | **Charset**: UTF-8
+- **Final newline**: Yes | **Trailing whitespace**: Remove
 
 ### PHP CS Fixer
-- Preset: Laravel (`@auto`)
-- Config: `.styleci.yml`
-- No tabs, strict ordering of imports
+- **Version**: ^3.86 | **Preset**: Laravel (`@auto`)
+- **Config**: `.styleci.yml` (disabled: `unused_use`)
+- No comments unless explicitly requested
 
 ### Naming Conventions
 | Element | Convention | Example |
 |---------|------------|---------|
 | Classes | PascalCase | `WarehouseInventory` |
-| Interfaces | PascalCase + `Interface` | `WarehouseInventoryServiceInterface` |
-| Methods | camelCase | `getAllWarehouseInventories()` |
-| Variables | camelCase | `$warehouseInventory` |
+| Interfaces | PascalCase + `Interface` | `WarehouseServiceInterface` |
+| Methods/Vars | camelCase | `getAllWarehouses()`, `$warehouseId` |
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
 | Tables | snake_case, plural | `warehouse_inventories` |
+| Test files | `XxxTest.php` | `WarehouseTest.php` |
 
 ### Import Statements
-- One `use` per line, sorted alphabetically
-- Groups: PHP core → Laravel → Custom
+One `use` per line, sorted alphabetically. Groups: PHP core → Laravel → Custom
 ```php
 use App\Application_Layer\ResultPattern;
 use App\Contracts\ProductServiceInterface;
@@ -95,12 +88,10 @@ use Illuminate\Http\Request;
 - Return type hints when possible
 - PHPdoc for arrays and complex types
 
----
-
 ## Architecture Layers
 
 ### Enterprise_Layer (`app/Enterprise_Layer/`)
-- Pure PHP domain entities (no framework deps)
+- Pure PHP domain entities (NO framework dependencies)
 - Business logic and rules
 - Custom exceptions in `Exception/` subfolder
 - Entities: `Warehouse`, `Location`, `WarehouseInventory`
@@ -115,44 +106,36 @@ use Illuminate\Http\Request;
 - Naming: `XxxServiceInterface`, `XxxRepositoryInterface`
 
 ### Infrastructure (`app/Infrastructure/`)
-- Request validation classes
-- Exception handling
+- Request validation classes, exception handling
 - Framework-specific implementations
 
 ### Models (`app/Models/`)
-- Eloquent ORM models
-- Follow Laravel conventions
+- Eloquent ORM models (follow Laravel conventions)
 
-### Mappers (`app/Mappers/`)
+### Mappers (`app/Mappers/DTO/Requests/`)
 - DTO <-> Entity mapping
-- Request DTOs: `app/Mappers/DTO/Requests/`
-
----
 
 ## Key Patterns
 
 ### Result Pattern
 ```php
-public function create(WarehouseInventoryRequestDTO $dto): ResultPattern
+public function create(DTO $dto): ResultPattern
 {
     if ($condition) {
         return ResultPattern::failure("Error message");
     }
     return ResultPattern::success($result);
 }
-
 // Usage
 $result = $service->create($dto);
-if ($result->isFailure()) {
-    return $result->getError();
-}
+if ($result->isFailure()) { return $result->getError(); }
 $value = $result->getValue();
 ```
 
 ### Builder Pattern (Entities)
 ```php
 $warehouse = Warehouse::builder()
-    ->setWarehouseName('Main Warehouse')
+    ->setWarehouseName('Main')
     ->setWarehouseKey('WH-001')
     ->build();
 ```
@@ -161,51 +144,17 @@ $warehouse = Warehouse::builder()
 - Interfaces in `app/Contracts/`
 - Implementations in `app/Application_Layer/`
 
----
-
 ## Error Handling
 1. **Domain exceptions**: Throw from `Enterprise_Layer/Exception/`
 2. **Infrastructure exceptions**: Handle in `Infrastructure/Exception/`
 3. **Application layer**: Catch exceptions, convert to `ResultPattern::failure()`
 4. **Controllers**: Return appropriate HTTP responses
 
-```php
-try {
-    $result = $this->repository->save($entity);
-} catch (\Throwable $th) {
-    return ResultPattern::failure($th->getMessage());
-}
-```
-
----
-
 ## Testing Guidelines
 - Unit tests: `tests/Unit/` → extend `PHPUnit\Framework\TestCase`
 - Feature tests: `tests/Feature/` → extend `Tests\TestCase`
-- Test file suffix: `Test.php`
-- Test method prefix: `test` or `@test` annotation
+- Test file suffix: `Test.php`, method prefix: `test` or `@test`
 - Use factories: `database/factories/`
-
----
-
-## File Structure
-```
-app/
-├── Application_Layer/
-│   ├── Services_Implementation/
-│   ├── Repository_Implementation/
-│   └── ResultPattern.php
-├── Contracts/                    # Interfaces
-├── Enterprise_Layer/            # Domain entities
-│   └── Exception/
-├── Http/Controllers/
-├── Infrastructure/
-│   └── Exception/
-├── Mappers/DTO/Requests/
-└── Models/
-```
-
----
 
 ## Precautions
 - Never commit secrets; use `.env.example`

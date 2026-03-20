@@ -27,11 +27,34 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         $movements = WarehouseInventoryMovementsModel::with(
             ['inventory.warehouse',
             'user']
-        )->get();
+        )->orderBy('created_at', 'asc')
+        ->get();
 
         $movements = $movements->toArray();
 
         return $movements;
+    }
+
+    public function findAllPaginated(int $perPage = 15): array
+    {
+        $paginator = WarehouseInventoryMovementsModel::with(
+            ['inventory.warehouse',
+            'user']
+        )
+        ->orderBy('created_at', 'asc')
+        ->paginate($perPage);
+
+        $items = collect($paginator->items())->map(function ($item) {
+            return $item->toArray();
+        })->toArray();
+
+        return [
+            'data' => $items,
+            'total' => $paginator->total(),
+            'per_page' => $paginator->perPage(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage()
+        ];
     }
 
     public function findByInventoryId(int $inventoryId): array

@@ -8,6 +8,8 @@ interface WarehouseMovementsRepositoryI
 {
     public function findAll(): array;
 
+    public function findAllPaginated(int $perPage = 15): array;
+
     public function findByInventoryId(int $inventoryId): array;
 
     public function save(WarehouseInventoryMovements $data): void;

@@ -39,14 +39,13 @@ interface WarehouseInventoryRepositoryInterface
 
    public function updateById(int $id, array $data): bool;
 
-   public function transferInventory(
-       int $inventoryId,
-       int $fromWarehouseId,
-       int $toWarehouseId,
-       string $rack,
-       int $level,
-       string $lotNumber,
-       int $quantity,
-       string $expirationDate
-   ): array;
+    public function transferInventory(
+        int $inventoryId,
+        int $fromWarehouseId,
+        int $toWarehouseId,
+        string $rack,
+        int $level,
+        string $lotNumber,
+        int $quantity
+    ): array;
 }

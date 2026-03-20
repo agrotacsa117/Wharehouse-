@@ -350,32 +350,20 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $dto->getRack(),
                 $dto->getLevel(),
                 $dto->getLotNumber(),
-                $dto->getQuantity(),
-                ''
+                $dto->getQuantity()
             );
 
             if (!$result['success']) {
                 return ResultPattern::failure($result['error']);
             }
 
-            $folioOut = $this->warehouseMovementsService->generateMovementFolio();
+            $folio = $this->warehouseMovementsService->generateMovementFolio();
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
-                $folioOut,
+                $folio,
                 $dto->getInventoryId(),
-                'TRANSFER_OUT',
+                'TRANSFER',
                 $dto->getQuantity(),
-                "Transferencia de {$fromWarehouseName} a {$toWarehouseName}: " . $dto->getReason(),
-                auth()->id()
-            );
-            $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
-
-            $folioIn = $this->warehouseMovementsService->generateMovementFolio();
-            $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
-                $folioIn,
-                $result['newInventoryId'],
-                'TRANSFER_IN',
-                $dto->getQuantity(),
-                "Recibido de {$fromWarehouseName}: " . $dto->getReason(),
+                "Traslado de {$fromWarehouseName} a {$toWarehouseName}: " . $dto->getReason(),
                 auth()->id()
             );
             $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
