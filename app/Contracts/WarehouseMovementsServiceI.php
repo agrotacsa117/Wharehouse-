@@ -26,6 +26,7 @@ interface WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern;
 
+    public function getMovementsByProductId(string $productId): array;
 
-   
+
 }

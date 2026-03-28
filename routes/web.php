@@ -91,6 +91,26 @@ Route::post(
     [MovementsController::class, 'reportByPeriod']
 )->name('warehouse-movements.report');
 
+Route::post(
+    '/warehouse-movements/report-product',
+    [MovementsController::class, 'reportByProduct']
+)->name('warehouse-movements.report-product');
+
+Route::post(
+    '/warehouse-movements/racks-levels',
+    [MovementsController::class, 'getRacksAndLevels']
+)->name('warehouse-movements.racks-levels');
+
+Route::post(
+    '/warehouse-movements/report-warehouse',
+    [MovementsController::class, 'reportByWarehouse']
+)->name('warehouse-movements.report-warehouse');
+
+Route::post(
+    '/warehouse-movements/report-caducidad',
+    [MovementsController::class, 'reportByCaducidad']
+)->name('warehouse-movements.report-caducidad');
+
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');

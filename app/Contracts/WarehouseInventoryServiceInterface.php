@@ -38,6 +38,12 @@ interface WarehouseInventoryServiceInterface
 
     public function getInventoryByState(int $state): array;
 
+    public function getInventoryByProductId(string $productId): array;
+
+    public function getInventoryByWarehouse(int $warehouseId, ?string $rack = null, ?int $level = null): array;
+
+    public function getExpiredInventory(): array;
+
     public function getInventoryById(int $id): ?array;
 
     public function getAllInventoryForManagement(): array;
@@ -45,4 +51,6 @@ interface WarehouseInventoryServiceInterface
     public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): \App\Application_Layer\ResultPattern;
 
     public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
+
+    public function getExpiredInventoryRanking(): array;
 }

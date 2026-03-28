@@ -19,4 +19,6 @@ interface WarehouseMovementsRepositoryI
     public function countByMovementType(string $movementType): int;
 
     public function findByDateRange(string $startDate, string $endDate): array;
+
+    public function findByProductId(string $productId): array;
 }

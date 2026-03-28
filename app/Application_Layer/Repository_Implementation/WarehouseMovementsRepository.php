@@ -115,4 +115,19 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 
         return $filteredMovements;
     }
+
+    public function findByProductId(string $productId): array
+    {
+        $movements = WarehouseInventoryMovementsModel::with([
+            'inventory.warehouse',
+            'user'
+        ])
+        ->whereHas('inventory', function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        return $movements->toArray();
+    }
 }

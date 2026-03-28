@@ -1708,30 +1708,23 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="field-label">Bodega <span class="required">*</span></label>
-                        <select class="tacsa-select" id="rptBodegaSelect" onchange="checkReportFilters()">
+                        <select class="tacsa-select" id="rptBodegaSelect" onchange="checkReportFilters(); loadRacksAndLevels();">
                             <option value="">Seleccione una bodega</option>
-                            <option value="13">Almacen Central</option>
-                            <option value="14">Almacen Norte</option>
-                            <option value="15">Almacen Sur</option>
+                            @foreach($warehouses as $warehouse)
+                            <option value="{{ $warehouse->getId() }}">{{ $warehouse->getWarehouseName() }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="field-label">Rack (opcional)</label>
                         <select class="tacsa-select" id="rptBodegaRack">
                             <option value="">Todos</option>
-                            <option value="R-01">R-01</option>
-                            <option value="R-02">R-02</option>
-                            <option value="R-05">R-05</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="field-label">Nivel (opcional)</label>
                         <select class="tacsa-select" id="rptBodegaNivel">
                             <option value="">Todos</option>
-                            <option value="1">Nivel 1</option>
-                            <option value="2">Nivel 2</option>
-                            <option value="3">Nivel 3</option>
-                            <option value="4">Nivel 4</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -1776,38 +1769,13 @@
             <!-- Filters for Caducidad -->
             <div class="report-filter-group" id="filtersForCaducidad" style="display:none;">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="field-label">Rango de caducidad <span class="required">*</span></label>
-                        <select class="tacsa-select" id="rptCaducidadRango" onchange="checkReportFilters()">
-                            <option value="">Seleccione</option>
-                            <option value="30">Proximos 30 dias</option>
-                            <option value="60">Proximos 60 dias</option>
-                            <option value="90">Proximos 90 dias</option>
-                            <option value="caducados">Ya caducados</option>
-                            <option value="todos">Todos</option>
-                        </select>
+                    <div class="col-md-4">
+                        <label class="field-label">Productos ya caducados</label>
+                        <p class="text-muted small mb-0">Se mostrarán todos los productos cuya fecha de caducidad haya pasado</p>
                     </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Bodega (opcional)</label>
-                        <select class="tacsa-select" id="rptCaducidadBodegaInline">
-                            <option value="">Todas</option>
-                            <option value="13">Almacen Central</option>
-                            <option value="14">Almacen Norte</option>
-                            <option value="15">Almacen Sur</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Producto (opcional)</label>
-                        <select class="tacsa-select" id="rptCaducidadProducto">
-                            <option value="">Todos</option>
-                            <option value="mf019">Tacsa Power; 50 kgs.</option>
-                            <option value="pi004">Anibac Plus; 20 lts.</option>
-                            <option value="fo048">Agrovida; 1 lt.</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <button type="button" class="btn-generate-report" id="btnGenCaducidad"
-                            onclick="generateReportInline('caducidad')" disabled>
+                            onclick="generateReportInline('caducidad')">
                             <i class="bi bi-search"></i> Consultar
                         </button>
                     </div>
@@ -1881,6 +1849,22 @@
             <div class="report-empty" id="reportEmpty" style="display:none;">
                 <i class="bi bi-inbox"></i>
                 <p>No se encontraron registros con los filtros seleccionados</p>
+            </div>
+        </div>
+
+        <!-- Ranking de Caducidad por Almacén -->
+        <div class="report-results mt-4" id="rankingResults" style="display:none;">
+            <div class="report-results-header">
+                <div class="section-title">
+                    <span class="bar" style="background: var(--tacsa-amber);"></span>
+                    <h5 id="rankingTitle">Top 3 Productos Caducados por Almacén</h5>
+                </div>
+                <div class="report-results-actions">
+                    <span class="results-count" id="rankingCount">0 almacenes</span>
+                </div>
+            </div>
+            <div id="rankingContent">
+                <!-- Dynamic ranking cards -->
             </div>
         </div>
 
@@ -2602,6 +2586,9 @@
             document.getElementById('reportFiltersPanel').style.display = 'block';
             document.getElementById('reportFiltersPanelTitle').textContent = reportTitles[type];
 
+            // Hide ranking results when switching reports
+            document.getElementById('rankingResults').style.display = 'none';
+
             // Toggle filter groups
             document.querySelectorAll('.report-filter-group').forEach(g => g.style.display = 'none');
             const groupMap = {
@@ -2625,6 +2612,46 @@
             document.getElementById('reportFiltersPanel').style.display = 'none';
             document.querySelectorAll('.report-filter-group').forEach(g => g.style.display = 'none');
             document.getElementById('reportResults').style.display = 'none';
+            document.getElementById('rankingResults').style.display = 'none';
+        }
+
+        function loadRacksAndLevels() {
+            const warehouseId = document.getElementById('rptBodegaSelect').value;
+            const racksSelect = document.getElementById('rptBodegaRack');
+            const levelsSelect = document.getElementById('rptBodegaNivel');
+
+            racksSelect.innerHTML = '<option value="">Todos</option>';
+            levelsSelect.innerHTML = '<option value="">Todos</option>';
+
+            if (!warehouseId) return;
+
+            const racksLevelsUrl = "{{ route('warehouse-movements.racks-levels') }}";
+            const formData = new FormData();
+            formData.append('warehouse_id', warehouseId);
+
+            fetch(racksLevelsUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                result.racks.forEach(rack => {
+                    const option = document.createElement('option');
+                    option.value = rack;
+                    option.textContent = rack;
+                    racksSelect.appendChild(option);
+                });
+
+                result.levels.forEach(level => {
+                    const option = document.createElement('option');
+                    option.value = level;
+                    option.textContent = 'Nivel ' + level;
+                    levelsSelect.appendChild(option);
+                });
+            });
         }
 
         function checkReportFilters() {
@@ -2661,16 +2688,27 @@
                     const bodegaId = parseInt(document.getElementById('rptBodegaSelect').value);
                     const rackFilter = document.getElementById('rptBodegaRack').value;
                     const nivelFilter = document.getElementById('rptBodegaNivel').value;
+                    const reportWarehouseUrl = "{{ route('warehouse-movements.report-warehouse') }}";
 
-                    data = sampleInventoryData.filter(d => {
-                        let match = d.warehouseId === bodegaId;
-                        if (rackFilter) match = match && d.rack === rackFilter;
-                        if (nivelFilter) match = match && d.level === parseInt(nivelFilter);
-                        return match;
+                    const warehouseFormData = new FormData();
+                    warehouseFormData.append('warehouse_id', bodegaId);
+                    if (rackFilter) warehouseFormData.append('rack', rackFilter);
+                    if (nivelFilter) warehouseFormData.append('level', nivelFilter);
+
+                    fetch(reportWarehouseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: warehouseFormData
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        headers = ['Codigo', 'Producto', 'Rack', 'Nivel', 'Cantidad', 'Lote', 'Caducidad'];
+                        title = 'Inventario de ' + document.getElementById('rptBodegaSelect').selectedOptions[0].text;
+                        renderReportTable('bodega', headers, result.data, title);
                     });
-                    headers = ['Producto', 'Codigo', 'Rack', 'Nivel', 'Cantidad', 'Lote', 'Caducidad'];
-                    title = 'Inventario de ' + document.getElementById('rptBodegaSelect').selectedOptions[0].text;
-                    break;
+                    return;
 
                 case 'articulo':
                     const articuloCode = document.getElementById('rptArticuloSelect').value;
@@ -2686,27 +2724,23 @@
                     break;
 
                 case 'caducidad':
-                    const rango = document.getElementById('rptCaducidadRango').value;
-                    const cadBodega = document.getElementById('rptCaducidadBodegaInline').value;
-                    const cadProducto = document.getElementById('rptCaducidadProducto').value;
-                    const today = new Date();
+                    const reportCaducidadUrl = "{{ route('warehouse-movements.report-caducidad') }}";
 
-                    data = sampleInventoryData.filter(d => {
-                        const expDate = new Date(d.expiration);
-                        const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-
-                        let match = true;
-                        if (rango === 'caducados') match = diffDays < 0;
-                        else if (rango === 'todos') match = true;
-                        else match = diffDays >= 0 && diffDays <= parseInt(rango);
-
-                        if (cadBodega) match = match && d.warehouseId === parseInt(cadBodega);
-                        if (cadProducto) match = match && d.productCode === cadProducto;
-                        return match;
+                    fetch(reportCaducidadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: new FormData()
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        headers = ['Codigo', 'Producto', 'Cantidad', 'Lote', 'Caducidad', 'Dias Caducado'];
+                        title = 'Productos Caducados';
+                        renderReportTable('caducidad', headers, result.data, title);
+                        renderRankingCaducidad(result.ranking);
                     });
-                    headers = ['Producto', 'Bodega', 'Cantidad', 'Lote', 'Caducidad', 'Estado'];
-                    title = 'Productos por Caducidad';
-                    break;
+                    return;
 
                 case 'periodo':
                     const fechaInicio = document.getElementById('rptPeriodoInicio').value;
@@ -2778,28 +2812,25 @@
                 let rows = '';
 
                 data.forEach(d => {
+                    const formatDate = (dateStr) => {
+                        if (!dateStr) return '-';
+                        const d = new Date(dateStr);
+                        return d.toLocaleDateString('es-MX');
+                    };
                     switch (type) {
                         case 'bodega':
-                            rows += '<tr><td>' + d.product + '</td><td>' + d.productCode + '</td><td>' + d.rack +
-                                '</td><td>Nivel ' + d.level + '</td><td>' + d.quantity + '</td><td>' + d.lote +
-                                '</td><td>' + d.expiration + '</td></tr>';
+                            rows += '<tr><td>' + (d.product || '-') + '</td><td>' + (d.warehouse || '-') + '</td><td>' + (d.rack || '-') +
+                                '</td><td>Nivel ' + (d.level || '-') + '</td><td>' + (d.quantity || 0) +
+                                '</td><td>' + (d.lote || '-') + '</td><td>' + formatDate(d.expiration) + '</td></tr>';
                             break;
                         case 'articulo':
-                            rows += '<tr><td>' + d.warehouse + '</td><td>' + d.rack + '</td><td>Nivel ' + d.level +
-                                '</td><td>' + d.quantity + '</td><td>' + d.lote + '</td><td>' + d.expiration +
+                            rows += '<tr><td>' + (d.warehouse || '-') + '</td><td>' + (d.rack || '-') + '</td><td>Nivel ' + (d.level || '-') +
+                                '</td><td>' + (d.quantity || 0) + '</td><td>' + (d.lote || '-') + '</td><td>' + formatDate(d.expiration) +
                                 '</td></tr>';
                             break;
                         case 'caducidad':
-                            const today = new Date();
-                            const expDate = new Date(d.expiration);
-                            const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-                            let status = '<span class="movement-badge badge-entry">Vigente</span>';
-                            if (diffDays < 0) status = '<span class="movement-badge badge-exit">Caducado</span>';
-                            else if (diffDays <= 30) status =
-                                '<span class="movement-badge badge-adjust">Por caducar</span>';
-                            rows += '<tr><td>' + d.product + '</td><td>' + d.warehouse + '</td><td>' + d.quantity +
-                                '</td><td>' + d.lote + '</td><td>' + d.expiration + '</td><td>' + status +
-                                '</td></tr>';
+                            rows += '<tr><td>' + (d.product || '-') + '</td><td>' + (d.warehouse || '-') + '</td><td>' + (d.quantity || 0) +
+                                '</td><td>' + (d.lote || '-') + '</td><td>' + formatDate(d.expiration) + '</td><td><span class="badge bg-danger">' + (d.daysExpired || 0) + ' dias</span></td></tr>';
                             break;
                         case 'periodo':
                             let typeBadge = '<span class="movement-badge badge-entry">Entrada</span>';
@@ -2823,6 +2854,81 @@
                 behavior: 'smooth',
                 block: 'start'
             });
+        }
+
+        // ══════════════════════════════════
+        //  RENDER RANKING CADUCIDAD
+        // ══════════════════════════════════
+        function renderRankingCaducidad(ranking) {
+            const rankingDiv = document.getElementById('rankingResults');
+            const rankingContent = document.getElementById('rankingContent');
+            const rankingCount = document.getElementById('rankingCount');
+
+            if (!ranking || ranking.length === 0) {
+                rankingDiv.style.display = 'none';
+                return;
+            }
+
+            rankingCount.textContent = ranking.length + ' almacenes con productos caducados';
+
+            let html = '<div class="p-4"><div class="row g-4">';
+
+            ranking.forEach(warehouse => {
+                const warehouseName = warehouse.warehouseName || 'Almacén ' + warehouse.warehouseId;
+                const items = warehouse.expiredItems || [];
+                const totalExpired = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+                html += `
+                    <div class="col-md-6">
+                        <div class="card h-100" style="border: 1px solid var(--border-color); border-radius: 10px;">
+                            <div class="card-header" style="background: var(--tacsa-red-light); border-bottom: 1px solid var(--border-color); padding: 1rem 1.25rem;">
+                                <h6 class="mb-0" style="color: var(--tacsa-red);">
+                                    <i class="bi bi-building me-2"></i>${warehouseName}
+                                </h6>
+                                <small class="text-muted">${items.length} productos caducados | Total: ${totalExpired} unidades</small>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead style="background: #fafafa;">
+                                            <tr>
+                                                <th style="width: 40px;">#</th>
+                                                <th>Producto</th>
+                                                <th>Cantidad</th>
+                                                <th>Días Venc.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+
+                items.forEach((item, index) => {
+                    const rankClass = index === 0 ? 'table-danger' : (index === 1 ? 'table-warning' : '');
+                    html += `
+                                            <tr class="${rankClass}">
+                                                <td><span class="badge bg-secondary">${item.rank || (index + 1)}</span></td>
+                                                <td>
+                                                    <div style="font-weight: 500;">${item.productName || item.productId || '-'}</div>
+                                                    <small class="text-muted">${item.rack || ''} / Nivel ${item.level || ''}</small>
+                                                </td>
+                                                <td><strong>${item.quantity || 0}</strong></td>
+                                                <td><span class="badge bg-danger">${Math.abs(item.remainingDays || 0)} días</span></td>
+                                            </tr>`;
+                });
+
+                if (items.length === 0) {
+                    html += `<tr><td colspan="4" class="text-center text-muted py-3">Sin productos caducados</td></tr>`;
+                }
+
+                html += `</tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            html += '</div></div>';
+            rankingContent.innerHTML = html;
+            rankingDiv.style.display = 'block';
         }
 
 

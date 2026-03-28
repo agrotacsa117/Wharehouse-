@@ -204,6 +204,39 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->toArray();
     }
 
+    public function findByProductId(string $productId): array
+    {
+        return WarehouseInventoryModel::with('warehouse')
+            ->where('product_id', $productId)
+            ->get()
+            ->toArray();
+    }
+
+    public function findByWarehouse(int $warehouseId, ?string $rack = null, ?int $level = null): array
+    {
+        $query = WarehouseInventoryModel::with('warehouse')
+            ->where('warehouse_id', $warehouseId);
+
+        if ($rack !== null && $rack !== '') {
+            $query->where('rack', $rack);
+        }
+
+        if ($level !== null) {
+            $query->where('_level', $level);
+        }
+
+        return $query->get()->toArray();
+    }
+
+    public function findExpired(): array
+    {
+        return WarehouseInventoryModel::with('warehouse')
+            ->where('expiration_date', '<', date('Y-m-d'))
+            ->orderBy('expiration_date', 'asc')
+            ->get()
+            ->toArray();
+    }
+
     public function findById(int $id): ?array
     {
         $inventory = WarehouseInventoryModel::with('warehouse')
@@ -264,10 +297,35 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $newInventory->expiration_date = $inventory->expiration_date;
         $newInventory->save();
 
-        return [
+            return [
             'success' => true,
             'newInventoryId' => $newInventory->id,
             'remainingQuantity' => $inventory->quantity ?? 0
         ];
+    }
+
+    public function findExpiredRanking(): array
+    {
+        $results = WarehouseInventoryModel::selectRaw("
+            wi.id,
+            wi.warehouse_id,
+            wi.product_id,
+            wi.rack,
+            wi._level,
+            wi.quantity,
+            wi.lot_number,
+            wi.warehouse_name AS product_name,
+            w.warehouses_name AS warehouse_name,
+            DATEDIFF(wi.expiration_date, CURDATE()) AS remaining_days,
+            DENSE_RANK() OVER (PARTITION BY wi.warehouse_id ORDER BY wi.quantity DESC) AS row_num
+        ")
+        ->from('warehouse_inventory AS wi')
+        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
+        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
+        ->orderByRaw('wi.warehouse_id, row_num')
+        ->get()
+        ->toArray();
+
+        return $results;
     }
 }

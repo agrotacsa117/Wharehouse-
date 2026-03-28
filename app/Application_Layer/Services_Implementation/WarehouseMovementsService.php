@@ -169,5 +169,25 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         );
     }
 
-    
+    public function getMovementsByProductId(string $productId): array
+    {
+        $movements = $this->warehouseMovementsRepository->findByProductId($productId);
+
+        $result = [];
+        foreach ($movements as $movement) {
+            $result[] = [
+                'folio' => $movement['folio'] ?? '',
+                'movement_type' => $movement['movement_type'] ?? '',
+                'quantity' => $movement['quantity'] ?? 0,
+                'reason' => $movement['reason'] ?? '',
+                'created_at' => $movement['created_at'] ?? '',
+                'warehouses_name' => $movement['inventory']['warehouse']['warehouses_name'] ?? '',
+                'warehouse_id' => $movement['inventory']['warehouse_id'] ?? null,
+            ];
+        }
+
+        return $result;
+    }
+
+
 }

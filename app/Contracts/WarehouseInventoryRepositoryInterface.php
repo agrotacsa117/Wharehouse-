@@ -35,11 +35,17 @@ interface WarehouseInventoryRepositoryInterface
 
    public function getInventoryByState(int $state): array;
 
-   public function findById(int $id): ?array;
+   public function findByProductId(string $productId): array;
+
+    public function findByWarehouse(int $warehouseId, ?string $rack = null, ?int $level = null): array;
+
+    public function findExpired(): array;
+
+    public function findById(int $id): ?array;
 
    public function updateById(int $id, array $data): bool;
 
-    public function transferInventory(
+     public function transferInventory(
         int $inventoryId,
         int $fromWarehouseId,
         int $toWarehouseId,
@@ -48,4 +54,6 @@ interface WarehouseInventoryRepositoryInterface
         string $lotNumber,
         int $quantity
     ): array;
+
+    public function findExpiredRanking(): array;
 }
