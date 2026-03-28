@@ -23,7 +23,9 @@ class InventoryManagementController extends Controller
     {
         $titulo = "Gestión de Inventario";
         $almacenes = WarehouseModel::select('id', 'warehouses_name')->get();
-        $inventory = $this->warehouseInventoryService->getAllInventoryForManagement();
+        $inventory = $this->warehouseInventoryService->getAllWarehouseInventories();
+
+        //$inventory = $this->warehouseInventoryService->getAllInventoryForManagement();
 
         return view('module.inventory-management.index', compact(
             'titulo',

@@ -1780,9 +1780,9 @@
                         <label class="field-label">Rango de caducidad <span class="required">*</span></label>
                         <select class="tacsa-select" id="rptCaducidadRango" onchange="checkReportFilters()">
                             <option value="">Seleccione</option>
-                            <option value="30">Proximos 30 dias</option>
-                            <option value="60">Proximos 60 dias</option>
-                            <option value="90">Proximos 90 dias</option>
+                            <option value="1">Más de 120 dias</option>
+                            <option value="2">Entre 90 y 120 dias</option>
+                            <option value="3">Menos 90 dias</option>
                             <option value="caducados">Ya caducados</option>
                             <option value="todos">Todos</option>
                         </select>

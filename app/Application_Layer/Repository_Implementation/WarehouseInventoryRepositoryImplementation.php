@@ -9,6 +9,7 @@ use App\Contracts\WarehouseInventoryEntityToWarehouseInventoryModelMapperI;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
+use App\Models\ProductModel;
 
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
@@ -171,7 +172,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ->from('warehouse_inventory as i')
         ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
 
-        return $query->groupBy('i.warehouse_id', 'state')
+        return $query->groupBy('w.warehouses_name', 'state')
             ->orderBy('state', 'DESC')
             ->get()
             ->toArray();

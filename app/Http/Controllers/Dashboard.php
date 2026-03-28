@@ -175,9 +175,11 @@ class Dashboard extends Controller
         $critical =  $critical ?? new InventoryStatsByStateDTO(
             3,0
         );
+        
         $attention = $attention ?? new InventoryStatsByStateDTO(
             2,0
         );
+
         $ok = $ok ?? new InventoryStatsByStateDTO(
             1,0
         );

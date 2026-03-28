@@ -46,21 +46,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getAllWarehouseInventories(): array
     {
         $inventory = $this->warehouseInventoryRepository->findAll();
-
-        for ($i = 0; $i < count($inventory); $i++) {
-            $inventory[$i] = new WarehouseInventoryDetailDTO(
-                $inventory[$i]['warehouse_name'],
-                $inventory[$i]['product_id'],
-                $inventory[$i]['warehouse_id'],
-                $inventory[$i]['warehouse']['warehouses_name'],
-                $inventory[$i]['_level'],
-                $inventory[$i]['rack'],
-                $inventory[$i]['quantity'],
-                $inventory[$i]['expiration_date']
-            );
-        }
-
-        return $inventory;
+        return $this->generateWarehouseInventoryDetailDTO($inventory);
     }
 
     public function getAllInventoryForManagement(): array
@@ -269,7 +255,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function getInventoryByState(int $state): array
     {
-        return $this->warehouseInventoryRepository->getInventoryByState($state);
+        $inventory = $this->warehouseInventoryRepository->getInventoryByState($state);
+        return $this->generateWarehouseInventoryDetailDTO($inventory);
     }
 
     public function getInventoryById(int $id): ?array
@@ -287,7 +274,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         $quantityDiff = $dto->getQuantity() - (int)$currentInventory['quantity'];
 
-        $hasChanges = 
+        $hasChanges =
             $quantityDiff !== 0 ||
             $dto->getRack() !== $currentInventory['rack'] ||
             $dto->getLevel() !== (int)$currentInventory['_level'] ||
@@ -366,6 +353,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 "Traslado de {$fromWarehouseName} a {$toWarehouseName}: " . $dto->getReason(),
                 auth()->id()
             );
+
+            
+           
             $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
 
         } catch (\Throwable $th) {
@@ -395,5 +385,29 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $reason,
             $userId
         );
+    }
+
+    public function generateWarehouseInventoryDetailDTO(
+        array $inventory
+    ): array {
+      
+        for ($i = 0; $i < count($inventory) ; $i++) {
+            $inventory[$i] = new WarehouseInventoryDetailDTO(
+                $inventory[$i]['id'],
+                $inventory[$i]['warehouse_name'],
+                $inventory[$i]['product_id'],
+                $inventory[$i]['warehouse_id'],
+                $inventory[$i]['warehouse']['warehouses_name']
+                ??  $inventory[$i]['warehouses_name'] ?? null,
+                $inventory[$i]['_level'],
+                $inventory[$i]['rack'],
+                $inventory[$i]['quantity'],
+                $inventory[$i]['expiration_date'],
+                $inventory[$i]['lot_number'],
+                $inventory[$i]['days_remaining'] ?? null
+            );
+        }
+
+        return  $inventory;
     }
 }

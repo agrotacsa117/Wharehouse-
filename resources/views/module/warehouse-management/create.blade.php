@@ -1123,7 +1123,7 @@
         let deleteTargetId = null;
 
         const tableBody = document.getElementById('tableBody');
-        const searchInput = document.getElementById('searchInput');
+        const   = document.getElementById('searchInput');
         const filterType = document.getElementById('filterType');
         const showCount = document.getElementById('showCount');
         const totalCount = document.getElementById('totalCount');

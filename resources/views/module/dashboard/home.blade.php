@@ -363,6 +363,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
+                                        <th style="min-width: 120px;">Código</th>
                                         <th style="min-width: 120px;">Producto</th>
                                         <th style="min-width: 100px;">Almacén</th>
                                         <th style="min-width: 70px;">Rack</th>
@@ -432,6 +433,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
+                                        <th style="min-width: 120px;">Código</th>
                                         <th style="min-width: 120px;">Producto</th>
                                         <th style="min-width: 100px;">Almacén</th>
                                         <th style="min-width: 70px;">Rack</th>
@@ -501,6 +503,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
+                                        <th style="min-width: 120px;">Código</th>
                                         <th style="min-width: 120px;">Producto</th>
                                         <th style="min-width: 100px;">Almacén</th>
                                         <th style="min-width: 70px;">Rack</th>
@@ -579,18 +582,19 @@
             }
 
             tbody.innerHTML = data.map((item, index) => `
-                <tr class="${item.days_remaining < 0 ? 'table-danger' : ''}">
+                <tr class="${item.remainingDays < 0 ? 'table-danger' : ''}">
                     <td class="text-center text-muted">${index + 1}</td>
-                    <td class="fw-medium">${item.product_id || 'N/A'}</td>
-                    <td><span class="badge bg-secondary">${item.warehouses_name || 'N/A'}</span></td>
+                    <td class="fw-medium">${item.productId || 'N/A'}</td>
+                    <td class="fw-medium">${item.productName || 'N/A'}</td>
+                    <td><span class="badge bg-secondary">${item.warehouseName || 'N/A'}</span></td>
                     <td><span class="badge bg-dark">${item.rack || '-'}</span></td>
-                    <td class="text-center"><strong>${item._level || '-'}</strong></td>
-                    <td><small>${item.lot_number || '-'}</small></td>
+                    <td class="text-center"><strong>${item.level || '-'}</strong></td>
+                    <td><small>${item.lotNumber || '-'}</small></td>
                     <td class="text-center fw-bold">${formatNumber(item.quantity)}</td>
-                    <td class="text-center">${formatDate(item.expiration_date)}</td>
+                    <td class="text-center">${formatDate(item.expirationDate)}</td>
                     <td class="text-center">
-                        <span class="badge ${getBadgeClass(item.days_remaining)}">
-                            ${item.days_remaining < 0 ? 'Vencido' : item.days_remaining + ' días'}
+                        <span class="badge ${getBadgeClass(item.remainingDays)}">
+                            ${item.remainingDays < 0 ? 'Vencido' : item.remainingDays + ' días'}
                         </span>
                     </td>
                 </tr>
@@ -603,23 +607,24 @@
             const warehouseFilter = document.getElementById(`filterWarehouse${capitalize(type)}`)?.value || '';
             const productFilter = document.getElementById(`filterProduct${capitalize(type)}`)?.value.toLowerCase() || '';
             const dateFilter = document.getElementById(`filterDate${capitalize(type)}`)?.value || '';
-
+            
             let filteredData = semaforoData[type] || [];
 
             if (warehouseFilter) {
-                filteredData = filteredData.filter(item => item.warehouse_id == warehouseFilter);
+                filteredData = filteredData.filter(item => item.warehouseId == warehouseFilter);
             }
 
             if (productFilter) {
                 filteredData = filteredData.filter(item => 
-                    (item.product_id || '').toLowerCase().includes(productFilter)
+                    (item.productId || '').toLowerCase().includes(productFilter) ||
+                    (item.productName || '').toLowerCase().includes(productFilter) 
                 );
             }
 
             if (dateFilter) {
                 const filterDate = new Date(dateFilter);
                 filteredData = filteredData.filter(item => {
-                    const itemDate = new Date(item.expiration_date);
+                    const itemDate = new Date(item.expirationDate);
                     return itemDate <= filterDate;
                 });
             }

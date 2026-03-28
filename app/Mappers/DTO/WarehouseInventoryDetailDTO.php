@@ -4,6 +4,7 @@ namespace App\Mappers\DTO;
 
 class WarehouseInventoryDetailDTO implements \JsonSerializable
 {
+    private ?int $inventoryId;
     private string $productName;
     private string $productCode;
     private int $warehouseId;
@@ -12,8 +13,11 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private string $rack;
     private int $stock;
     private string $expirationDate;
+    private ?string $lotNumber;
+    private ?int $remainingDays;
 
     public function __construct(
+        ?int $inventoryId,
         string $productName,
         string $productCode,
         int $warehouseId,
@@ -21,8 +25,11 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         int $level,
         string $rack,
         int $stock,
-        string $expirationDate
+        string $expirationDate,
+        ?string $lotNumber = null,
+        ?int $remainingDays = null
     ) {
+        $this->inventoryId =  $inventoryId;
         $this->productName = $productName;
         $this->productCode = $productCode;
         $this->warehouseId = $warehouseId;
@@ -31,6 +38,18 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->rack = $rack;
         $this->stock = $stock;
         $this->expirationDate = $expirationDate;
+        $this->lotNumber = $lotNumber;
+        $this->remainingDays = $remainingDays;
+    }
+
+    public function getInventoryId(): ?int
+    {
+        return $this->inventoryId;
+    }
+
+    public function setInventoryId(?int $inventoryId): void
+    {
+        $this->inventoryId = $inventoryId;
     }
 
     public function getExpirationDate(): string
@@ -113,18 +132,41 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->stock = $stock;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
-         return [
-            'productName' => $this->productName,
-            'productId' => $this->productCode,
-            'warehouseId' => $this->warehouseId,
-            'warehouseName' => $this->warehouseName,
-            'level' => $this->level,
-            'rack' => $this->rack,
-            'quantity' => $this->stock,
-            'expirationDate' => $this->expirationDate
+        return [
+           'id' =>$this->inventoryId, 
+           'productName' => $this->productName,
+           'productId' => $this->productCode,
+           'warehouseId' => $this->warehouseId,
+           'warehouseName' => $this->warehouseName,
+           'level' => $this->level,
+           'rack' => $this->rack,
+           'quantity' => $this->stock,
+           'expirationDate' => $this->expirationDate,
+           'lotNumber' => $this->lotNumber,
+           'remainingDays' => $this->remainingDays
         ];
     }
-    
+
+    public function getLotNumber(): string
+    {
+        return $this->lotNumber;
+    }
+
+    public function setLotNumber(string $lotNumber): void
+    {
+        $this->lotNumber = $lotNumber;
+    }
+
+    public function getRemainingDays(): int
+    {
+        return $this->remainingDays;
+    }
+
+    public function setRemainingDays(int $remainingDays): void
+    {
+        $this->remainingDays = $remainingDays;
+    }
+
 }
