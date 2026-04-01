@@ -230,11 +230,20 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
     public function findExpired(): array
     {
-        return WarehouseInventoryModel::with('warehouse')
-            ->where('expiration_date', '<', date('Y-m-d'))
-            ->orderBy('expiration_date', 'asc')
-            ->get()
-            ->toArray();
+        return WarehouseInventoryModel::selectRaw("
+            wi.product_id,
+            w.warehouses_name AS warehouse_name,
+            wi.quantity,
+            wi.lot_number,
+            wi.expiration_date,
+            ABS(DATEDIFF(wi.expiration_date, CURDATE())) AS expired_days
+        ")
+        ->from('warehouse_inventory AS wi')
+        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
+        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
+        ->orderBy('wi.expiration_date', 'asc')
+        ->get()
+        ->toArray();
     }
 
     public function findById(int $id): ?array

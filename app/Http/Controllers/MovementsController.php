@@ -31,6 +31,7 @@ class MovementsController extends Controller
         $page = (int) $request->get('page', 1);
         $perPage = 15;
 
+        
         $movementsResult = $this->warehouseMovementsService->listAllMovementsPaginated($page, $perPage);
 
         $warehouses = $this->warehouseStorageService->getWarehouseIdAndName();
@@ -240,28 +241,11 @@ class MovementsController extends Controller
 
     public function reportByCaducidad(Request $request)
     {
-        $inventory = $this->warehouseInventoryService->getExpiredInventory();
-
-        $formatted = array_map(function($item) {
-            $expiration = $item['expiration_date'] ?? null;
-            $daysExpired = 0;
-            if ($expiration) {
-                $daysExpired = (int)floor((time() - strtotime($expiration)) / (60 * 60 * 24));
-            }
-            return [
-                'product' => $item['product_id'] ?? '',
-                'warehouse' => $item['warehouse_name'] ?? '',
-                'quantity' => $item['quantity'] ?? 0,
-                'lote' => $item['lot_number'] ?? '',
-                'expiration' => $expiration,
-                'daysExpired' => $daysExpired,
-            ];
-        }, $inventory);
-
+        $expiredInventory = $this->warehouseInventoryService->getExpiredInventory();
         $ranking = $this->warehouseInventoryService->getExpiredInventoryRanking();
 
         return response()->json([
-            'data' => $formatted,
+            'data' => $expiredInventory,
             'ranking' => $ranking
         ]);
     }

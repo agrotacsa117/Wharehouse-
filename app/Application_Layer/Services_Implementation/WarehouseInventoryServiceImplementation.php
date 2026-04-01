@@ -20,6 +20,7 @@ use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
 use App\Mappers\DTO\ExpiredInventoryRankingItemDTO;
 use App\Mappers\DTO\WarehouseExpiredRankingDTO;
+use App\Mappers\DTO\ExpiredInventoryDTO;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -286,7 +287,22 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function getExpiredInventory(): array
     {
-        return $this->warehouseInventoryRepository->findExpired();
+        $rawResults = $this->warehouseInventoryRepository->findExpired();
+
+        $expiredItems = [];
+        foreach ($rawResults as $item) {
+            $expiredItems[] = new ExpiredInventoryDTO(
+                $item['product_id'],
+                $item['warehouse_name'],
+                $item['warehouse_name'],
+                (int)$item['quantity'],
+                $item['lot_number'],
+                $item['expiration_date'],
+                (int)$item['expired_days']
+            );
+        }
+
+        return $expiredItems;
     }
 
     public function getInventoryById(int $id): ?array

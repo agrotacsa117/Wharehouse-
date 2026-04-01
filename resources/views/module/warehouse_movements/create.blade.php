@@ -2735,7 +2735,7 @@
                     })
                     .then(response => response.json())
                     .then(result => {
-                        headers = ['Codigo', 'Producto', 'Cantidad', 'Lote', 'Caducidad', 'Dias Caducado'];
+                        headers = ['Codigo', 'Producto', 'Bodega', 'Cantidad', 'Lote', 'Caducidad', 'Dias Caducado'];
                         title = 'Productos Caducados';
                         renderReportTable('caducidad', headers, result.data, title);
                         renderRankingCaducidad(result.ranking);
@@ -2829,8 +2829,8 @@
                                 '</td></tr>';
                             break;
                         case 'caducidad':
-                            rows += '<tr><td>' + (d.product || '-') + '</td><td>' + (d.warehouse || '-') + '</td><td>' + (d.quantity || 0) +
-                                '</td><td>' + (d.lote || '-') + '</td><td>' + formatDate(d.expiration) + '</td><td><span class="badge bg-danger">' + (d.daysExpired || 0) + ' dias</span></td></tr>';
+                            rows += '<tr><td>' + (d.productCode || '-') + '</td><td>' + (d.productName || '-') + '</td><td>' + (d.warehouseName || '-') + '</td><td>' + (d.quantity || 0) +
+                                '</td><td>' + (d.lotNumber || '-') + '</td><td>' + formatDate(d.expirationDate) + '</td><td><span class="badge bg-danger">' + (d.expiredDays || 0) + ' dias</span></td></tr>';
                             break;
                         case 'periodo':
                             let typeBadge = '<span class="movement-badge badge-entry">Entrada</span>';

@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Mappers\DTO;
+use JsonSerializable;
 
-class TransferInventoryDTO
+class TransferInventoryDTO implements JsonSerializable
 {
     private int $inventoryId;
     private int $fromWarehouseId;
@@ -71,5 +72,19 @@ class TransferInventoryDTO
     public function getReason(): string
     {
         return $this->reason;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'inventoryId'     => $this->inventoryId,
+            'fromWarehouseId' => $this->fromWarehouseId,
+            'toWarehouseId'   => $this->toWarehouseId,
+            'rack'            => $this->rack,
+            'level'           => $this->level,
+            'lotNumber'       => $this->lotNumber,
+            'quantity'        => $this->quantity,
+            'reason'          => $this->reason,
+        ];
     }
 }
