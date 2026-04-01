@@ -372,6 +372,7 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableCriticalBody">
@@ -442,6 +443,7 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableAttentionBody">
@@ -512,6 +514,7 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableOkBody">

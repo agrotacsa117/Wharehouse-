@@ -1034,18 +1034,22 @@
             display: none;
             background-color: rgba(0, 0, 0, 0.5);
         }
+
         .modal.show {
             display: block !important;
         }
+
         .modal.show .modal-dialog {
             display: flex !important;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
         }
+
         .modal-backdrop {
             background-color: rgba(0, 0, 0, 0.5);
         }
+
         .modal-content {
             border: none;
             border-radius: 12px;
@@ -1532,7 +1536,6 @@
                                 <th>Almacen</th>
                                 <th>Cantidad</th>
                                 <th>Lote</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="movementsBody">
@@ -1549,11 +1552,14 @@
                     <p>Los movimientos de entrada y salida se mostraran aqui</p>
                 </div>
                 <div class="table-footer" id="historialFooter">
-                    <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de <strong id="showingTotal">0</strong> movimientos</span>
+                    <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de <strong
+                            id="showingTotal">0</strong> movimientos</span>
                     <div class="pagination-btns" id="paginationBtns">
-                        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i class="bi bi-chevron-left"></i></button>
+                        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i
+                                class="bi bi-chevron-left"></i></button>
                         <span id="pageNumbers"></span>
-                        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i class="bi bi-chevron-right"></i></button>
+                        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i
+                                class="bi bi-chevron-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -1776,38 +1782,14 @@
             <!-- Filters for Caducidad -->
             <div class="report-filter-group" id="filtersForCaducidad" style="display:none;">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="field-label">Rango de caducidad <span class="required">*</span></label>
-                        <select class="tacsa-select" id="rptCaducidadRango" onchange="checkReportFilters()">
-                            <option value="">Seleccione</option>
-                            <option value="1">Más de 120 dias</option>
-                            <option value="2">Entre 90 y 120 dias</option>
-                            <option value="3">Menos 90 dias</option>
-                            <option value="caducados">Ya caducados</option>
-                            <option value="todos">Todos</option>
-                        </select>
+                    <div class="col-md-4">
+                        <label class="field-label">Productos ya caducados</label>
+                        <p class="text-muted small mb-0">Se mostrarán todos los productos cuya fecha de caducidad haya
+                            pasado</p>
                     </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Bodega (opcional)</label>
-                        <select class="tacsa-select" id="rptCaducidadBodegaInline">
-                            <option value="">Todas</option>
-                            <option value="13">Almacen Central</option>
-                            <option value="14">Almacen Norte</option>
-                            <option value="15">Almacen Sur</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Producto (opcional)</label>
-                        <select class="tacsa-select" id="rptCaducidadProducto">
-                            <option value="">Todos</option>
-                            <option value="mf019">Tacsa Power; 50 kgs.</option>
-                            <option value="pi004">Anibac Plus; 20 lts.</option>
-                            <option value="fo048">Agrovida; 1 lt.</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <button type="button" class="btn-generate-report" id="btnGenCaducidad"
-                            onclick="generateReportInline('caducidad')" disabled>
+                            onclick="generateReportInline('caducidad')">
                             <i class="bi bi-search"></i> Consultar
                         </button>
                     </div>
@@ -2017,7 +1999,8 @@
                         <span class="bar"></span>
                         <h5>Detalle del Movimiento</h5>
                     </div>
-                    <button type="button" class="btn-close" onclick="closeDetailModal()" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" onclick="closeDetailModal()"
+                        aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body" id="detailBody">
                     <!-- Filled by JS -->
@@ -2075,7 +2058,7 @@
         const allMovements = @json($movements);
         const inventoryData = @json($inventories);
         const paginationInfo = @json($paginationInfo);
-        
+
         let filteredMovements = [...allMovements];
         let pagination = {
             total: paginationInfo ? paginationInfo.total : allMovements.length,
@@ -2173,7 +2156,8 @@
                 if (m.movementType === 'TRANSFER' && m.reason) {
                     const match = m.reason.match(/Traslado de\s+(.+?)\s+a\s+(.+?):/);
                     if (match) {
-                        warehouseDisplay = `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.65rem;margin:0 3px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
+                        warehouseDisplay =
+                            `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.65rem;margin:0 3px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
                     }
                 }
 
@@ -2189,16 +2173,6 @@
             <td>${warehouseDisplay}</td>
             <td><span class="cell-qty ${qtyClass}">${qtyPrefix}${m.quantity}</span></td>
             <td><span class="badge-product">${m.lotNumber}</span></td>
-            <td>
-                <div class="actions-cell">
-                    <button class="action-btn view" onclick="viewDetail('${m.folio}')">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="action-btn delete" onclick="openDelete('${m.folio}')">
-                        <i class="bi bi-trash3"></i>
-                    </button>
-                </div>
-            </td>
         `;
 
                 fragment.appendChild(tr);
@@ -2213,7 +2187,7 @@
         function updatePagination() {
             const from = (pagination.current_page - 1) * pagination.per_page + 1;
             const to = Math.min(pagination.current_page * pagination.per_page, pagination.total);
-            
+
             document.getElementById('showingFrom').textContent = pagination.total > 0 ? from : 0;
             document.getElementById('showingTo').textContent = to;
             document.getElementById('showingTotal').textContent = pagination.total;
@@ -2255,7 +2229,10 @@
             pagination.current_page = page;
             updatePagination();
             renderMovements();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
         function formatDate(dateStr) {
@@ -2340,7 +2317,8 @@
             if (m.movementType === 'TRANSFER' && m.reason) {
                 const match = m.reason.match(/Traslado de\s+(.+?)\s+a\s+(.+?):/);
                 if (match) {
-                    warehouseDisplay = `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.8rem;margin:0 5px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
+                    warehouseDisplay =
+                        `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.8rem;margin:0 5px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
                     warehouseLabel = 'Origen → Destino';
                 }
             }
@@ -2365,7 +2343,7 @@
                 modalEl.removeAttribute('aria-hidden');
                 modalEl.setAttribute('aria-modal', 'true');
                 modalEl.setAttribute('role', 'dialog');
-                
+
                 // Create backdrop if not exists
                 let backdrop = document.querySelector('.modal-backdrop.show');
                 if (!backdrop) {
@@ -2380,7 +2358,7 @@
                     backdrop.style.zIndex = '1050';
                     document.body.appendChild(backdrop);
                 }
-                
+
                 // Close on backdrop click
                 backdrop.onclick = function() {
                     closeDetailModal();
@@ -2686,26 +2664,19 @@
                     break;
 
                 case 'caducidad':
-                    const rango = document.getElementById('rptCaducidadRango').value;
-                    const cadBodega = document.getElementById('rptCaducidadBodegaInline').value;
-                    const cadProducto = document.getElementById('rptCaducidadProducto').value;
-                    const today = new Date();
+                    const reportCaducidadUrl = "{{ route('warehouse-movements.expiration-report') }}";
 
-                    data = sampleInventoryData.filter(d => {
-                        const expDate = new Date(d.expiration);
-                        const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-
-                        let match = true;
-                        if (rango === 'caducados') match = diffDays < 0;
-                        else if (rango === 'todos') match = true;
-                        else match = diffDays >= 0 && diffDays <= parseInt(rango);
-
-                        if (cadBodega) match = match && d.warehouseId === parseInt(cadBodega);
-                        if (cadProducto) match = match && d.productCode === cadProducto;
-                        return match;
-                    });
-                    headers = ['Producto', 'Bodega', 'Cantidad', 'Lote', 'Caducidad', 'Estado'];
-                    title = 'Productos por Caducidad';
+                    fetch(reportCaducidadUrl)
+                        .then(response => response.json())
+                        .then(result => {
+                            const headers = ['Codigo', 'Producto', 'Bodega', 'Cantidad', 'Lote', 'Caducidad',
+                                'Dias Caducado'
+                            ];
+                            const title = 'Productos Caducados';
+                            renderReportTable('caducidad', headers, result.data, title);
+                            renderRankingCaducidad(result.ranking);
+                        })
+                        .catch(error => console.error('Error:', error));
                     break;
 
                 case 'periodo':
@@ -2797,21 +2768,18 @@
                             if (diffDays < 0) status = '<span class="movement-badge badge-exit">Caducado</span>';
                             else if (diffDays <= 30) status =
                                 '<span class="movement-badge badge-adjust">Por caducar</span>';
-                            rows += '<tr><td>' + d.product + '</td><td>' + d.warehouse + '</td><td>' + d.quantity +
-                                '</td><td>' + d.lote + '</td><td>' + d.expiration + '</td><td>' + status +
-                                '</td></tr>';
+                            rows += '<tr><td>' + d.productCode + '</td><td>' + d.productName + '</td><td>' + d
+                                .warehouseName +
+                                '</td><td>' + d.quantity + '</td><td>' + d.lotNumber + '</td><td>' + d
+                                .expirationDate +
+                                '</td><td><span class="badge bg-danger">' + (d.expiredDays || 0) + ' dias</span>    </td></tr>';
+                            //
                             break;
                         case 'periodo':
-                            let typeBadge = '<span class="movement-badge badge-entry">Entrada</span>';
-                            if (d.movementType === 'OUT') typeBadge =
-                                '<span class="movement-badge badge-exit">Salida</span>';
-                            else if (d.movementType === 'TRANSFER') typeBadge =
-                                '<span class="movement-badge badge-transfer">Traslado</span>';
-                            else if (d.movementType === 'ADJUSTMENT') typeBadge =
-                                '<span class="movement-badge badge-adjust">Ajuste</span>';
-                            rows += '<tr><td>' + d.folio + '</td><td>' + d.createdAt + '</td><td>' + typeBadge +
+                            rows += '<tr><td>' + d.folio + '</td><td>' + d.createdAt + '</td><td>' + d
+                                .movementType +
                                 '</td><td>' + d.productName + '</td><td>' + d.warehousesName + '</td><td>' + d
-                                .quantity +'</td><td>' + d.lotNumber + '</td><td>' + '</td></tr>';
+                                .quantity + '</td><td>' + d.lotNumber + '</td><td>' + '</td></tr>';
                             break;
                     }
                 });

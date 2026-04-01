@@ -3,7 +3,6 @@
 namespace App\Contracts;
 
 use App\Enterprise_Layer\WarehouseInventory;
-use Illuminate\Support\Arr;
 
 interface WarehouseInventoryRepositoryInterface
 {
@@ -17,27 +16,29 @@ interface WarehouseInventoryRepositoryInterface
 
     public function existById(int $warehouseId, string $productId): bool;
 
-    function countDistinctByWarehouseId() : array;
+    public function countDistinctByWarehouseId(): array;
 
-    public function findInventoryByWarehouseId(int $warehouseId) : array;
+    public function findInventoryByWarehouseId(int $warehouseId): array;
 
-    function updateQuantity(
-        int $warehouseInventoryId, 
-        int $quantity) : bool;
-    
+    public function updateQuantity(
+        int $warehouseInventoryId,
+        int $quantity
+    ): bool;
 
-    function findQuantityById(
-        int $warehouseInventoryId) : int;
 
-   public function getInventoryStatsByState(): array;
+    public function findQuantityById(
+        int $warehouseInventoryId
+    ): int;
 
-   public function getInventoryStatsByStateAndWarehouse(): array;
+    public function getInventoryStatsByState(): array;
 
-   public function getInventoryByState(int $state): array;
+    public function getInventoryStatsByStateAndWarehouse(): array;
 
-   public function findById(int $id): ?array;
+    public function getInventoryByState(int $state): array;
 
-   public function updateById(int $id, array $data): bool;
+    public function findById(int $id): ?WarehouseInventory;
+
+    public function updateById(int $id, array $data): bool;
 
     public function transferInventory(
         int $inventoryId,
@@ -48,4 +49,8 @@ interface WarehouseInventoryRepositoryInterface
         string $lotNumber,
         int $quantity
     ): array;
+
+
+    public function findExpired(): array;
+
 }

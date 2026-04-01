@@ -12,12 +12,15 @@ use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Enterprise_Layer\WarehouseInventory;
 use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Mappers\DTO\ExpiredInventoryDTO;
 use App\Mappers\DTO\WarehouseInventoryDetailDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
+use App\Mappers\DTO\UpdateInventoryDTO;
+use LDAP\Result;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -264,30 +267,45 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $this->warehouseInventoryRepository->findById($id);
     }
 
-    public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): ResultPattern
-    {
-        $currentInventory = $this->warehouseInventoryRepository->findById($dto->getId());
+    public function updateInventory(
+        UpdateInventoryDTO $updateInventoryDTO
+    ): ResultPattern {
+
+        $currentInventory = $this->warehouseInventoryRepository->findById(
+            $updateInventoryDTO->getId()
+        );
 
         if (!$currentInventory) {
-            return ResultPattern::failure("Inventario no encontrado.");
+            return ResultPattern::failure(
+                "Inventario no encontrado."
+            );
         }
 
-        $quantityDiff = $dto->getQuantity() - (int)$currentInventory['quantity'];
+        $quantityDiff = $updateInventoryDTO->getQuantity()
+        - $currentInventory->getQuantity();
 
         $hasChanges =
             $quantityDiff !== 0 ||
-            $dto->getRack() !== $currentInventory['rack'] ||
-            $dto->getLevel() !== (int)$currentInventory['_level'] ||
-            $dto->getLotNumber() !== $currentInventory['lot_number'] ||
-            $dto->getExpirationDate() !== $currentInventory['expiration_date'];
+            $updateInventoryDTO->getRack()
+            !== $currentInventory->getRack() ||
+            $updateInventoryDTO->getLevel()
+            !== $currentInventory->getLevel() ||
+            $updateInventoryDTO->getLotNumber()
+            !== $currentInventory->getLotNumber() ||
+            $updateInventoryDTO->getExpirationDate()
+            !== $currentInventory->getExpirationDate();
+
+        if (!$hasChanges) {
+            ResultPattern::failure("No se realizó ningun cambio");
+        }
 
         try {
-            $updated = $this->warehouseInventoryRepository->updateById($dto->getId(), [
-                'rack' => $dto->getRack(),
-                '_level' => $dto->getLevel(),
-                'lot_number' => $dto->getLotNumber(),
-                'quantity' => $dto->getQuantity(),
-                'expiration_date' => $dto->getExpirationDate(),
+            $updated = $this->warehouseInventoryRepository->updateById($updateInventoryDTO->getId(), [
+                'rack' => $updateInventoryDTO->getRack(),
+                '_level' => $updateInventoryDTO->getLevel(),
+                'lot_number' => $updateInventoryDTO->getLotNumber(),
+                'quantity' => $updateInventoryDTO->getQuantity(),
+                'expiration_date' => $updateInventoryDTO->getExpirationDate(),
                 'updated_at' => now()
             ]);
 
@@ -297,11 +315,11 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
             if ($hasChanges) {
                 $folio = $this->warehouseMovementsService->generateMovementFolio();
-                $reason = "Edición: " . $dto->getReason();
+                $reason = "Edición: " . $updateInventoryDTO->getReason();
 
                 $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                     $folio,
-                    $dto->getId(),
+                    $updateInventoryDTO->getId(),
                     'ADJUSTMENT',
                     abs($quantityDiff),
                     $reason,
@@ -320,24 +338,33 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return ResultPattern::success(null);
     }
 
-    public function transferInventory(TransferInventoryDTO $dto): ResultPattern
-    {
-        $fromWarehouseName = $this->warehouseStorageService->getWarehouseNameById($dto->getFromWarehouseId());
-        $toWarehouseName = $this->warehouseStorageService->getWarehouseNameById($dto->getToWarehouseId());
+    public function transferInventory(
+        TransferInventoryDTO $transferInventoryDTO
+    ): ResultPattern {
 
-        if ($dto->getFromWarehouseId() === $dto->getToWarehouseId()) {
+
+        if ($transferInventoryDTO->getFromWarehouseId() === $transferInventoryDTO->getToWarehouseId()) {
             return ResultPattern::failure("No se puede transferir al mismo almacén.");
         }
 
+        $fromWarehouseName = $this->warehouseStorageService->getWarehouseNameById(
+            $transferInventoryDTO->getFromWarehouseId()
+        );
+
+        $toWarehouseName = $this->warehouseStorageService->getWarehouseNameById(
+            $transferInventoryDTO->getToWarehouseId()
+        );
+
+
         try {
             $result = $this->warehouseInventoryRepository->transferInventory(
-                $dto->getInventoryId(),
-                $dto->getFromWarehouseId(),
-                $dto->getToWarehouseId(),
-                $dto->getRack(),
-                $dto->getLevel(),
-                $dto->getLotNumber(),
-                $dto->getQuantity()
+                $transferInventoryDTO->getInventoryId(),
+                $transferInventoryDTO->getFromWarehouseId(),
+                $transferInventoryDTO->getToWarehouseId(),
+                $transferInventoryDTO->getRack(),
+                $transferInventoryDTO->getLevel(),
+                $transferInventoryDTO->getLotNumber(),
+                $transferInventoryDTO->getQuantity()
             );
 
             if (!$result['success']) {
@@ -347,15 +374,15 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $folio = $this->warehouseMovementsService->generateMovementFolio();
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
-                $dto->getInventoryId(),
+                $transferInventoryDTO->getInventoryId(),
                 'TRANSFER',
-                $dto->getQuantity(),
-                "Traslado de {$fromWarehouseName} a {$toWarehouseName}: " . $dto->getReason(),
+                $transferInventoryDTO->getQuantity(),
+                "Traslado de {$fromWarehouseName} a {$toWarehouseName}: " . $transferInventoryDTO->getReason(),
                 auth()->id()
             );
 
-            
-           
+
+
             $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
 
         } catch (\Throwable $th) {
@@ -390,7 +417,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function generateWarehouseInventoryDetailDTO(
         array $inventory
     ): array {
-      
+
         for ($i = 0; $i < count($inventory) ; $i++) {
             $inventory[$i] = new WarehouseInventoryDetailDTO(
                 $inventory[$i]['id'],
@@ -409,5 +436,27 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return  $inventory;
+    }
+
+    public function getExpiredInventory(): array
+    {
+        $expiratedProducts = $this->warehouseInventoryRepository->findExpired();
+
+
+        for ($i = 0; $i < count($expiratedProducts); $i++) {
+            $inventory = $expiratedProducts[$i];
+            
+            $expiratedProducts[$i] = new ExpiredInventoryDTO(
+                $inventory["product_id"],
+                $inventory["product_name"],
+                $inventory["warehouse_name"],
+                $inventory["quantity"],
+                $inventory["lot_number"],
+                $inventory["expiration_date"],
+                $inventory["expired_days"]
+            );
+        }
+
+        return $expiratedProducts;
     }
 }

@@ -72,4 +72,18 @@ class TransferInventoryDTO
     {
         return $this->reason;
     }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'inventory_id' => $this->inventoryId,
+            'from_warehouse_id' => $this->fromWarehouseId,
+            'to_warehouse_id' => $this->toWarehouseId,
+            'rack' => $this->rack,
+            'level' => $this->level,
+            'lot_number' => $this->lotNumber,
+            'quantity' => $this->quantity,
+            'reason' => $this->reason,
+        ];
+    }
 }

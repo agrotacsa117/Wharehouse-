@@ -14,12 +14,14 @@ use App\Models\ProductModel;
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
     private WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper;
-
+    private WarehouseInventoryModelToWarehouseInventoryMapperI $warehouseInventoryModelToWarehouseInventory;
 
     public function __construct(
-        WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper
+        WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper,
+        WarehouseInventoryModelToWarehouseInventoryMapperI $warehouseInventoryModelToWarehouseInventory
     ) {
         $this->warehouseInventoryMapper = $warehouseInventoryMapper;
+        $this->warehouseInventoryModelToWarehouseInventory = $warehouseInventoryModelToWarehouseInventory;
     }
 
     public function findAll(): array
@@ -65,6 +67,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             );
         }
     }
+
 
     public function delete(int $id): void
     {
@@ -144,11 +147,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     public function getInventoryStatsByState(): array
     {
         $query = WarehouseInventoryModel::selectRaw("
-            CASE 
-                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
-                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
-                ELSE 1
-            END AS state,
+            ".$this->getQueryBase().",
             SUM(quantity) AS total_stock
         ");
 
@@ -162,11 +161,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     {
         $query = WarehouseInventoryModel::selectRaw("
             w.warehouses_name,
-            CASE 
-                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
-                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
-                ELSE 1
-            END AS state,
+            ".$this->getQueryBase().",
             SUM(i.quantity) AS total_stock
         ")
         ->from('warehouse_inventory as i')
@@ -205,7 +200,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->toArray();
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $id): ?WarehouseInventory
     {
         $inventory = WarehouseInventoryModel::with('warehouse')
             ->where('id', $id)
@@ -215,7 +210,12 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             return null;
         }
 
-        return $inventory->toArray();
+        $inventory = $this->warehouseInventoryModelToWarehouseInventory
+        ->convertWarehouseInventoryModelToWarehouseInventory(
+            $inventory
+        );
+
+        return $inventory;
     }
 
     public function updateById(int $id, array $data): bool
@@ -271,4 +271,37 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             'remainingQuantity' => $inventory->quantity ?? 0
         ];
     }
+
+
+    private function getQueryBase(): string
+    {
+        $query = "
+            CASE 
+                WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
+                WHEN DATEDIFF(expiration_date, CURDATE()) BETWEEN 90 AND 120 THEN 2
+                ELSE 1
+            END AS state";
+
+        return $query;
+    }
+
+    public function findExpired(): array
+    {
+        return WarehouseInventoryModel::selectRaw("
+            wi.product_id,
+            wi.warehouse_name AS product_name,
+            w.warehouses_name AS warehouse_name,
+            wi.quantity,
+            wi.lot_number,
+            wi.expiration_date,
+            ABS(DATEDIFF(wi.expiration_date, CURDATE())) AS expired_days
+        ")
+        ->from('warehouse_inventory AS wi')
+        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
+        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
+        ->orderBy('wi.expiration_date', 'asc')
+        ->get()
+        ->toArray();
+    }
+
 }

@@ -91,6 +91,11 @@ Route::post(
     [MovementsController::class, 'reportByPeriod']
 )->name('warehouse-movements.report');
 
+//expirationReport
+Route::get(
+    '/warehouse-movements/expiration-report',
+    [MovementsController::class, 'expirationReport']
+)->name('warehouse-movements.expiration-report');;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');

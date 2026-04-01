@@ -106,6 +106,11 @@ class InventoryManagementController extends Controller
             $request->reason
         );
 
+         return response()->json([
+            'success' => true,
+            'message' =>  $dto
+        ]);
+
         $result = $this->warehouseInventoryService->transferInventory($dto);
 
         if ($result->isFailure()) {

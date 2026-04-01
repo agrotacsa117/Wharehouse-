@@ -45,4 +45,6 @@ interface WarehouseInventoryServiceInterface
     public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): \App\Application_Layer\ResultPattern;
 
     public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
+
+    public function getExpiredInventory(): array;
 }

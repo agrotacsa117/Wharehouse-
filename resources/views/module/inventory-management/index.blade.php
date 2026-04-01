@@ -483,7 +483,8 @@
 
                 const formData = new FormData(this);
                 const data = Object.fromEntries(formData);
-
+                
+                
                 const quantity = parseInt(data.quantity);
                 const maxQty = parseInt(document.getElementById('transferQuantity').max);
                 if (quantity > maxQty) {
@@ -510,7 +511,7 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Transferencia exitosa!',
-                                text: result.message,
+                                text: JSON.stringify(result.message),
                                 confirmButtonText: 'Aceptar'
                             }).then(() => {
                                 location.reload();

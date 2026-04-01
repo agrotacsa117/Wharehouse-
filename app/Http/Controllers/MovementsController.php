@@ -27,6 +27,7 @@ class MovementsController extends Controller
 
     public function getView(Request $request)
     {
+
         $page = (int) $request->get('page', 1);
         $perPage = 15;
 
@@ -60,6 +61,10 @@ class MovementsController extends Controller
         );
 
         $movements = $this->warehouseMovementsService->listAllMovements();
+
+        $expiredProducts = $this->warehouseInventoryService
+        ->getExpiredInventory();
+
 
         if ($request->ajax()) {
             return response()->json([
@@ -105,10 +110,10 @@ class MovementsController extends Controller
         'warehouse_id' => 'nullable|integer'
         ]);
 
-        
+
         $startDate = $data['fecha_inicio'];
         $endDate = $data['fecha_fin'];
-        
+
         $movementType = $data['tipo_movimiento'] ?? null;
         $warehouseId = $data['warehouse_id'] ?? null;
 
@@ -120,12 +125,23 @@ class MovementsController extends Controller
         );
 
         $result = $this->warehouseMovementsService->filterTransactionsByDateRange(
-            $movementsByPeriodFilterDTO);
+            $movementsByPeriodFilterDTO
+        );
 
         $movements = $result->getValue();
 
         return response()->json([
             'data' => $movements
+        ]);
+    }
+
+    public function expirationReport(Request $request)
+    {
+        $expiredInventory = $this->warehouseInventoryService->getExpiredInventory();
+        //$ranking = $this->warehouseInventoryService->getExpiredInventoryRanking();
+
+        return response()->json([
+            'data' => $expiredInventory
         ]);
     }
 }
