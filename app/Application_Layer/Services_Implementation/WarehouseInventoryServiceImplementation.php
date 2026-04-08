@@ -21,6 +21,7 @@ use App\Mappers\DTO\TransferInventoryDTO;
 use App\Mappers\DTO\ExpiredInventoryRankingItemDTO;
 use App\Mappers\DTO\WarehouseExpiredRankingDTO;
 use App\Mappers\DTO\ExpiredInventoryDTO;
+use App\Mappers\DTO\RelocationRequestDTO;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -473,5 +474,97 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return $result;
+    }
+
+    public function relocateInventory(\App\Mappers\DTO\RelocationRequestDTO $dto, int $userId): ResultPattern
+    {
+        $inventory = $this->warehouseInventoryRepository->findById($dto->getInventoryId());
+
+        if (!$inventory) {
+            return ResultPattern::failure("Inventario no encontrado.");
+        }
+
+        $currentStock = (int)($inventory['quantity'] ?? 0);
+        if ($dto->getQuantity() > $currentStock) {
+            return ResultPattern::failure(
+                "Cantidad solicitada ({$dto->getQuantity()}) excede el stock disponible ({$currentStock})."
+            );
+        }
+
+        try {
+            $folio = $this->warehouseMovementsService->generateMovementFolio();
+
+            $movementOUT = new WarehouseMovementsDTO(
+                $folio,
+                $dto->getInventoryId(),
+                WarehouseInventoryMovements::TYPE_RELOCATION,
+                $dto->getQuantity(),
+                "Reubicación: {$dto->getWarehouseId()} -> {$dto->getDestinationWarehouseId()} ({$dto->getNewRack()}/{$dto->getNewLevel()})",
+                $userId,
+                null,
+                null,
+                $dto->getOperationDate(),
+                $dto->getWarehouseId()
+            );
+            $resultOUT = $this->warehouseMovementsService->saveWarehouseMovement($movementOUT);
+            if ($resultOUT->isFailure()) {
+                return ResultPattern::failure("Error al guardar movimiento de reubicación: " . $resultOUT->getError());
+            }
+
+            $inventoryModel = \App\Models\WarehouseInventoryModel::find($dto->getInventoryId());
+            $folioIN = null;
+
+            if ($dto->getQuantity() < $currentStock) {
+                $remainingStock = $currentStock - $dto->getQuantity();
+                $inventoryModel->quantity = $remainingStock;
+                $inventoryModel->save();
+
+                $newInventory = new \App\Models\WarehouseInventoryModel();
+                $newInventory->warehouse_id = $dto->getDestinationWarehouseId();
+                $newInventory->product_id = $inventoryModel->product_id;
+                $newInventory->rack = $dto->getNewRack();
+                $newInventory->_level = $dto->getNewLevel();
+                $newInventory->warehouse_name = $inventoryModel->warehouse_name;
+                $newInventory->quantity = $dto->getQuantity();
+                $newInventory->lot_number = $inventoryModel->lot_number;
+                $newInventory->expiration_date = $inventoryModel->expiration_date;
+                $newInventory->reason = "Reubicación desde {$inventoryModel->rack}/{$inventoryModel->_level}";
+                $newInventory->save();
+            } elseif ($dto->getDestinationWarehouseId() !== $dto->getWarehouseId()) {
+                $newInventory = new \App\Models\WarehouseInventoryModel();
+                $newInventory->warehouse_id = $dto->getDestinationWarehouseId();
+                $newInventory->product_id = $inventoryModel->product_id;
+                $newInventory->rack = $dto->getNewRack();
+                $newInventory->_level = $dto->getNewLevel();
+                $newInventory->warehouse_name = $inventoryModel->warehouse_name;
+                $newInventory->quantity = $dto->getQuantity();
+                $newInventory->lot_number = $inventoryModel->lot_number;
+                $newInventory->expiration_date = $inventoryModel->expiration_date;
+                $newInventory->reason = "Reubicación desde {$inventoryModel->rack}/{$inventoryModel->_level}";
+                $newInventory->save();
+
+                $inventoryModel->delete();
+            } else {
+                $inventoryModel->rack = $dto->getNewRack();
+                $inventoryModel->_level = $dto->getNewLevel();
+                $inventoryModel->save();
+            }
+
+            return ResultPattern::success([
+                'folio' => $folio
+            ]);
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure("Error al procesar reubicación: " . $th->getMessage());
+        }
+    }
+
+    public function getCurrentStock(int $inventoryId): ?int
+    {
+        $inventory = $this->warehouseInventoryRepository->findById($inventoryId);
+        if (!$inventory) {
+            return null;
+        }
+        return (int)($inventory['quantity'] ?? 0);
     }
 }

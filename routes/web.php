@@ -127,7 +127,20 @@ Route::get('/output/{id}/inventory', [OutputController::class,
 
 Route::post('/output/process', [
     OutputController::class,
-    'processOutput'])->name('output.inventory.process');
+    'processOutput'])->middleware('auth')->name('output.inventory.process');
+
+Route::post('/output/transfer/confirm/{id}', [
+    OutputController::class,
+    'confirmReception'])->name('output.transfer.confirm');
+
+Route::post('/output/transfer/cancel/{id}', [
+    OutputController::class,
+    'cancelTransfer'])->name('output.transfer.cancel');
+
+Route::get('/warehouses/by-location/{locationId}', [
+    OutputController::class,
+    'getWarehousesByLocation'
+])->name('warehouses.by-location');
 
 Route::middleware("auth")->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');

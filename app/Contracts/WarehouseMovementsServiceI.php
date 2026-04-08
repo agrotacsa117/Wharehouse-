@@ -28,5 +28,9 @@ interface WarehouseMovementsServiceI
 
     public function getMovementsByProductId(string $productId): array;
 
+    public function getRecentMovements(int $limit = 10): array;
+
+    public function getRecentMovementsByWarehouseId(int $warehouseId, int $limit = 10): array;
+
 
 }

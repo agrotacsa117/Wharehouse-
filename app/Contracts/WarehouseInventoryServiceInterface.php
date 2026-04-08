@@ -53,4 +53,8 @@ interface WarehouseInventoryServiceInterface
     public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
 
     public function getExpiredInventoryRanking(): array;
+
+    public function relocateInventory(\App\Mappers\DTO\RelocationRequestDTO $dto, int $userId): \App\Application_Layer\ResultPattern;
+
+    public function getCurrentStock(int $inventoryId): ?int;
 }

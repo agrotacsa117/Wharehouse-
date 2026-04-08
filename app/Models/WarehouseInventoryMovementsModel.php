@@ -9,14 +9,22 @@ class WarehouseInventoryMovementsModel extends Model
     protected $table = "warehouse_inventory_movements";
 
     protected $fillable = [
-       'folio',
-       'warehouse_inventory_id',
-       'movement_type',
-       'quantity',
-       'reason',
-       'user_id',
-       'created_at',
-       'updated_at'
+        'folio',
+        'warehouse_inventory_id',
+        'movement_type',
+        'quantity',
+        'reason',
+        'user_id',
+        'client_id',
+        'invoice_sap',
+        'operation_date',
+        'source_warehouse_id',
+        'created_at',
+        'updated_at'
+    ];
+
+    protected $casts = [
+        'operation_date' => 'date',
     ];
 
     public function inventory()
@@ -33,6 +41,15 @@ class WarehouseInventoryMovementsModel extends Model
         return $this->belongsTo(
             User::class,
             'user_id',
+            'id'
+        );
+    }
+
+    public function sourceWarehouse()
+    {
+        return $this->belongsTo(
+            WarehouseModel::class,
+            'source_warehouse_id',
             'id'
         );
     }

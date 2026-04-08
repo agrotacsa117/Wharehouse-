@@ -149,19 +149,37 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
         return $this->warehouseStorageRepository->count();
     }
 
-    public function getListAllWarehousesWithLocation(
-        array $warehouseIds) :  array{
-        $warehouses = $this->warehouseStorageRepository
-        ->findWereIn($warehouseIds);
+    public function getListAllWarehousesWithLocation(array $warehouseIds): array
+    {
+        $warehouses = $this->warehouseStorageRepository->findWereIn($warehouseIds);
 
-        for ($i=0; $i <count($warehouseIds) ; $i++) { 
-            $warehouses[$i] = new WarehouseWithLocationResponseDTO(
+        $result = [];
+        for ($i = 0; $i < count($warehouses); $i++) {
+            $result[] = new WarehouseWithLocationResponseDTO(
                 $warehouses[$i]["id"],
                 $warehouses[$i]["warehouses_name"],
-                $warehouses[$i]["location"]["headquarters_name"]
+                $warehouses[$i]["location"]["headquarters_name"],
+                $warehouses[$i]["location_id"] ?? null
             );
         }
 
-        return $warehouses;
+        return $result;
+    }
+
+    public function getWarehousesByLocationId(int $locationId): array
+    {
+        $warehouses = $this->warehouseStorageRepository->findByLocationId($locationId);
+
+        $result = [];
+        foreach ($warehouses as $warehouse) {
+            $result[] = new WarehouseWithLocationResponseDTO(
+                $warehouse["id"],
+                $warehouse["warehouses_name"],
+                $warehouse["location"]["headquarters_name"] ?? '',
+                $warehouse["location_id"] ?? null
+            );
+        }
+
+        return $result;
     }
 }

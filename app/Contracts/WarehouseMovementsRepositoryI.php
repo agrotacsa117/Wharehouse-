@@ -21,4 +21,8 @@ interface WarehouseMovementsRepositoryI
     public function findByDateRange(string $startDate, string $endDate): array;
 
     public function findByProductId(string $productId): array;
+
+    public function findRecent(int $limit = 10): array;
+
+    public function findRecentByWarehouseId(int $warehouseId, int $limit = 10): array;
 }

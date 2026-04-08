@@ -371,6 +371,7 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 90px;">Obsolescencia</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableCriticalBody">
@@ -440,11 +441,12 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 90px;">Obsolescencia</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableAttentionBody">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="10" class="text-center text-muted py-4">
                                             <i class="bi bi-hourglass-split me-2"></i>Cargando datos...
                                         </td>
                                     </tr>
@@ -509,11 +511,12 @@
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
                                         <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 90px;">Obsolescencia</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableOkBody">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="10" class="text-center text-muted py-4">
                                             <i class="bi bi-hourglass-split me-2"></i>Cargando datos...
                                         </td>
                                     </tr>
@@ -569,7 +572,7 @@
             if (!data || data.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoría
                         </td>
                     </tr>
@@ -592,6 +595,17 @@
                         <span class="badge ${getBadgeClass(item.days_remaining)}">
                             ${item.days_remaining < 0 ? 'Vencido' : item.days_remaining + ' días'}
                         </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <div class="progress" style="height: 6px; width: 50px;">
+                                <div class="progress-bar ${(item.obsolescence || 0) > 80 ? 'bg-danger' : (item.obsolescence || 0) > 50 ? 'bg-warning' : 'bg-success'}" 
+                                     role="progressbar" 
+                                     style="width: ${Math.min(100, Math.abs(item.obsolescence || 0))}%">
+                                </div>
+                            </div>
+                            <span class="small fw-medium">${(item.obsolescence || 0)}%</span>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -651,7 +665,7 @@
                 if (tbody) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="10" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoría
                             </td>
                         </tr>

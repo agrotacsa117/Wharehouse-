@@ -33,6 +33,8 @@ interface WarehouseStorageServiceInterface
     public function getTotalWarehouse(): int;
 
     public function getListAllWarehousesWithLocation(
-        array $warehouseIds) :  array;
+        array $warehouseIds): array;
+
+    public function getWarehousesByLocationId(int $locationId): array;
 
 }

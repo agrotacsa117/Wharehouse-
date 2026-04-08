@@ -69,6 +69,10 @@ use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Mappers\WarehouseInventoryMovementsMapper;
 use App\Contracts\WarehouseInventoryMovementModelMapperI;
 use App\Mappers\WarehouseInventoryMovementModelMapper;
+use App\Contracts\StockInTransitRepositoryI;
+use App\Contracts\StockInTransitServiceI;
+use App\Application_Layer\Repository_Implementation\StockInTransitRepositoryImplementation;
+use App\Application_Layer\Services_Implementation\StockInTransitServiceImplementation;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -226,6 +230,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseInventoryMovementModelMapperI::class,
             WarehouseInventoryMovementModelMapper::class
+        );
+
+        $this->app->bind(
+            StockInTransitRepositoryI::class,
+            StockInTransitRepositoryImplementation::class
+        );
+
+        $this->app->bind(
+            StockInTransitServiceI::class,
+            StockInTransitServiceImplementation::class
         );
         
     }

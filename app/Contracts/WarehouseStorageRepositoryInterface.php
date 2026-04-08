@@ -29,5 +29,7 @@ interface WarehouseStorageRepositoryInterface
 
     public function count(): int;
 
-    public function findWereIn(array $ids) : array;
+    public function findWereIn(array $ids): array;
+
+    public function findByLocationId(int $locationId): array;
 }

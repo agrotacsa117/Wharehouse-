@@ -130,4 +130,33 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 
         return $movements->toArray();
     }
+
+    public function findRecent(int $limit = 10): array
+    {
+        $movements = WarehouseInventoryMovementsModel::with([
+            'inventory.warehouse',
+            'user'
+        ])
+        ->orderBy('created_at', 'desc')
+        ->limit($limit)
+        ->get();
+
+        return $movements->toArray();
+    }
+
+    public function findRecentByWarehouseId(int $warehouseId, int $limit = 10): array
+    {
+        $movements = WarehouseInventoryMovementsModel::with([
+            'inventory.warehouse',
+            'user'
+        ])
+        ->whereHas('inventory', function ($query) use ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        })
+        ->orderBy('created_at', 'desc')
+        ->limit($limit)
+        ->get();
+
+        return $movements->toArray();
+    }
 }

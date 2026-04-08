@@ -305,7 +305,8 @@
                     <div class="warehouse-btn"
                         onclick='selectWarehouse(
                     {{ $warehouse->getId() }},
-                    @json($warehouse->getWarehouseName() . ' - ' . $warehouse->getHeadquartersName())
+                    @json($warehouse->getWarehouseName() . ' - ' . $warehouse->getHeadquartersName()),
+                    {{ $warehouse->getLocationId() ?? 'null' }}
                 )'>
 
                         <i class="bi bi-building h3 text-danger"></i>
@@ -385,24 +386,99 @@
                             @csrf
 
                             <input type="hidden" name="warehouseInventoryId" id="warehouseInventoryId">
-
+                            <input type="hidden" name="warehouse_id" id="warehouseId">
 
                             <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Tipo de Movimiento</label>
+                                    <select name="movement_type" id="movementType" class="form-select" onchange="toggleMovementFields()">
+                                        <option value="OUT">Salida Simple</option>
+                                        <option value="SALE">Venta</option>
+                                        <option value="TRANSFER">Traslado entre Sucursales</option>
+                                        <option value="RELOCATION">Reubicación Interna</option>
+                                    </select>
+                                </div>
+
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Cantidad a retirar</label>
+                                    <label class="form-label small fw-bold">Cantidad</label>
                                     <input type="number" name="quantity" id="input-quantity" class="form-control"
                                         required min="1">
                                 </div>
 
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Motivo</label>
-                                    <input type="text" name="reason" id="input-reason" class="form-control"
-                                        required min="1">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Fecha de Operación</label>
+                                    <input type="date" name="operation_date" id="input-operation-date" class="form-control">
                                 </div>
+
+                                <!-- Campos para VENTA -->
+                                <div id="fields-sale" class="d-none col-12">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i> Datos de Venta
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">ID Cliente *</label>
+                                            <input type="number" name="client_id" id="input-client-id" class="form-control" min="1">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Factura SAP</label>
+                                            <input type="text" name="invoice_sap" id="input-invoice-sap" class="form-control" placeholder="FAC-000001">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campos para TRASLADO -->
+                                <div id="fields-transfer" class="d-none col-12">
+                                    <div class="alert alert-warning">
+                                        <i class="bi bi-truck"></i> Traslado entre Sucursales
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Sucursal Destino *</label>
+                                            <select name="destination_warehouse_id" id="input-destination-warehouse" class="form-select">
+                                                <option value="">Seleccione sucursal destino...</option>
+                                                @isset($allWarehouses)
+                                                    @foreach($allWarehouses as $wh)
+                                                        <option value="{{ $wh->getId() }}">{{ $wh->getWarehouseName() }}</option>
+                                                    @endforeach
+                                                @endisset
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campos para REUBICACIÓN -->
+                                <div id="fields-relocation" class="d-none col-12">
+                                    <div class="alert alert-primary">
+                                        <i class="bi bi-arrows-move"></i> Reubicación Interna
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Bodega Destino *</label>
+                                            <select name="destination_warehouse_id" id="input-relocation-destination" class="form-select">
+                                                <option value="">Seleccione bodega destino...</option>
+                                            </select>
+                                            <small class="text-muted">Solo bodegas del mismo location</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Nuevo Rack *</label>
+                                            <input type="text" name="new_rack" id="input-new-rack" class="form-control" placeholder="Ej: A-01">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Nuevo Nivel *</label>
+                                            <input type="number" name="new_level" id="input-new-level" class="form-control" min="1" placeholder="Ej: 1">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Motivo / Observaciones</label>
+                                    <input type="text" name="reason" id="input-reason" class="form-control" placeholder="Descripción del movimiento">
+                                </div>
+
                                 <div class="col-12 d-flex gap-2 justify-content-end mt-4">
-                                    <button type="button" class="btn-outline"
-                                        onclick="showStep(2)">Cancelar</button>
-                                    <button type="submit" class="btn-tacsa">Registrar Salida</button>
+                                    <button type="button" class="btn-outline" onclick="showStep(2)">Cancelar</button>
+                                    <button type="submit" class="btn-tacsa" id="btn-submit">Registrar Salida</button>
                                 </div>
                             </div>
                         </form>
@@ -410,6 +486,46 @@
                 </div>
             </div>
         </div>
+
+        <!-- Panel de Recepciones Pendientes -->
+        @isset($pendingReceptions)
+            @if(count($pendingReceptions) > 0)
+                <div class="mt-5">
+                    <h3 class="h5 fw-bold mb-3"><i class="bi bi-inbox"></i> Recepciones Pendientes</h3>
+                    <div class="tacsa-card p-0 overflow-hidden">
+                        <table class="tacsa-table m-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>Almacén Origen</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha Envío</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pendingReceptions as $pending)
+                                    <tr>
+                                        <td><strong>{{ $pending->getFolio() }}</strong></td>
+                                        <td>{{ $pending->getOriginWarehouseId() }}</td>
+                                        <td>{{ $pending->getQuantity() }}</td>
+                                        <td>{{ $pending->getSentAt()->format('d-m-Y H:i') }}</td>
+                                        <td>
+                                            <form action="{{ route('output.transfer.confirm', $pending->getId()) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle"></i> Confirmar Recepción
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @endisset
 
         <div class="mt-5">
             <h3 class="h5 fw-bold mb-3"><i class="bi bi-clock-history"></i> Movimientos Recientes</h3>
@@ -425,10 +541,27 @@
                         </tr>
                     </thead>
                     <tbody id="history-body">
+                        @if(isset($recentMovements) && count($recentMovements) > 0)
+                            @foreach($recentMovements as $movement)
+                            <tr>
+                                <td><small class="fw-bold">{{ $movement['folio'] }}</small></td>
+                                <td>{{ \Carbon\Carbon::parse($movement['created_at'])->format('d-m-Y H:i') }}</td>
+                                <td>{{ $movement['product_code'] ?? '' }} - {{ $movement['product_name'] ?? '' }}</td>
+                                <td class="{{ $movement['movement_type'] === 'IN' ? 'text-success' : 'text-danger' }} fw-bold">
+                                    {{ $movement['movement_type'] === 'IN' ? '+' : '-' }}{{ $movement['quantity'] }}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-light border" onclick="showDetail('{{ $movement['folio'] }}')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        @else
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-secondary">No hay salidas registradas en
-                                esta sesión.</td>
+                            <td colspan="5" class="text-center py-4 text-secondary">No hay movimientos registrados.</td>
                         </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -448,6 +581,91 @@
     <div class="toast-container" id="toast-area"></div>
 
     <script>
+        // Toggle visibility of movement-specific fields
+        function toggleMovementFields() {
+            const movementType = document.getElementById('movementType').value;
+            const fieldsSale = document.getElementById('fields-sale');
+            const fieldsTransfer = document.getElementById('fields-transfer');
+            const fieldsRelocation = document.getElementById('fields-relocation');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            // Hide all fields first
+            fieldsSale.classList.add('d-none');
+            fieldsTransfer.classList.add('d-none');
+            fieldsRelocation.classList.add('d-none');
+
+            // Reset required attributes
+            document.getElementById('input-client-id').required = false;
+            document.getElementById('input-destination-warehouse').required = false;
+            document.getElementById('input-new-rack').required = false;
+            document.getElementById('input-new-level').required = false;
+
+            // Show relevant fields and update button text
+            switch (movementType) {
+                case 'SALE':
+                    fieldsSale.classList.remove('d-none');
+                    document.getElementById('input-client-id').required = true;
+                    btnSubmit.textContent = 'Registrar Venta';
+                    break;
+                case 'TRANSFER':
+                    fieldsTransfer.classList.remove('d-none');
+                    document.getElementById('input-destination-warehouse').required = true;
+                    btnSubmit.textContent = 'Crear Traslado';
+                    break;
+                case 'RELOCATION':
+                    fieldsRelocation.classList.remove('d-none');
+                    document.getElementById('input-relocation-destination').required = true;
+                    document.getElementById('input-new-rack').required = true;
+                    document.getElementById('input-new-level').required = true;
+                    btnSubmit.textContent = 'Registrar Reubicación';
+                    loadRelocationWarehouses();
+                    break;
+                default:
+                    btnSubmit.textContent = 'Registrar Salida';
+            }
+        }
+
+        // Cargar bodegas del mismo location_id para reubicación
+        function loadRelocationWarehouses() {
+            const select = document.getElementById('input-relocation-destination');
+            select.innerHTML = '<option value="">Cargando...</option>';
+
+            if (!state.warehouseLocationId) {
+                select.innerHTML = '<option value="">Seleccione un almacén primero</option>';
+                return;
+            }
+
+            // Llamada AJAX al servidor usando getWarehousesByLocationId
+            fetch('/warehouses/by-location/' + state.warehouseLocationId)
+                .then(response => response.json())
+                .then(warehouses => {
+                    // Filtrar excluyendo el warehouse origen
+                    const filtered = warehouses.filter(wh => wh.id !== state.warehouseId);
+
+                    if (filtered.length === 0) {
+                        select.innerHTML = '<option value="">No hay otras bodegas en este location</option>';
+                        return;
+                    }
+
+                    select.innerHTML = '<option value="">Seleccione bodega destino...</option>';
+                    filtered.forEach(function(wh) {
+                        const option = document.createElement('option');
+                        option.value = wh.id;
+                        option.textContent = wh.name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error cargando warehouses:', error);
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleMovementFields();
+        });
+
         // Datos de ejemplo
         const db = {
             13: [{
@@ -476,9 +694,21 @@
 
         let state = {
             warehouseId: null,
+            warehouseLocationId: null,
             product: null,
             history: []
         };
+
+        // Datos de warehouses con location_id desde PHP
+        const allWarehousesData = {!! json_encode(collect($allWarehouses)->map(function($wh) {
+            return [
+                'id' => $wh->getId(),
+                'name' => $wh->getWarehouseName(),
+                'locationId' => $wh->getLocationId()
+            ];
+        })) !!};
+
+        console.log('Warehouses data:', allWarehousesData);
 
         function showStep(n) {
             document.getElementById('panel-step1').style.display = n === 1 ? 'block' : 'none';
@@ -493,8 +723,9 @@
             });
         }
 
-        function selectWarehouse(id, name) {
+        function selectWarehouse(id, name, locationId) {
             state.warehouseId = id;
+            state.warehouseLocationId = locationId;
             document.getElementById('current-wh-name').innerText = name;
             renderInventory(id);
             showStep(2);
@@ -526,9 +757,7 @@
         }
 
         function prepSalida(product) {
-
             state.product = product;
-            //
 
             document.getElementById('form-prod-code').innerText = product.productCode;
             document.getElementById('form-prod-name').innerText = product.productName;
@@ -536,7 +765,12 @@
             document.getElementById('form-prod-expiration-date').innerText = product.expirationDate.split(' ')[0];
             document.getElementById('form-prod-stock').innerText = product.quantity;
             document.getElementById('warehouseInventoryId').value = product.inventoryId;
-            //document.getElementById('input-qty').max = product.stock;
+            document.getElementById('warehouseId').value = state.warehouseId;
+
+            // Reset movement type to OUT
+            document.getElementById('movementType').value = 'OUT';
+            toggleMovementFields();
+
             showStep(3);
         }
 

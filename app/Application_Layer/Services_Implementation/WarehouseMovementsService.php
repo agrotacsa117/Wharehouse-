@@ -189,5 +189,51 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         return $result;
     }
 
+    public function getRecentMovements(int $limit = 10): array
+    {
+        $movements = $this->warehouseMovementsRepository->findRecent($limit);
+
+        $result = [];
+        foreach ($movements as $movement) {
+            $result[] = [
+                'folio' => $movement['folio'] ?? '',
+                'movement_type' => $movement['movement_type'] ?? '',
+                'quantity' => $movement['quantity'] ?? 0,
+                'reason' => $movement['reason'] ?? '',
+                'created_at' => $movement['created_at'] ?? '',
+                'product_code' => $movement['inventory']['warehouse_name'] ?? '',
+                'product_name' => $movement['inventory']['warehouse_name'] ?? '',
+                'warehouses_name' => $movement['inventory']['warehouse']['warehouses_name'] ?? '',
+                'warehouse_id' => $movement['inventory']['warehouse_id'] ?? null,
+                'inventory_id' => $movement['inventory_id'] ?? null,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getRecentMovementsByWarehouseId(int $warehouseId, int $limit = 10): array
+    {
+        $movements = $this->warehouseMovementsRepository->findRecentByWarehouseId($warehouseId, $limit);
+
+        $result = [];
+        foreach ($movements as $movement) {
+            $result[] = [
+                'folio' => $movement['folio'] ?? '',
+                'movement_type' => $movement['movement_type'] ?? '',
+                'quantity' => $movement['quantity'] ?? 0,
+                'reason' => $movement['reason'] ?? '',
+                'created_at' => $movement['created_at'] ?? '',
+                'product_code' => $movement['inventory']['warehouse_name'] ?? '',
+                'product_name' => $movement['inventory']['warehouse_name'] ?? '',
+                'warehouses_name' => $movement['inventory']['warehouse']['warehouses_name'] ?? '',
+                'warehouse_id' => $movement['inventory']['warehouse_id'] ?? null,
+                'inventory_id' => $movement['inventory_id'] ?? null,
+            ];
+        }
+
+        return $result;
+    }
+
 
 }

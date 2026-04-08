@@ -127,17 +127,30 @@ class WarehouseStorageRepositoryImplementation implements
         return WarehouseModel::count();
     }
 
-    public function findWereIn(array $warehouseIds) : array{
+    public function findWereIn(array $warehouseIds): array
+    {
         $warehouse = WarehouseModel::select(
-            'id', 
+            'id',
             'warehouses_name',
-            'location_id')->with('location:id,headquarters_name')
+            'location_id'
+        )->with('location:id,headquarters_name')
             ->whereIn('id', $warehouseIds)
-            ->get();;
+            ->get();
         $warehouse = $warehouse->toArray();
 
         return $warehouse;
     }
 
-    
+    public function findByLocationId(int $locationId): array
+    {
+        $warehouses = WarehouseModel::select(
+            'id',
+            'warehouses_name',
+            'location_id'
+        )->with('location:id,headquarters_name')
+            ->where('location_id', $locationId)
+            ->get();
+
+        return $warehouses->toArray();
+    }
 }

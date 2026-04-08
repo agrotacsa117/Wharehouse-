@@ -12,16 +12,22 @@ class WarehouseInventoryMovements
     public const TYPE_OUT = 'OUT';
     public const TYPE_ADJUSTMENT = 'ADJUSTMENT';
     public const TYPE_TRANSFER = 'TRANSFER';
+    public const TYPE_SALE = 'SALE';
+    public const TYPE_RELOCATION = 'RELOCATION';
 
-    private $id;
-    private $folio;
-    private $warehouseInventoryId;
-    private $movementType;
-    private $quantity;
-    private $reason;
-    private $userId;
-    private $createdAt;
-    private $updatedAt;
+    private ?int $id;
+    private string $folio;
+    private int $warehouseInventoryId;
+    private string $movementType;
+    private int $quantity;
+    private ?string $reason;
+    private ?int $userId;
+    private ?int $clientId;
+    private ?string $invoiceSap;
+    private ?DateTime $operationDate;
+    private ?int $sourceWarehouseId;
+    private ?DateTime $createdAt;
+    private ?DateTime $updatedAt;
 
     public function __construct(
         string $folio,
@@ -29,10 +35,15 @@ class WarehouseInventoryMovements
         string $movementType,
         int $quantity,
         ?string $reason,
-        ?int $userId
+        ?int $userId,
+        ?int $clientId = null,
+        ?string $invoiceSap = null,
+        ?DateTime $operationDate = null,
+        ?int $sourceWarehouseId = null
     ) {
         $this->validateMovementType($movementType);
         $this->validateQuantity($quantity);
+        $this->validateClientIdForSale($clientId, $movementType);
 
         $this->folio = $folio;
         $this->warehouseInventoryId = $warehouseInventoryId;
@@ -40,11 +51,11 @@ class WarehouseInventoryMovements
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
+        $this->clientId = $clientId;
+        $this->invoiceSap = $invoiceSap;
+        $this->operationDate = $operationDate;
+        $this->sourceWarehouseId = $sourceWarehouseId;
     }
-
-    // =========================
-    // VALIDATIONS (Domain Rules)
-    // =========================
 
     private function validateMovementType(string $type): void
     {
@@ -52,11 +63,13 @@ class WarehouseInventoryMovements
             self::TYPE_IN,
             self::TYPE_OUT,
             self::TYPE_ADJUSTMENT,
-            self::TYPE_TRANSFER
+            self::TYPE_TRANSFER,
+            self::TYPE_SALE,
+            self::TYPE_RELOCATION
         ];
 
         if (!in_array($type, $allowed, true)) {
-            throw new \InvalidArgumentException("Invalid movement type.");
+            throw new \InvalidArgumentException("Invalid movement type: {$type}");
         }
     }
 
@@ -67,11 +80,14 @@ class WarehouseInventoryMovements
         }
     }
 
-    // =========================
-    // GETTERS
-    // =========================
+    private function validateClientIdForSale(?int $clientId, string $movementType): void
+    {
+        if ($movementType === self::TYPE_SALE && $clientId === null) {
+            throw new \InvalidArgumentException("Client ID is required for SALE movements.");
+        }
+    }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -106,19 +122,35 @@ class WarehouseInventoryMovements
         return $this->userId;
     }
 
-    public function getCreatedAt()
+    public function getClientId(): ?int
+    {
+        return $this->clientId;
+    }
+
+    public function getInvoiceSap(): ?string
+    {
+        return $this->invoiceSap;
+    }
+
+    public function getOperationDate(): ?DateTime
+    {
+        return $this->operationDate;
+    }
+
+    public function getSourceWarehouseId(): ?int
+    {
+        return $this->sourceWarehouseId;
+    }
+
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->updatedAt;
     }
-
-    // =========================
-    // Setters controlados
-    // =========================
 
     public function setId(int $id): void
     {
@@ -127,7 +159,22 @@ class WarehouseInventoryMovements
 
     public function setTimestamps(string $createdAt, string $updatedAt): void
     {
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->createdAt = new DateTime($createdAt);
+        $this->updatedAt = new DateTime($updatedAt);
+    }
+
+    public function isSale(): bool
+    {
+        return $this->movementType === self::TYPE_SALE;
+    }
+
+    public function isTransfer(): bool
+    {
+        return $this->movementType === self::TYPE_TRANSFER;
+    }
+
+    public function isRelocation(): bool
+    {
+        return $this->movementType === self::TYPE_RELOCATION;
     }
 }
