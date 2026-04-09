@@ -80,6 +80,11 @@ Route::get(
     [WarehouseManagmentController::class, 'getView']
 )->name('warehouse-managment.get');
 
+Route::put(
+    '/warehouse-managment/{id}',
+    [WarehouseManagmentController::class, 'update']
+)->middleware('auth')->name('warehouse-managment.update');
+
 Route::get(
     '/warehouse-movements',
     [MovementsController::class, 'getView']

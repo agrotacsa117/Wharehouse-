@@ -22,6 +22,7 @@ use App\Mappers\DTO\ExpiredInventoryRankingItemDTO;
 use App\Mappers\DTO\WarehouseExpiredRankingDTO;
 use App\Mappers\DTO\ExpiredInventoryDTO;
 use App\Mappers\DTO\RelocationRequestDTO;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -494,10 +495,18 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         try {
             $folio = $this->warehouseMovementsService->generateMovementFolio();
 
+            \Log::info('Iniciando reubicacion', [
+                'inventory_id' => $dto->getInventoryId(),
+                'warehouse_id' => $dto->getWarehouseId(),
+                'destination_warehouse_id' => $dto->getDestinationWarehouseId(),
+                'quantity' => $dto->getQuantity(),
+                'user_id' => $userId
+            ]);
+
             $movementOUT = new WarehouseMovementsDTO(
                 $folio,
                 $dto->getInventoryId(),
-                WarehouseInventoryMovements::TYPE_RELOCATION,
+                WarehouseInventoryMovements::TYPE_OUT,
                 $dto->getQuantity(),
                 "Reubicación: {$dto->getWarehouseId()} -> {$dto->getDestinationWarehouseId()} ({$dto->getNewRack()}/{$dto->getNewLevel()})",
                 $userId,
@@ -506,7 +515,17 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $dto->getOperationDate(),
                 $dto->getWarehouseId()
             );
+            
+            \Log::info('DTO creado', ['movementType' => $movementOUT->getMovementType()]);
+
             $resultOUT = $this->warehouseMovementsService->saveWarehouseMovement($movementOUT);
+            
+            \Log::info('Resultado saveWarehouseMovement', [
+                'isSuccess' => $resultOUT->isSuccess(),
+                'isFailure' => $resultOUT->isFailure(),
+                'error' => $resultOUT->isFailure() ? $resultOUT->getError() : null
+            ]);
+
             if ($resultOUT->isFailure()) {
                 return ResultPattern::failure("Error al guardar movimiento de reubicación: " . $resultOUT->getError());
             }

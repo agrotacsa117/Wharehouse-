@@ -7,7 +7,7 @@ namespace App\Enterprise_Layer;
 use App\Enterprise_Layer\WarehouseBuilder;
 use DateTime;
 
-class Warehouse
+class Warehouse implements \JsonSerializable
 {
     private int $warehouseId;
     private string $warehouseName;
@@ -142,4 +142,23 @@ class Warehouse
         $this->locationId = $locationId;
     }
 
+
+    public function jsonSerialize(): mixed
+    {
+        return [
+            'warehouseId' => $this->warehouseId ?? null,
+            'warehouseName' => $this->warehouseName,
+            'creationDate' => $this->creationDate->format(DateTime::ATOM),
+            'lastUpdateDate' => $this->lastUpdateDate->format(DateTime::ATOM),
+            'userLastUpdate' => $this->userLastUpdate,
+            'warehouseKey' => $this->warehouseKey,
+            'warehouseManager' => $this->warehouseManager,
+            'phoneNumber' => $this->phoneNumber,
+            'email' => $this->email,
+            'warehouseTypeId' => $this->warehouseTypeId,
+            'locationId' => $this->locationId,
+        ];
+    }
 }
+
+

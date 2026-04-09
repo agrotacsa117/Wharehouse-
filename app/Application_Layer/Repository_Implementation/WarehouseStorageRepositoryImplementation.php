@@ -87,8 +87,41 @@ class WarehouseStorageRepositoryImplementation implements
     #[\Override]
     public function updateWarehouse(Warehouse $warehouse): ResultPattern
     {
+        
+        try {
+            \Illuminate\Support\Facades\Log::info('Repository: updateWarehouse called', [
+                'warehouse_id' => $warehouse->getWarehousesId(),
+                'name' => $warehouse->getWarehousesName(),
+                'type_id' => $warehouse->getWarehouseTypeId(),
+                'location_id' => $warehouse->getLocationId()
+            ]);
 
-        return ResultPattern::success("Warehouse updated successfully");
+            $warehouseModel = $this->entityToModelMapper
+                ->convertDomainEntityToModel($warehouse);
+
+            $existingModel = WarehouseModel::find($warehouse->getWarehousesId());
+
+            if (!$existingModel) {
+                return ResultPattern::failure("Almacén no encontrado.");
+            }
+
+            $existingModel->warehouses_name = $warehouseModel->warehouses_name;
+            $existingModel->warehouses_key = $warehouseModel->warehouses_key;
+            $existingModel->warehouse_manager = $warehouseModel->warehouse_manager;
+            $existingModel->phone_number = $warehouseModel->phone_number;
+            $existingModel->email = $warehouseModel->email;
+            $existingModel->location_id = $warehouseModel->location_id;
+            $existingModel->warehouse_type_id = $warehouseModel->warehouse_type_id;
+            $existingModel->user_last_update = $warehouseModel->user_last_update;
+            $existingModel->save();
+
+            \Illuminate\Support\Facades\Log::info('Repository: save completed');
+
+            return ResultPattern::success("Almacén actualizado correctamente.");
+        } catch (QueryException $e) {
+            \Illuminate\Support\Facades\Log::error('Repository error: ' . $e->getMessage());
+            return ResultPattern::failure("Error al actualizar: " . $e->getMessage());
+        }
     }
 
     public function getIdAndName(): array

@@ -18,6 +18,8 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
     private WarehouseStorageRepositoryInterface $warehouseStorageRepository;
     private WarehouseDTOToEntityMapperInterface $dTOToEntityMapper;
     private Warehouse $warehouseEntity;
+    private ResultPattern $result;
+    
     public function __construct(
         WarehouseStorageRepositoryInterface $warehouseStorageRepository,
         WarehouseDTOToEntityMapperInterface             $dTOToEntityMapper
@@ -70,8 +72,11 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
         $warehouseEntity = $this->dTOToEntityMapper->convertDTOToEntity(
             $warehouseDTO
         );
-        $this->warehouseStorageRepository->updateWarehouse($warehouseEntity);
-        return ResultPattern::success("Warehouse has been updated");
+
+       
+
+        $this->result =  $this->warehouseStorageRepository->updateWarehouse($warehouseEntity);
+        return ResultPattern::success($this->result->getError());
 
     }
 

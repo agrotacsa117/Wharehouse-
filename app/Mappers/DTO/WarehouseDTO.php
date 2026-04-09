@@ -2,8 +2,9 @@
 
 namespace App\Mappers\DTO;
 
-class WarehouseDTO
+class WarehouseDTO implements \JsonSerializable
 {
+    private int $id;
     private int $userLastUpdate;
     private string $warehouseKey;
     private string $warehouseName;
@@ -21,8 +22,10 @@ class WarehouseDTO
         string $email,
         int $warehouseTypeId,
         int $locationId,
-        int $userLastUpdate
+        int $userLastUpdate,
+        int $id = 0
     ) {
+        $this->id = $id;
         $this->warehouseKey = $warehouseKey;
         $this->warehouseName = $warehouseName;
         $this->responsiblePersonName = $responsiblePersonName;
@@ -31,6 +34,16 @@ class WarehouseDTO
         $this->warehouseTypeId = $warehouseTypeId;
         $this->locationId = $locationId;
         $this->userLastUpdate = $userLastUpdate;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getUserLastUpdate(): int
@@ -129,5 +142,21 @@ class WarehouseDTO
     {
         $this->locationId = $locationId;
     }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'userLastUpdate' => $this->userLastUpdate,
+            'warehouseKey' => $this->warehouseKey,
+            'warehouseName' => $this->warehouseName,
+            'responsiblePersonName' => $this->responsiblePersonName,
+            'phoneNumber' => $this->phoneNumber,
+            'email' => $this->email,
+            'warehouseTypeId' => $this->warehouseTypeId,
+            'locationId' => $this->locationId,
+        ];
+    }
+
 
 }

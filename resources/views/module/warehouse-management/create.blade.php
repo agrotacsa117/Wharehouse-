@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>TACSA - Gestion de Almacenes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -1130,6 +1131,10 @@
         const emptyState = document.getElementById('emptyState');
         const tableWrapper = document.querySelector('.table-wrapper');
 
+        // Warehouses data from server
+        let warehouses = {!! json_encode($warehousesJson) !!};
+        let warehouseTypes = {!! json_encode($allWarehouseTypeJson) !!};
+
         // Modals
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -1177,9 +1182,13 @@
             <tr>
                 <td><span class="cell-key">${w.key}</span></td>
                 <td><span class="cell-name">${w.name}</span></td>
+                <td>${w.createdAt}</td>
+                <td>${w.updatedAt}</td>
                 <td>${w.responsable}</td>
+                <td>${w.userName}</td>
                 <td>${w.phone}</td>
                 <td>${w.location}</td>
+                <td>${w.email}</td>
                 <td><span class="badge-type">${w.type}</span></td>
                 <td>
                     ${w.active
@@ -1187,7 +1196,7 @@
                         : '<span class="badge-inactive"><span class="dot"></span>Inactivo</span>'
                     }
                 </td>
-                <td>
+                <td style="text-align:center;">
                     <div class="actions-cell">
                         <button class="action-btn view" title="Ver detalle" onclick="viewWarehouse(${w.id})">
                             <i class="bi bi-eye"></i>
@@ -1208,35 +1217,46 @@
         filterType.addEventListener('change', renderTable);
 
         // ── View detail ──
-        function viewWarehouse(warehouse) {
+        function viewWarehouse(id) {
+            const warehouse = warehouses.find(x => x.id === id);
+            if (!warehouse) return;
 
             document.getElementById('detailBody').innerHTML = `
-            <div class="detail-row"><div class="detail-label">Clave</div><div class="detail-value">${warehouse.warehouseKey}</div></div>
-            <div class="detail-row"><div class="detail-label">Nombre</div><div class="detail-value">${warehouse.warehouseName}</div></div>
-            <div class="detail-row"><div class="detail-label">Responsable</div><div class="detail-value">${warehouse.warehouseManager}</div></div>
-            <div class="detail-row"><div class="detail-label">Telefono</div><div class="detail-value">${warehouse.phoneNumber}</div></div>
+            <div class="detail-row"><div class="detail-label">Clave</div><div class="detail-value">${warehouse.key}</div></div>
+            <div class="detail-row"><div class="detail-label">Nombre</div><div class="detail-value">${warehouse.name}</div></div>
+            <div class="detail-row"><div class="detail-label">Responsable</div><div class="detail-value">${warehouse.responsable}</div></div>
+            <div class="detail-row"><div class="detail-label">Telefono</div><div class="detail-value">${warehouse.phone}</div></div>
             <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${warehouse.email}</div></div>
-            <div class="detail-row"><div class="detail-label">Ubicacion</div><div class="detail-value">${warehouse.headquartersName}</div></div>
-            <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value"><span class="badge-type">${warehouse.categoryWarehouse}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Fecha de creación</div><div class="detail-value"><span class="badge-type">${warehouse.createdAt}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Ultima actualización</div><div class="detail-value"><span class="badge-type">${warehouse.updatedAt}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Modificado por</div><div class="detail-value"><span class="badge-type">${warehouse.userName}</span></div></div>
+            <div class="detail-row"><div class="detail-label">Ubicacion</div><div class="detail-value">${warehouse.location}</div></div>
+            <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value"><span class="badge-type">${warehouse.type}</span></div></div>
+            <div class="detail-row"><div class="detail-label">Fecha de creación</div><div class="detail-value">${warehouse.createdAt}</div></div>
+            <div class="detail-row"><div class="detail-label">Ultima actualización</div><div class="detail-value">${warehouse.updatedAt}</div></div>
+            <div class="detail-row"><div class="detail-label">Modificado por</div><div class="detail-value">${warehouse.userName}</div></div>
         `;
             detailModal.show();
         }
 
         // ── Open edit modal ──
-        function openEdit(warehouse) {
+        function openEdit(id) {
+            const warehouse = warehouses.find(x => x.id === id);
+            if (!warehouse) return;
 
-            document.getElementById('editKey').value = warehouse.warehouseKey;
-            document.getElementById('editName').value = warehouse.warehouseName;
-            document.getElementById('editResponsable').value = warehouse.warehouseManager;
-            document.getElementById('editPhone').value = warehouse.phoneNumber;
+            document.getElementById('editKey').value = warehouse.key;
+            document.getElementById('editName').value = warehouse.name;
+            document.getElementById('editResponsable').value = warehouse.responsable;
+            document.getElementById('editPhone').value = warehouse.phone;
             document.getElementById('editEmail').value = warehouse.email;
-            document.getElementById('editLocation').value = warehouse.headquartersName;
-            document.getElementById('editType').value = warehouse.warehouseTypeId;
             document.getElementById('editLocation').value = warehouse.locationId;
-            //document.getElementById('editForm').dataset.id = id;
+            document.getElementById('editType').value = warehouse.typeId;
+            document.getElementById('editForm').dataset.id = warehouse.id;
+            
+            // Show current type name
+            const typeSelect = document.getElementById('editType');
+            const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+            if (selectedOption && selectedOption.text) {
+                // Type is shown in the select, just show the dropdown
+            }
+            
             editModal.show();
         }
 
@@ -1249,31 +1269,61 @@
             }
 
             const id = parseInt(this.dataset.id, 10);
+            
             const w = warehouses.find(x => x.id === id);
-            if (!w) return;
+            if (!w){
+                return;
+            } 
 
+            const typeSelect = document.getElementById('editType');
+            const selectedTypeName = typeSelect.options[typeSelect.selectedIndex].text;
+            
             w.name = document.getElementById('editName').value.trim();
             w.responsable = document.getElementById('editResponsable').value.trim();
             w.phone = document.getElementById('editPhone').value.trim();
             w.email = document.getElementById('editEmail').value.trim();
-            w.location = document.getElementById('editLocation').value;
-            w.type = document.getElementById('editType').value;
+            w.locationId = parseInt(document.getElementById('editLocation').value);
+            w.location = document.getElementById('editLocation').options[document.getElementById('editLocation').selectedIndex].text;
+            w.typeId = parseInt(typeSelect.value);
+            w.type = selectedTypeName;
 
-            // Payload for API (PUT/PATCH)
+            // Payload for API
             const payload = {
                 key: w.key,
                 name: w.name,
                 responsable: w.responsable,
                 phone: w.phone,
                 email: w.email,
-                location: w.location,
-                type: w.type
+                location: w.locationId,
+                type: w.typeId
             };
-            console.log('UPDATE payload:', payload);
-
-            editModal.hide();
-            renderTable();
-            showToast('Almacen "' + w.name + '" actualizado correctamente.', 'success');
+            
+            
+            // Enviar al servidor
+            fetch(`/warehouse-managment/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(JSON.stringify(data));
+                console.log('Server response:', data);
+                if (data.success) {
+                    editModal.hide();
+                    renderTable();
+                    showToast('Almacén "' + w.name + '" actualizado correctamente.', 'success');
+                } else {
+                    showToast('Error: ' + (data.message || 'Error desconocido'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error al actualizar el almacén.', 'error');
+            });
         });
 
         // ── Open delete modal ──
