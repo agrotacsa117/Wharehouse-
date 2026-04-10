@@ -160,10 +160,12 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
             $warehouses[$i] = new WarehouseWithLocationResponseDTO(
                 $warehouses[$i]["id"],
                 $warehouses[$i]["warehouses_name"],
-                $warehouses[$i]["location"]["headquarters_name"]
+                $warehouses[$i]["location"]["headquarters_name"],
+                $warehouses[$i]["location_id"]
             );
         }
 
+        
         return $warehouses;
     }
 
@@ -175,11 +177,12 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
         );
 
         for ($i = 0; $i < count($warehousesInSameLocation) ; $i++) {
+            $warehouse = $warehousesInSameLocation[$i]; 
             $warehousesInSameLocation[$i] = new WarehouseWithLocationResponseDTO(
-                $warehousesInSameLocation["id"],
-                $warehousesInSameLocation["warehouses_name"],
-                $warehousesInSameLocation["location"]["headquarters_name"] ?? '',
-                $warehousesInSameLocation["location_id"] ?? null
+                $warehouse["id"],
+                $warehouse["warehouses_name"],
+                $warehouse["location"]["headquarters_name"] ?? '',
+                $warehouse["location_id"] ?? null
             );
         }
 

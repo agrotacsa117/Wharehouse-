@@ -22,7 +22,8 @@ class OutputController extends Controller
 
     public function processOutput(Request $request)
     {
-
+        $movementType =  $request->movement_type;
+        
 
         $outputDTO = new RemoveWarehouseInventoryStockDTO(
             $request->warehouseInventoryId,
@@ -81,4 +82,7 @@ class OutputController extends Controller
 
         return response()->json($coLocatedWarehouses);
     }
+
+
+
 }

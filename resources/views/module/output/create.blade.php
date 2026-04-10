@@ -305,7 +305,8 @@
                     <div class="warehouse-btn"
                         onclick='selectWarehouse(
                     {{ $warehouse->getId() }},
-                    @json($warehouse->getWarehouseName() . ' - ' . $warehouse->getHeadquartersName())
+                    @json($warehouse->getWarehouseName() . ' - ' . $warehouse->getHeadquartersName()),
+                     {{ $warehouse->getLocationId() ?? 'null' }}
                 )'>
 
                         <i class="bi bi-building h3 text-danger"></i>
@@ -597,7 +598,7 @@
                 select.innerHTML = '<option value="">Seleccione un almacén primero</option>';
                 return;
             }
-            return;
+
             fetch('/warehouses/by-location/' + state.warehouseLocationId)
                 .then(response => response.json())
                 .then(warehouses => {
@@ -613,7 +614,7 @@
                     filtered.forEach(function(wh) {
                         const option = document.createElement('option');
                         option.value = wh.id;
-                        option.textContent = wh.name;
+                        option.textContent = wh.warehouseName;
                         select.appendChild(option);
                     });
                 })
@@ -622,13 +623,13 @@
                     select.innerHTML = '<option value="">Error al cargar</option>';
                 });
         }
-
+/**
         document.getElementById('btn-submit').addEventListener('click', function(event) {
             event.preventDefault();
 
-
+            alert("Less aura!");
         });
-
+**/
         // Datos de ejemplo
         const db = {
             13: [{
@@ -674,8 +675,9 @@
             });
         }
 
-        function selectWarehouse(id, name) {
+        function selectWarehouse(id, name, locationId) {
             state.warehouseId = id;
+            state.warehouseLocationId = locationId;
             document.getElementById('current-wh-name').innerText = name;
             renderInventory(id);
             showStep(2);
