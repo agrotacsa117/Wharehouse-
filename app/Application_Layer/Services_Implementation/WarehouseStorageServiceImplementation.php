@@ -18,6 +18,7 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
     private WarehouseStorageRepositoryInterface $warehouseStorageRepository;
     private WarehouseDTOToEntityMapperInterface $dTOToEntityMapper;
     private Warehouse $warehouseEntity;
+
     public function __construct(
         WarehouseStorageRepositoryInterface $warehouseStorageRepository,
         WarehouseDTOToEntityMapperInterface             $dTOToEntityMapper
@@ -150,11 +151,12 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
     }
 
     public function getListAllWarehousesWithLocation(
-        array $warehouseIds) :  array{
+        array $warehouseIds
+    ): array {
         $warehouses = $this->warehouseStorageRepository
         ->findWereIn($warehouseIds);
 
-        for ($i=0; $i <count($warehouseIds) ; $i++) { 
+        for ($i = 0; $i < count($warehouseIds) ; $i++) {
             $warehouses[$i] = new WarehouseWithLocationResponseDTO(
                 $warehouses[$i]["id"],
                 $warehouses[$i]["warehouses_name"],
@@ -164,4 +166,24 @@ class WarehouseStorageServiceImplementation implements WarehouseStorageServiceIn
 
         return $warehouses;
     }
+
+    public function getWarehousesByLocationId(
+        int $locationId
+    ): array {
+        $warehousesInSameLocation = $this->warehouseStorageRepository->findByLocationId(
+            $locationId
+        );
+
+        for ($i = 0; $i < count($warehousesInSameLocation) ; $i++) {
+            $warehousesInSameLocation[$i] = new WarehouseWithLocationResponseDTO(
+                $warehousesInSameLocation["id"],
+                $warehousesInSameLocation["warehouses_name"],
+                $warehousesInSameLocation["location"]["headquarters_name"] ?? '',
+                $warehousesInSameLocation["location_id"] ?? null
+            );
+        }
+
+        return $warehousesInSameLocation;
+    }
+
 }

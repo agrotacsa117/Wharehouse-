@@ -11,7 +11,7 @@ use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
-{
+{ 
     private WarehouseMovementsRepositoryI $warehouseMovementsRepository;
     private WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper;
 

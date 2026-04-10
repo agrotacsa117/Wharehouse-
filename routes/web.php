@@ -95,7 +95,8 @@ Route::post(
 Route::get(
     '/warehouse-movements/expiration-report',
     [MovementsController::class, 'expirationReport']
-)->name('warehouse-movements.expiration-report');;
+)->name('warehouse-movements.expiration-report');
+;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');
@@ -106,6 +107,15 @@ Route::get(
     'getView']
 )->name('output.get');
 
+Route::get(
+    '/warehouses/by-location/{locationId}',
+    [
+        OutputController::class,
+        'getWarehousesByLocation'
+    ]
+)->name(
+    'warehouses.by-location'
+);
 
 Route::get('/output/{id}/inventory', [OutputController::class,
 'getInventory'])->name('output.inventory.get');

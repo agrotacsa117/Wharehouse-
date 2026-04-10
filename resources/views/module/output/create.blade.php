@@ -385,26 +385,114 @@
                             @csrf
 
                             <input type="hidden" name="warehouseInventoryId" id="warehouseInventoryId">
-
+                            <input type="hidden" name="warehouse_id" id="warehouseId">
 
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Cantidad a retirar</label>
-                                    <input type="number" name="quantity" id="input-quantity" class="form-control"
-                                        required min="1">
-                                </div>
 
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Motivo</label>
-                                    <input type="text" name="reason" id="input-reason" class="form-control"
-                                        required min="1">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Tipo de Movimiento</label>
+                                        <select name="movement_type" id="movementType" class="form-select">
+                                            <option value="OUT">Salida Simple</option>
+                                            <option value="SALE">Venta</option>
+                                            <option value="TRANSFER">Traslado entre Sucursales</option>
+                                            <option value="RELOCATION">Reubicación Interna</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Cantidad</label>
+                                        <input type="number" name="quantity" id="input-quantity"
+                                            class="form-control" required min="1">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Fecha de Operación</label>
+                                        <input type="date" name="operation_date" id="input-operation-date"
+                                            class="form-control">
+                                    </div>
+
+                                    <!-- Campos para VENTA -->
+                                    <div id="fields-sale" class="d-none col-12">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle"></i> Datos de Venta
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">ID Cliente *</label>
+                                                <input type="number" name="client_id" id="input-client-id"
+                                                    class="form-control" min="1">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Factura SAP</label>
+                                                <input type="text" name="invoice_sap" id="input-invoice-sap"
+                                                    class="form-control" placeholder="FAC-000001">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campos para TRASLADO -->
+                                    <div id="fields-transfer" class="d-none col-12">
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-truck"></i> Traslado entre Sucursales
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Sucursal Destino *</label>
+                                                <select name="destination_warehouse_id"
+                                                    id="input-destination-warehouse" class="form-select">
+                                                    <option value="">Seleccione sucursal destino...</option>
+                                                    @isset($allWarehouses)
+                                                        @foreach ($allWarehouses as $wh)
+                                                            <option value="{{ $wh->getId() }}">
+                                                                {{ $wh->getWarehouseName() }}</option>
+                                                        @endforeach
+                                                    @endisset
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campos para REUBICACIÓN -->
+                                    <div id="fields-relocation" class="d-none col-12">
+                                        <div class="alert alert-primary">
+                                            <i class="bi bi-arrows-move"></i> Reubicación Interna
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Bodega Destino *</label>
+                                                <select name="destination_warehouse_id"
+                                                    id="input-relocation-destination" class="form-select">
+                                                    <option value="">Seleccione bodega destino...</option>
+                                                </select>
+                                                <small class="text-muted">Solo bodegas del mismo location</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Rack *</label>
+                                                <input type="text" name="new_rack" id="input-new-rack"
+                                                    class="form-control" placeholder="Ej: A-01">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Nivel *</label>
+                                                <input type="number" name="new_level" id="input-new-level"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Motivo / Observaciones</label>
+                                        <input type="text" name="reason" id="input-reason" class="form-control"
+                                            placeholder="Descripción del movimiento">
+                                    </div>
+
+                                    <div class="col-12 d-flex gap-2 justify-content-end mt-4">
+                                        <button type="button" class="btn-outline"
+                                            onclick="showStep(2)">Cancelar</button>
+                                        <button type="submit" class="btn-tacsa" id="btn-submit">Registrar
+                                            Salida</button>
+                                    </div>
                                 </div>
-                                <div class="col-12 d-flex gap-2 justify-content-end mt-4">
-                                    <button type="button" class="btn-outline"
-                                        onclick="showStep(2)">Cancelar</button>
-                                    <button type="submit" class="btn-tacsa">Registrar Salida</button>
-                                </div>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -448,6 +536,99 @@
     <div class="toast-container" id="toast-area"></div>
 
     <script>
+        const selectMovementType = document.getElementById(
+            "movementType");
+
+
+        selectMovementType.addEventListener("change", function(event) {
+            toggleMovementFields();
+        });
+
+
+        function toggleMovementFields() {
+            const movementType = document.getElementById('movementType').value;
+            const fieldsSale = document.getElementById('fields-sale');
+            const fieldsTransfer = document.getElementById('fields-transfer');
+            const fieldsRelocation = document.getElementById('fields-relocation');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            // Hide all fields first
+            fieldsSale.classList.add('d-none');
+            fieldsTransfer.classList.add('d-none');
+            fieldsRelocation.classList.add('d-none');
+
+            // Reset required attributes
+            document.getElementById('input-client-id').required = false;
+            document.getElementById('input-destination-warehouse').required = false;
+            document.getElementById('input-new-rack').required = false;
+            document.getElementById('input-new-level').required = false;
+
+            // Show relevant fields and update button text
+
+            switch (movementType) {
+                case 'SALE':
+                    fieldsSale.classList.remove('d-none');
+                    document.getElementById('input-client-id').required = true;
+                    btnSubmit.textContent = 'Registrar Venta';
+                    break;
+                case 'TRANSFER':
+                    fieldsTransfer.classList.remove('d-none');
+                    document.getElementById('input-destination-warehouse').required = true;
+                    btnSubmit.textContent = 'Crear Traslado';
+                    break;
+                case 'RELOCATION':
+                    fieldsRelocation.classList.remove('d-none');
+                    document.getElementById('input-relocation-destination').required = true;
+                    document.getElementById('input-new-rack').required = true;
+                    document.getElementById('input-new-level').required = true;
+                    btnSubmit.textContent = 'Registrar Reubicación';
+                    loadRelocationWarehouses();
+                    break;
+                default:
+                    btnSubmit.textContent = 'Registrar Salida';
+            }
+        }
+
+        function loadRelocationWarehouses() {
+            const select = document.getElementById('input-relocation-destination');
+            select.innerHTML = '<option value="">Cargando...</option>';
+
+            if (!state.warehouseLocationId) {
+                select.innerHTML = '<option value="">Seleccione un almacén primero</option>';
+                return;
+            }
+            return;
+            fetch('/warehouses/by-location/' + state.warehouseLocationId)
+                .then(response => response.json())
+                .then(warehouses => {
+                    // Filtrar excluyendo el warehouse origen
+                    const filtered = warehouses.filter(wh => wh.id !== state.warehouseId);
+
+                    if (filtered.length === 0) {
+                        select.innerHTML = '<option value="">No hay otras bodegas en este location</option>';
+                        return;
+                    }
+
+                    select.innerHTML = '<option value="">Seleccione bodega destino...</option>';
+                    filtered.forEach(function(wh) {
+                        const option = document.createElement('option');
+                        option.value = wh.id;
+                        option.textContent = wh.name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error cargando warehouses:', error);
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                });
+        }
+
+        document.getElementById('btn-submit').addEventListener('click', function(event) {
+            event.preventDefault();
+
+
+        });
+
         // Datos de ejemplo
         const db = {
             13: [{
