@@ -2,17 +2,26 @@
 
 namespace App\Mappers\DTO;
 
-class RemoveWarehouseInventoryStockDTO{
-
+class RemoveWarehouseInventoryStockDTO
+{
     private int $warehouseInventoryId;
     private int $quantity;
     private string $reason;
+    private string $movementType;
+    private string $operationDate;
+    private int $warehouseId;
+    private string $rack;
+    private int $level;
+    private int $clientId;
+    private int $invoiceId;
 
-      public function __construct(
+
+
+    public function __construct(
         int $warehouseInventoryId,
         int $quantity,
-        string $reason)
-    {
+        string $reason
+    ) {
         $this->warehouseInventoryId = $warehouseInventoryId;
         $this->quantity = $quantity;
         $this->reason = $reason;
@@ -23,7 +32,8 @@ class RemoveWarehouseInventoryStockDTO{
         $this->reason = $reason;
     }
 
-    public function getReason() : string {
+    public function getReason(): string
+    {
         return $this->reason;
     }
 
@@ -47,4 +57,4 @@ class RemoveWarehouseInventoryStockDTO{
         $this->quantity = $quantity;
     }
 
-} 
+}
