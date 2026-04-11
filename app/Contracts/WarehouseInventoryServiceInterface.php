@@ -8,6 +8,9 @@ use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 
 interface WarehouseInventoryServiceInterface
 {
+
+    public function saveInventory(): ResultPattern;
+
     public function getAllWarehouseInventories(): array;
 
     public function create(WarehouseInventoryRequestDTO $warehouseInventory): ResultPattern;

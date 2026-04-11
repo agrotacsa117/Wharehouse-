@@ -57,6 +57,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $this->warehouseInventoryRepository->findAll();
     }
 
+    public function saveInventory(): ResultPattern{
+        
+    }
     public function create(
         WarehouseInventoryRequestDTO $warehouseInventoryDTO
     ): ResultPattern {

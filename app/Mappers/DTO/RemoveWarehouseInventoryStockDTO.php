@@ -57,4 +57,73 @@ class RemoveWarehouseInventoryStockDTO
         $this->quantity = $quantity;
     }
 
+    public function getMovementType(): string
+    {
+        return $this->movementType;
+    }
+
+    public function setMovementType(string $movementType): void
+    {
+        $this->movementType = $movementType;
+    }
+
+    public function getOperationDate(): string
+    {
+        return $this->operationDate;
+    }
+
+    public function setOperationDate(string $operationDate): void
+    {
+        $this->operationDate = $operationDate;
+    }
+
+    public function getWarehouseId(): int
+    {
+        return $this->warehouseId;
+    }
+
+    public function setWarehouseId(int $warehouseId): void
+    {
+        $this->warehouseId = $warehouseId;
+    }
+
+    public function getRack(): string
+    {
+        return $this->rack;
+    }
+
+    public function setRack(string $rack): void
+    {
+        $this->rack = $rack;
+    }
+
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
+
+    public function setLevel(int $level): void
+    {
+        $this->level = $level;
+    }
+
+    public function getClientId(): int
+    {
+        return $this->clientId;
+    }
+
+    public function setClientId(int $clientId): void
+    {
+        $this->clientId = $clientId;
+    }
+
+    public function getInvoiceId(): int
+    {
+        return $this->invoiceId;
+    }
+
+    public function setInvoiceId(int $invoiceId): void
+    {
+        $this->invoiceId = $invoiceId;
+    }
 }
