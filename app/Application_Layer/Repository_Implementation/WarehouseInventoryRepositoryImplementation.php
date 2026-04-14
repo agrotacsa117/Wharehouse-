@@ -304,4 +304,15 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ->toArray();
     }
 
+    public function updateInventoryLocation(
+        int $id,
+        string $rack,
+        int $level
+    ): bool {
+        return WarehouseInventoryModel::where('id', $id)
+        ->update([
+            'rack' => $rack,
+            '_level' => $level,
+        ]) > 0;
+    }
 }

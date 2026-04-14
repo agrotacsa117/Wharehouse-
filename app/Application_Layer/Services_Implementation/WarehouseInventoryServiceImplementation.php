@@ -57,13 +57,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $this->warehouseInventoryRepository->findAll();
     }
 
-    public function saveInventory(): ResultPattern{
-        
-    }
-    public function create(
-        WarehouseInventoryRequestDTO $warehouseInventoryDTO
-    ): ResultPattern {
-
+    public function saveInventory(WarehouseInventoryRequestDTO $warehouseInventoryDTO): ResultPattern
+    {
         $warehouseName =  $this->warehouseStorageService
         ->getWarehouseNameById(
             $warehouseInventoryDTO->getWarehouseId()
@@ -92,9 +87,33 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         $this->warehouseInventory->setWarehouseName($productName);
 
         try {
-            $this->warehouseInventory =  $this->warehouseInventoryRepository->save(
+            $this->warehouseInventory = $this->warehouseInventoryRepository->save(
                 $this->warehouseInventory
             );
+
+            return ResultPattern::success(
+                $this->warehouseInventory
+            );
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure(
+                $th->getMessage()
+            );
+        }
+    }
+
+    public function create(
+        WarehouseInventoryRequestDTO $warehouseInventoryDTO
+    ): ResultPattern {
+
+        try {
+            $result = $this->saveInventory($warehouseInventoryDTO);
+
+            if ($result->isFailure()) {
+                return $result;
+            }
+
+            $this->warehouseInventory = $result->getValue();
 
             $folio = $this->warehouseMovementsService
             ->generateMovementFolio();
@@ -117,7 +136,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             return ResultPattern::failure($th->getMessage());
         }
 
-        return ResultPattern::success(null);
+        return ResultPattern::success($warehouseInventoryDTO);
     }
 
     public function update(
@@ -448,7 +467,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         for ($i = 0; $i < count($expiratedProducts); $i++) {
             $inventory = $expiratedProducts[$i];
-            
+
             $expiratedProducts[$i] = new ExpiredInventoryDTO(
                 $inventory["product_id"],
                 $inventory["product_name"],
@@ -462,4 +481,31 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         return $expiratedProducts;
     }
+
+    public function relocateInventory(
+        int $id,
+        string $rack,
+        int $level
+    ): ResultPattern {
+
+        try {
+            $updated = $this->warehouseInventoryRepository->updateInventoryLocation(
+                $id,
+                $rack,
+                $level
+            );
+
+            if (!$updated) {
+                ResultPattern::failure(
+                    "¡Error: no fue posible "
+                    ."modificar campos de ubicación!");
+            }
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure($th->getMessage());
+        }
+
+        return ResultPattern::success(true);
+    }
+
 }

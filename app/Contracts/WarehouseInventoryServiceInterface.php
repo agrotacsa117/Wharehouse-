@@ -8,8 +8,9 @@ use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 
 interface WarehouseInventoryServiceInterface
 {
-
-    public function saveInventory(): ResultPattern;
+    public function saveInventory(
+        WarehouseInventoryRequestDTO $warehouseInventoryRequestDTO
+    ): ResultPattern;
 
     public function getAllWarehouseInventories(): array;
 
@@ -50,4 +51,10 @@ interface WarehouseInventoryServiceInterface
     public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
 
     public function getExpiredInventory(): array;
+
+    public function relocateInventory(
+        int $id,
+        string $rack,
+        int $level
+    ): ResultPattern;
 }

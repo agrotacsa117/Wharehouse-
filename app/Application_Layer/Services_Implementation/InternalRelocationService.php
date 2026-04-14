@@ -19,7 +19,7 @@ class InternalRelocationService implements WarehouseOutputStrategy
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
-
+        
         return ResultPattern::success($this);
     }
 

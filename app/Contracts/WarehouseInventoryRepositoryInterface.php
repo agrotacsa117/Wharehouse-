@@ -53,4 +53,10 @@ interface WarehouseInventoryRepositoryInterface
 
     public function findExpired(): array;
 
+    public function updateInventoryLocation(
+        int $id,
+        string $rack,
+        int $level
+    ): bool;
+
 }
