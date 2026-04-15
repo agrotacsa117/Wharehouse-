@@ -71,7 +71,8 @@ use App\Contracts\WarehouseInventoryMovementModelMapperI;
 use App\Mappers\WarehouseInventoryMovementModelMapper;
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 use App\Mappers\WarehouseInventoryModelToWarehouseInventoryMapper;
-
+use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -203,13 +204,18 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryModelToWarehouseInventoryMapperI::class,
             WarehouseInventoryModelToWarehouseInventoryMapper::class
         );
-        
+
+        $this->app->bind(
+            WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI::class,
+            WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper::class
+        );
+
         $this->app->bind(
             WarehouseInventoryRequestDTOToWarehouseInventoryMapperI::class,
             WarehouseInventoryRequestDTOToWarehouseInventoryMapper::class
         );
 
-     
+
         $this->app->bind(
             WarehouseMovementsServiceI::class,
             WarehouseMovementsService::class
@@ -234,7 +240,7 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryMovementModelMapperI::class,
             WarehouseInventoryMovementModelMapper::class
         );
-        
+
     }
 
     /**

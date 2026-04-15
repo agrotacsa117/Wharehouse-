@@ -10,6 +10,7 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 class InternalRelocationService implements WarehouseOutputStrategy
 {
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
+    private ResultPattern $result;
 
     public function __construct(WarehouseInventoryServiceInterface $warehouseInventoryService)
     {
@@ -19,7 +20,20 @@ class InternalRelocationService implements WarehouseOutputStrategy
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
-        
+        $this->result =  $this->warehouseInventoryService->getInventoryById(
+            $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
+        );
+
+        if ($this->result->isFailure()) {
+            return $this->result;
+        }
+
+        if (
+            !$removeWarehouseInventoryStockDTO->getRack()
+            || $removeWarehouseInventoryStockDTO->getRack() === ""
+        ) {
+            return ResultPattern::failure();
+        }
         return ResultPattern::success($this);
     }
 

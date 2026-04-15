@@ -5,6 +5,7 @@ namespace App\Contracts;
 use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 interface WarehouseInventoryServiceInterface
 {
@@ -42,7 +43,7 @@ interface WarehouseInventoryServiceInterface
 
     public function getInventoryByState(int $state): array;
 
-    public function getInventoryById(int $id): ?array;
+    public function getInventoryById(int $id): ResultPattern;
 
     public function getAllInventoryForManagement(): array;
 

@@ -460,14 +460,7 @@
                                             <i class="bi bi-arrows-move"></i> Reubicación Interna
                                         </div>
                                         <div class="row g-3">
-                                            <div class="col-12">
-                                                <label class="form-label small fw-bold">Bodega Destino *</label>
-                                                <select name="destination_warehouse_id"
-                                                    id="input-relocation-destination" class="form-select">
-                                                    <option value="">Seleccione bodega destino...</option>
-                                                </select>
-                                                <small class="text-muted">Solo bodegas del mismo location</small>
-                                            </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Nuevo Rack *</label>
                                                 <input type="text" name="new_rack" id="input-new-rack"
@@ -569,16 +562,19 @@
             switch (movementType) {
                 case 'SALE':
                     fieldsSale.classList.remove('d-none');
+                    document.getElementById('input-quantity').disabled = false;
                     document.getElementById('input-client-id').required = true;
                     btnSubmit.textContent = 'Registrar Venta';
                     break;
                 case 'TRANSFER':
+                    document.getElementById('input-quantity').disabled = false;
                     fieldsTransfer.classList.remove('d-none');
                     document.getElementById('input-destination-warehouse').required = true;
                     btnSubmit.textContent = 'Crear Traslado';
                     break;
                 case 'RELOCATION':
                     fieldsRelocation.classList.remove('d-none');
+                    document.getElementById('input-quantity').disabled  = true;
                     document.getElementById('input-relocation-destination').required = true;
                     document.getElementById('input-new-rack').required = true;
                     document.getElementById('input-new-level').required = true;
@@ -623,13 +619,13 @@
                     select.innerHTML = '<option value="">Error al cargar</option>';
                 });
         }
-/**
-        document.getElementById('btn-submit').addEventListener('click', function(event) {
-            event.preventDefault();
+        /**
+                document.getElementById('btn-submit').addEventListener('click', function(event) {
+                    event.preventDefault();
 
-            alert("Less aura!");
-        });
-**/
+                    alert("Less aura!");
+                });
+        **/
         // Datos de ejemplo
         const db = {
             13: [{

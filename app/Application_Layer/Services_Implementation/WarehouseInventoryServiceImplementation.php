@@ -21,6 +21,7 @@ use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
 use App\Mappers\DTO\UpdateInventoryDTO;
 use LDAP\Result;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -31,19 +32,22 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     private WarehouseStorageServiceInterface $warehouseStorageService;
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
+    private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
         WarehouseInventoryRequestDTOToWarehouseInventoryMapperI $warehouseInventoryRequestDTOToWarehouseInventory,
         ProductServiceInterface $productService,
         WarehouseStorageServiceInterface $warehouseStorageService,
-        WarehouseMovementsServiceI $warehouseMovementsService
+        WarehouseMovementsServiceI $warehouseMovementsService,
+        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryRequestDTOToWarehouseInventory = $warehouseInventoryRequestDTOToWarehouseInventory;
         $this->productService = $productService;
         $this->warehouseStorageService = $warehouseStorageService;
         $this->warehouseMovementsService = $warehouseMovementsService;
+        $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
     }
 
     public function getAllWarehouseInventories(): array
@@ -284,9 +288,24 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $this->generateWarehouseInventoryDetailDTO($inventory);
     }
 
-    public function getInventoryById(int $id): ?array
+    public function getInventoryById(int $id): ResultPattern
     {
-        return $this->warehouseInventoryRepository->findById($id);
+        $warehouseInventory = $this->warehouseInventoryRepository->findById($id);
+
+        if (!$warehouseInventory) {
+            return ResultPattern::failure(
+                "¡No se encontro ningun inventario "
+                ."registrado con este id ".$id
+            );
+        }
+
+        $warehouseInventoryOutDetailDTO =
+        $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
+        ->convertToOutDetailDTO(
+            $warehouseInventory
+        );
+
+        return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
 
     public function updateInventory(
@@ -498,7 +517,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             if (!$updated) {
                 ResultPattern::failure(
                     "¡Error: no fue posible "
-                    ."modificar campos de ubicación!");
+                    ."modificar campos de ubicación!"
+                );
             }
 
         } catch (\Throwable $th) {
