@@ -22,6 +22,7 @@ use App\Mappers\DTO\TransferInventoryDTO;
 use App\Mappers\DTO\UpdateInventoryDTO;
 use LDAP\Result;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
+use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -33,6 +34,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+    //private WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
@@ -41,6 +43,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         WarehouseStorageServiceInterface $warehouseStorageService,
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
+        //WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryRequestDTOToWarehouseInventory = $warehouseInventoryRequestDTOToWarehouseInventory;
@@ -48,6 +51,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         $this->warehouseStorageService = $warehouseStorageService;
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+        //$this->warehouseOutputStrategyFactory = $warehouseOutputStrategyFactory;
     }
 
     public function getAllWarehouseInventories(): array

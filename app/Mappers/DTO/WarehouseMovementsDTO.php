@@ -4,12 +4,16 @@ namespace App\Mappers\DTO;
 
 class WarehouseMovementsDTO
 {
-    private $folio;
-    private $warehouseInventoryId;
-    private $movementType;
-    private $quantity;
-    private $reason;
-    private $userId;
+    private string $folio;
+    private int $warehouseInventoryId;
+    private string $movementType;
+    private int $quantity;
+    private string $reason;
+    private int $userId;
+    private int $clientId;
+    private int $invoiceSap;
+    private \DateTime $operationDate;
+    private int $sourceWarehouseId;
 
     public function __construct(
         string $folio,
@@ -17,7 +21,7 @@ class WarehouseMovementsDTO
         string $movementType,
         int $quantity,
         ?string $reason,
-        ?int $userId
+        ?int $userId,
     ) {
         $this->folio = $folio;
         $this->warehouseInventoryId = $warehouseInventoryId;

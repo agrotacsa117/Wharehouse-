@@ -73,6 +73,9 @@ use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 use App\Mappers\WarehouseInventoryModelToWarehouseInventoryMapper;
 use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
+use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
+use App\Contracts\WarehouseOutputStrategyFactoryInterface;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -190,6 +193,7 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryServiceImplementation::class
         );
 
+
         $this->app->bind(
             WarehouseInventoryRepositoryInterface::class,
             WarehouseInventoryRepositoryImplementation::class
@@ -241,6 +245,10 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryMovementModelMapper::class
         );
 
+        $this->app->bind(
+            WarehouseOutputStrategyFactoryInterface::class,
+            WarehouseOutputStrategyFactory::class
+        );
     }
 
     /**
