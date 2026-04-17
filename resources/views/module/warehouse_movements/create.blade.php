@@ -1522,6 +1522,7 @@
                             <option value="salida">Salida</option>
                             <option value="traslado">Traslado</option>
                             <option value="ajuste">Ajuste</option>
+                            <option value="relocation">Reubicación</option>
                         </select>
                     </div>
                 </div>
@@ -2131,6 +2132,7 @@
 
                 let badgeClass, badgeIcon, badgeLabel;
 
+
                 if (m.movementType === 'IN') {
                     badgeClass = 'badge-entrada';
                     badgeIcon = 'bi-box-arrow-in-down';
@@ -2143,6 +2145,10 @@
                     badgeClass = 'badge-transferencia';
                     badgeIcon = 'bi-arrow-left-right';
                     badgeLabel = 'Traslado';
+                } else if (m.movementType === 'RELOCATION') {
+                    badgeClass = 'badge-transferencia';
+                    badgeIcon = 'bi-arrow-left-right';
+                    badgeLabel = 'Reubicación';
                 } else {
                     badgeClass = 'badge-ajuste';
                     badgeIcon = 'bi-arrow-repeat';
@@ -2159,6 +2165,10 @@
                         warehouseDisplay =
                             `<span class="transfer-warehouse">${match[1]}</span> <i class="bi bi-arrow-right" style="font-size:0.65rem;margin:0 3px;color:#6d28d9;"></i> <span class="transfer-warehouse-dest">${match[2]}</span>`;
                     }
+                }
+
+                if (m.movementType === 'RELOCATION' && m.reason) {
+                    warehouseDisplay = m.reason;
                 }
 
                 const tr = document.createElement('tr');
@@ -2270,8 +2280,11 @@
                     typeMatch = true;
                 } else if (typeFilter === 'ajuste' && m.movementType === 'ADJUSTMENT') {
                     typeMatch = true;
+                } else if (typeFilter === 'relocation' && m.movementType === 'RELOCATION') {
+                    typeMatch = true;
                 }
 
+                //
                 return matchesSearch && typeMatch;
             });
 
@@ -2308,6 +2321,8 @@
                 '<span class="badge-entrada"><i class="bi bi-box-arrow-in-down"></i> Entrada</span>';
             else if (m.movementType === 'OUT') badgeHtml =
                 '<span class="badge-salida"><i class="bi bi-box-arrow-up"></i> Salida</span>';
+            else if (m.movementType === 'RELOCATION') badgeHtml =
+                '<span class="badge-reubicacion"><i class="bi bi-arrows-move"></i> Reubicación</span>';
             else if (m.movementType === 'TRANSFER') badgeHtml =
                 '<span class="badge-traslado"><i class="bi bi-arrow-left-right"></i> Traslado</span>';
             else badgeHtml = '<span class="badge-ajuste"><i class="bi bi-arrow-repeat"></i> Ajuste</span>';
@@ -2772,7 +2787,8 @@
                                 .warehouseName +
                                 '</td><td>' + d.quantity + '</td><td>' + d.lotNumber + '</td><td>' + d
                                 .expirationDate +
-                                '</td><td><span class="badge bg-danger">' + (d.expiredDays || 0) + ' dias</span>    </td></tr>';
+                                '</td><td><span class="badge bg-danger">' + (d.expiredDays || 0) +
+                                ' dias</span>    </td></tr>';
                             //
                             break;
                         case 'periodo':

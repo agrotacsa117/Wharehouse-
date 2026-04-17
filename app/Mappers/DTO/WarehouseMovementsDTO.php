@@ -21,7 +21,7 @@ class WarehouseMovementsDTO
         string $movementType,
         int $quantity,
         ?string $reason,
-        ?int $userId,
+        ?int $userId
     ) {
         $this->folio = $folio;
         $this->warehouseInventoryId = $warehouseInventoryId;
@@ -31,6 +31,45 @@ class WarehouseMovementsDTO
         $this->userId = $userId;
     }
 
+    public function getClientId(): int
+    {
+        return $this->clientId;
+    }
+
+    public function setClientId(int $clientId): void
+    {
+        $this->clientId = $clientId;
+    }
+
+    public function getInvoiceSap(): int
+    {
+        return $this->invoiceSap;
+    }
+
+    public function setInvoiceSap(int $invoiceSap): void
+    {
+        $this->invoiceSap = $invoiceSap;
+    }
+
+    public function getOperationDate(): \DateTime
+    {
+        return $this->operationDate;
+    }
+
+    public function setOperationDate(\DateTime $operationDate): void
+    {
+        $this->operationDate = $operationDate;
+    }
+
+    public function getSourceWarehouseId(): int
+    {
+        return $this->sourceWarehouseId;
+    }
+
+    public function setSourceWarehouseId(int $sourceWarehouseId): void
+    {
+        $this->sourceWarehouseId = $sourceWarehouseId;
+    }
     // =========================
     // GETTERS
     // =========================

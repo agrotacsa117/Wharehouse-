@@ -12,7 +12,10 @@ class WarehouseInventoryMovements
     public const TYPE_OUT = 'OUT';
     public const TYPE_ADJUSTMENT = 'ADJUSTMENT';
     public const TYPE_TRANSFER = 'TRANSFER';
+    public const TYPE_SALE = 'SALE';
+    public const TYPE_RELOCATION = 'RELOCATION';
 
+    //enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION')
     private $id;
     private $folio;
     private $warehouseInventoryId;
@@ -32,7 +35,10 @@ class WarehouseInventoryMovements
         ?int $userId
     ) {
         $this->validateMovementType($movementType);
-        $this->validateQuantity($quantity);
+        $this->validateQuantity(
+            $quantity,
+            $movementType
+        );
 
         $this->folio = $folio;
         $this->warehouseInventoryId = $warehouseInventoryId;
@@ -52,7 +58,9 @@ class WarehouseInventoryMovements
             self::TYPE_IN,
             self::TYPE_OUT,
             self::TYPE_ADJUSTMENT,
-            self::TYPE_TRANSFER
+            self::TYPE_TRANSFER,
+            self::TYPE_RELOCATION,
+            self::TYPE_SALE
         ];
 
         if (!in_array($type, $allowed, true)) {
@@ -60,9 +68,11 @@ class WarehouseInventoryMovements
         }
     }
 
-    private function validateQuantity(int $quantity): void
-    {
-        if ($quantity <= 0) {
+    private function validateQuantity(
+        int $quantity,
+        string $movementType
+    ): void {
+        if ($quantity <= 0 && $movementType !== self::TYPE_RELOCATION) {
             throw new \InvalidArgumentException("Quantity must be greater than zero.");
         }
     }

@@ -23,6 +23,7 @@ use App\Mappers\DTO\UpdateInventoryDTO;
 use LDAP\Result;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
+use App\Contracts\WarehouseOutputStrategy;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -34,7 +35,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
-    //private WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory;
+    private WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory;
+    private WarehouseOutputStrategy $warehouseOutputStrategy;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
@@ -42,8 +44,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         ProductServiceInterface $productService,
         WarehouseStorageServiceInterface $warehouseStorageService,
         WarehouseMovementsServiceI $warehouseMovementsService,
-        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
-        //WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory
+        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper,
+        WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryRequestDTOToWarehouseInventory = $warehouseInventoryRequestDTOToWarehouseInventory;
@@ -51,7 +53,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         $this->warehouseStorageService = $warehouseStorageService;
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
-        //$this->warehouseOutputStrategyFactory = $warehouseOutputStrategyFactory;
+        $this->warehouseOutputStrategyFactory = $warehouseOutputStrategyFactory;
     }
 
     public function getAllWarehouseInventories(): array
@@ -207,31 +209,14 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         RemoveWarehouseInventoryStockDTO $output
     ): ResultPattern {
 
-        $quantity = $this->warehouseInventoryRepository
-        ->findQuantityById(
-            $output->getWarehouseInventoryId()
+        $this->warehouseOutputStrategy =
+        $this->warehouseOutputStrategyFactory->make(
+            $output->getMovementType()
         );
 
-        if ($output->getQuantity() > $quantity) {
-            return ResultPattern::failure(
-                "¡Error! No puede retirar una cantidad "
-                ."mayor al stock disponible."
-            );
-        }
-
-        $quantityUpdated = $quantity - $output->getQuantity();
-
-        $updated = $this->warehouseInventoryRepository->updateQuantity(
-            $output->getWarehouseInventoryId(),
-            $quantityUpdated
+        $this->warehouseOutputStrategy->processOutput(
+            $output
         );
-
-        if (!$updated) {
-            return ResultPattern::failure(
-                "Error: no fue posible actualizar el inventario"
-            );
-        }
-
 
         return ResultPattern::success($output);
     }

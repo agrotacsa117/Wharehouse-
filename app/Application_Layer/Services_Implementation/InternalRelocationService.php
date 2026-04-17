@@ -31,16 +31,17 @@ class InternalRelocationService implements WarehouseOutputStrategy
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
-
         $this->result = $this->warehouseInventoryQueryService
         ->getInventoryById(
-            $removeWarehouseInventoryStockDTO->getWarehouseId()
+            $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
         );
+
 
         if ($this->result->isFailure()) {
             return $this->result;
         }
 
+        $inventoryDTO = $this->result->getValue();
         if (
             !$removeWarehouseInventoryStockDTO->getRack()
             || $removeWarehouseInventoryStockDTO->getRack() === ""
@@ -63,10 +64,10 @@ class InternalRelocationService implements WarehouseOutputStrategy
 
         $hasChange =
         $this->warehouseInventoryOutDetailDTO
-        ->getLevel() != $removeWarehouseInventoryStockDTO
+        ->getLevel() !== $removeWarehouseInventoryStockDTO
         ->getLevel()
         || $this->warehouseInventoryOutDetailDTO->getRack()
-        != $removeWarehouseInventoryStockDTO->getRack();
+        !== $removeWarehouseInventoryStockDTO->getRack();
 
         if (!$hasChange) {
             return ResultPattern::success(
@@ -75,12 +76,36 @@ class InternalRelocationService implements WarehouseOutputStrategy
         }
 
         try {
-              $this->warehouseInventoryQueryService
-               ->relocateInventory(
-                   $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
-                   $removeWarehouseInventoryStockDTO->getRack(),
-                   $removeWarehouseInventoryStockDTO->getLevel()
-               );
+            $this->warehouseInventoryQueryService
+             ->relocateInventory(
+                 $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                 $removeWarehouseInventoryStockDTO->getRack(),
+                 $removeWarehouseInventoryStockDTO->getLevel()
+             );
+
+
+            $folio = $this->warehouseMovementsService
+            ->generateMovementFolio();
+
+            $movementDTO = new WarehouseMovementsDTO(
+                $folio,
+                $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                $this->getType(),
+                0, // Cantidad 0 porque solo es cambio de ubicación
+                sprintf(
+                    "Reubicación: %s | Rack: %s→%s, Nivel: %d→%d",
+                    $removeWarehouseInventoryStockDTO->getReason(),
+                    $inventoryDTO->getRack(),
+                    $removeWarehouseInventoryStockDTO->getRack(),
+                    $inventoryDTO->getLevel(),
+                    $removeWarehouseInventoryStockDTO->getLevel()
+                ),
+                $removeWarehouseInventoryStockDTO->getUserId()
+            );
+
+            $this->result = 
+            $this->warehouseMovementsService->saveWarehouseMovement(
+                $movementDTO);
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
