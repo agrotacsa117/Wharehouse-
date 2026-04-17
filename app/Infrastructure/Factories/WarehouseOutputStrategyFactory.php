@@ -7,18 +7,20 @@ use App\Contracts\WarehouseOutputStrategy;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Application_Layer\Services_Implementation\InternalRelocationService;
+use App\Contracts\WarehouseInventoryRepositoryInterface;
+use App\Contracts\WarehouseInventoryQueryServiceI;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
 {
-    private WarehouseInventoryServiceInterface $warehouseInventoryService;
     private WarehouseMovementsServiceI $warehouseMovementsService;
+    private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
 
     public function __construct(
-        WarehouseInventoryServiceInterface $warehouseInventoryService,
-        WarehouseMovementsServiceI $warehouseMovementsService
+        WarehouseMovementsServiceI $warehouseMovementsService,
+        WarehouseInventoryQueryServiceI $warehouseInventoryQueryService
     ) {
-        $this->warehouseInventoryService = $warehouseInventoryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
+        $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
     }
 
     public function make(string $type): WarehouseOutputStrategy
@@ -26,7 +28,7 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
         switch ($type) {
             case 'RELOCATION':
                 return new InternalRelocationService(
-                    $this->warehouseInventoryService,
+                    $this->warehouseInventoryQueryService,
                     $this->warehouseMovementsService
                 );
                 break;

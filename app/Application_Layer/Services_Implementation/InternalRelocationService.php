@@ -5,32 +5,36 @@ namespace App\Application_Layer\Services_Implementation;
 use App\Contracts\WarehouseOutputStrategy;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Application_Layer\ResultPattern;
+use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
+use App\Contracts\WarehouseInventoryQueryServiceI;
 
 class InternalRelocationService implements WarehouseOutputStrategy
 {
-    private WarehouseInventoryServiceInterface $warehouseInventoryService;
     private ResultPattern $result;
     private WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO;
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
+    private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
 
     public function __construct(
-        WarehouseInventoryServiceInterface $warehouseInventoryService,
+        WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
         WarehouseMovementsServiceI $warehouseMovementsService
     ) {
-        $this->warehouseInventoryService = $warehouseInventoryService;
+        $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
     }
 
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
-        $this->result =  $this->warehouseInventoryService->getInventoryById(
-            $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
+
+        $this->result = $this->warehouseInventoryQueryService
+        ->getInventoryById(
+            $removeWarehouseInventoryStockDTO->getWarehouseId()
         );
 
         if ($this->result->isFailure()) {
@@ -71,13 +75,13 @@ class InternalRelocationService implements WarehouseOutputStrategy
         }
 
         try {
-            $this->warehouseInventoryService
-            ->relocateInventory(
-                $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
-                $removeWarehouseInventoryStockDTO->getRack(),
-                $removeWarehouseInventoryStockDTO->getLevel()
-            );
-
+            /**    $this->warehouseInventoryService
+               *->relocateInventory(
+                *   $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                 *  $removeWarehouseInventoryStockDTO->getRack(),
+                  * $removeWarehouseInventoryStockDTO->getLevel()
+               *);
+**/
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }

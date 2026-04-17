@@ -11,6 +11,7 @@ class OutputController extends Controller
 {
     private WarehouseStorageServiceInterface $warehouseStorageService;
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
+    private RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO;
 
     public function __construct(
         WarehouseStorageServiceInterface $warehouseStorageService,
@@ -23,17 +24,23 @@ class OutputController extends Controller
     public function processOutput(Request $request)
     {
         $movementType =  $request->movement_type;
-        
+        $userId = auth()->id();
 
-        $outputDTO = new RemoveWarehouseInventoryStockDTO(
-            $request->warehouseInventoryId,
-            $request->quantity,
-            $request->reason
-        );
+        switch ($movementType) {
+            case "RELOCATION":
+                return $this->processRelocation(
+                    $request,
+                    $userId
+                );
+
+            default:
+                return back()->withErrors('Tipo de movimiento no válido.');
+        }
+
 
         $result =  $this->warehouseInventoryService
         ->processInventoryOutput(
-            $outputDTO
+            $this->removeWarehouseInventoryStockDTO
         );
 
         if ($result->isFailure()) {
@@ -83,6 +90,56 @@ class OutputController extends Controller
         return response()->json($coLocatedWarehouses);
     }
 
+    private function processRelocation(
+        Request $request,
+        int $userId
+    ) {
+        $request->validate([
+                    'destination_warehouse_id' => 'required|integer|different:warehouse_id',
+                    'new_rack' => 'required|string|max:50',
+                    'new_level' => 'required|integer|min:1',
+                ]);
 
+        $this->removeWarehouseInventoryStockDTO =
+        $this->buildRemoveWarehouseInventoryStockDTO(
+            $request,
+            $userId
+        );
 
+        $this->removeWarehouseInventoryStockDTO
+        ->setRack(
+            $request->new_rack
+        );
+
+        $this->removeWarehouseInventoryStockDTO
+        ->setLevel(
+            (int)$request->new_level
+        );
+
+        $this->removeWarehouseInventoryStockDTO
+        ->setOperationDate(
+            $request->operation_date
+        );
+
+        $this->warehouseInventoryService
+        ->processInventoryOutput(
+            $this->removeWarehouseInventoryStockDTO
+        );
+    }
+
+    private function buildRemoveWarehouseInventoryStockDTO(
+        Request $request,
+        int $userId
+    ): RemoveWarehouseInventoryStockDTO {
+
+        $dto = new RemoveWarehouseInventoryStockDTO(
+            $request->warehouseInventoryId,
+            $request->quantity,
+            $request->reason
+        );
+
+        $dto->setUserId($userId);
+
+        return $dto;
+    }
 }

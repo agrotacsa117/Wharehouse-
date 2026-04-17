@@ -14,7 +14,7 @@ class RemoveWarehouseInventoryStockDTO
     private int $level;
     private int $clientId;
     private int $invoiceId;
-
+    private int $userId;
 
 
     public function __construct(
@@ -27,6 +27,16 @@ class RemoveWarehouseInventoryStockDTO
         $this->reason = $reason;
     }
 
+    public function getUserId(): int
+    {
+        return $this->userId;
+    }
+
+    public function setUserId(int $userId): void
+    {
+        $this->userId = $userId;
+    }
+    
     public function setReason(string $reason): void
     {
         $this->reason = $reason;

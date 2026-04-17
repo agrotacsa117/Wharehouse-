@@ -226,27 +226,12 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $quantityUpdated
         );
 
-        $folio = $this->warehouseMovementsService
-        ->generateMovementFolio();
-
-        $this->warehouseMovementsDTO =  $this->generateWarehouseMovementsDTO(
-            $folio,
-            $output->getWarehouseInventoryId(),
-            'OUT',
-            $output->getQuantity(),
-            $output->getReason(),
-            auth()->id()
-        );
-
-        $this->warehouseMovementsService->saveWarehouseMovement(
-            $this->warehouseMovementsDTO
-        );
-
         if (!$updated) {
             return ResultPattern::failure(
                 "Error: no fue posible actualizar el inventario"
             );
         }
+
 
         return ResultPattern::success($output);
     }
@@ -290,26 +275,6 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     {
         $inventory = $this->warehouseInventoryRepository->getInventoryByState($state);
         return $this->generateWarehouseInventoryDetailDTO($inventory);
-    }
-
-    public function getInventoryById(int $id): ResultPattern
-    {
-        $warehouseInventory = $this->warehouseInventoryRepository->findById($id);
-
-        if (!$warehouseInventory) {
-            return ResultPattern::failure(
-                "¡No se encontro ningun inventario "
-                ."registrado con este id ".$id
-            );
-        }
-
-        $warehouseInventoryOutDetailDTO =
-        $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
-        ->convertToOutDetailDTO(
-            $warehouseInventory
-        );
-
-        return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
 
     public function updateInventory(
@@ -530,6 +495,26 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return ResultPattern::success(true);
+    }
+
+    public function getInventoryById(int $id): ResultPattern
+    {
+        $warehouseInventory = $this->warehouseInventoryRepository->findById($id);
+
+        if (!$warehouseInventory) {
+            return ResultPattern::failure(
+                "¡No se encontro ningun inventario "
+                ."registrado con este id ".$id
+            );
+        }
+
+        $warehouseInventoryOutDetailDTO =
+        $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
+        ->convertToOutDetailDTO(
+            $warehouseInventory
+        );
+
+        return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
 
 }
