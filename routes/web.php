@@ -107,6 +107,12 @@ Route::get(
     'getView']
 )->name('output.get');
 
+// Ruta para editar almacén
+Route::put(
+    '/warehouse-managment/{id}',
+    [WarehouseManagmentController::class, 'update']
+)->middleware('auth')->name('warehouse-managment.update');
+
 Route::get(
     '/warehouses/by-location/{locationId}',
     [

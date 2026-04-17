@@ -2,7 +2,7 @@
 
 namespace App\Mappers\DTO;
 
-class WarehouseWithLocationResponseDTO implements \JsonSerializable
+class WarehouseWithLocationResponseDTO
 {
     private int $id;
     private string $warehouseName;
@@ -44,15 +44,5 @@ class WarehouseWithLocationResponseDTO implements \JsonSerializable
     public function getLocationId(): ?int
     {
         return $this->locationId;
-    }
-
-    public function jsonSerialize(): array
-    {
-        return [
-            'id' => $this->id,
-            'warehouseName' => $this->warehouseName,
-            'headquartersName' => $this->headquartersName,
-            'locationId' => $this->locationId,
-        ];
     }
 }
