@@ -95,7 +95,6 @@ class OutputController extends Controller
         int $userId
     ) {
         $request->validate([
-                    'destination_warehouse_id' => 'required|integer|different:warehouse_id',
                     'new_rack' => 'required|string|max:50',
                     'new_level' => 'required|integer|min:1',
                 ]);
