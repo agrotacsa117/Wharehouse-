@@ -6,6 +6,7 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\TransferInventoryDTO;
 
 class OutputController extends Controller
 {
@@ -74,9 +75,12 @@ class OutputController extends Controller
         );
 
 
+        // ✅ AGREGAR LISTA DE TODOS LOS ALMACENES PARA EL SELECT DE TRANSFER
+        $allWarehouses = $this->warehouseStorageService->listAllWarehouses();
+
         return view(
             'module.output.create',
-            compact('warehousesWithLocationsDTO')
+            compact('warehousesWithLocationsDTO', 'allWarehouses')
         );
     }
 
@@ -239,8 +243,53 @@ class OutputController extends Controller
     // ═══════════════════════════════════════════════════════════
     private function processTransfer(Request $request, int $userId)
     {
-        // TODO: Implementar cuando tengas TransferInventoryDTO listo
-        return back()->with('info', 'Función de traslado en desarrollo');
+
+       
+        $request->validate([
+            'warehouseInventoryId' => 'required|integer',
+            'quantity' => 'required|integer|min:1',
+            'destination_warehouse_id' => 'required|integer',
+            'transfer_rack' => 'required|string|max:50',
+            'transfer_level' => 'required|integer|min:1',
+            'reason' => 'required|string|max:255'
+        ]);
+
+        // Obtener inventario actual
+        $inventoryResult = $this->warehouseInventoryService->getInventoryById(
+            (int) $request->warehouseInventoryId
+        );
+
+        if ($inventoryResult->isFailure()) {
+            return back()->withErrors($inventoryResult->getError())->withInput();
+        }
+
+        $inventory = $inventoryResult->getValue();
+
+        // Validar que no sea el mismo almacén
+        if ($inventory->getWarehouseId() == $request->destination_warehouse_id) {
+            return back()->withErrors('No se puede transferir al mismo almacén')->withInput();
+        }
+
+        // Crear DTO de transferencia
+        $transferDTO = new TransferInventoryDTO(
+            (int) $request->warehouseInventoryId,
+            $inventory->getWarehouseId(), // Bodega origen
+            (int) $request->destination_warehouse_id, // Bodega destino
+            $request->transfer_rack,
+            (int) $request->transfer_level,
+            $inventory->getLotNumber(),
+            (int) $request->quantity,
+            $request->reason
+        );
+
+        // Ejecutar transferencia
+        $result = $this->warehouseInventoryService->transferInventory($transferDTO);
+
+        if ($result->isFailure()) {
+            return back()->withErrors($result->getError())->withInput();
+        }
+
+        return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
     }
 
 }

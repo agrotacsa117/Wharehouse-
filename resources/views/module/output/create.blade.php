@@ -451,6 +451,17 @@
                                                     @endisset
                                                 </select>
                                             </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Rack *</label>
+                                                <input type="text" name="transfer_rack" id="input-transfer-rack"
+                                                    class="form-control" placeholder="Ej: A-01">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Nivel *</label>
+                                                <input type="number" name="transfer_level" id="input-transfer-level"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
                                         </div>
                                     </div>
 
@@ -567,14 +578,17 @@
                     btnSubmit.textContent = 'Registrar Venta';
                     break;
                 case 'TRANSFER':
+                    fieldsTransfer.style.display = 'block';
                     document.getElementById('input-quantity').disabled = false;
                     fieldsTransfer.classList.remove('d-none');
                     document.getElementById('input-destination-warehouse').required = true;
+                    document.getElementById('input-transfer-rack').required = true; // ✅ AGREGAR
+                    document.getElementById('input-transfer-level').required = true;
                     btnSubmit.textContent = 'Crear Traslado';
                     break;
                 case 'RELOCATION':
                     fieldsRelocation.classList.remove('d-none');
-                    document.getElementById('input-quantity').disabled  = true;
+                    document.getElementById('input-quantity').disabled = true;
                     document.getElementById('input-relocation-destination').required = true;
                     document.getElementById('input-new-rack').required = true;
                     document.getElementById('input-new-level').required = true;
