@@ -40,11 +40,29 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
 
-     public function relocateInventory(
+    public function relocateInventory(
         int $id,
         string $rack,
         int $level
-    ): ResultPattern{
-        
+    ): ResultPattern {
+        try {
+            $updated = $this->warehouseInventoryRepository->updateInventoryLocation(
+                $id,
+                $rack,
+                $level
+            );
+
+            if (!$updated) {
+                ResultPattern::failure(
+                    "¡Error: no fue posible "
+                    ."modificar campos de ubicación!"
+                );
+            }
+
+        } catch (\Throwable $th) {
+            return ResultPattern::failure($th->getMessage());
+        }
+
+        return ResultPattern::success(true);
     }
 }

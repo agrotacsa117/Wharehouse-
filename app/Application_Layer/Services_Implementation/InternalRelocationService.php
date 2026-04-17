@@ -75,13 +75,13 @@ class InternalRelocationService implements WarehouseOutputStrategy
         }
 
         try {
-            /**    $this->warehouseInventoryService
-               *->relocateInventory(
-                *   $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
-                 *  $removeWarehouseInventoryStockDTO->getRack(),
-                  * $removeWarehouseInventoryStockDTO->getLevel()
-               *);
-**/
+              $this->warehouseInventoryQueryService
+               ->relocateInventory(
+                   $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                   $removeWarehouseInventoryStockDTO->getRack(),
+                   $removeWarehouseInventoryStockDTO->getLevel()
+               );
+
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
