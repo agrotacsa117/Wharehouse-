@@ -3,17 +3,16 @@
 @section('titulo', $titulo)
 
 @section('contenido')
-    <main id="main" class="main bg-light py-4">
-        <div class="pagetitle mb-4">
-            <h1 class="fw-bold text-primary" style="letter-spacing:1px;"><i
-                    class="fa-solid fa-gauge-high me-2"></i>{{ $titulo }}</h1>
-            <nav>
-                <ol class="breadcrumb bg-white rounded shadow-sm px-3 py-2">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}">Inicio</a></li>
-                    <li class="breadcrumb-item active">Panel Principal</li>
-                </ol>
-            </nav>
+    <main id="main" class="main" style="background-color: #f8f9fa; min-height: 100vh; padding: 24px;">
+        
+        {{-- ============================================================= --}}
+        {{--              ENCABEZADO DEL DASHBOARD                          --}}
+        {{-- ============================================================= --}}
+        <div class="mb-4">
+            <h1 class="fw-bold mb-1" style="font-size: 1.75rem; color: #1f2937;">Dashboard</h1>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Vista general del inventario y caducidad</p>
         </div>
+
         <section class="section dashboard">
             @php
                 $user = auth()->user();
@@ -21,54 +20,114 @@
                 $esTapachula = $user->rol === 'tapachula';
                 $esDorado = $user->rol === 'bodega_dorado';
             @endphp
-            <div class="row mb-4 justify-content-center">
-                @if ($esAdmin)
-                    <!-- Solo admin ve las tarjetas de precios individuales -->
-                    
-                @endif
-                <!-- Solo admin y otros roles distintos a tapachula y bodega_dorado ven el total general -->
-                @if ($esAdmin || (!$esTapachula && !$esDorado))
-                    
-                @endif
+
+            {{-- ============================================================= --}}
+            {{--              4 TARJETAS RESUMEN SUPERIORES                    --}}
+            {{-- ============================================================= --}}
+            <div class="row g-3 mb-4">
+                {{-- Tarjeta 1: Total Productos --}}
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                        <div class="card-body d-flex align-items-center justify-content-between py-3 px-4">
+                            <div>
+                                <p class="text-muted mb-1 small fw-medium">Total Productos</p>
+                                <h3 class="fw-bold mb-0" style="font-size: 1.75rem; color: #1f2937;">
+                                    {{ number_format(($critical->getTotalStock() ?? 0) + ($attention->getTotalStock() ?? 0) + ($ok->getTotalStock() ?? 0), 0, '.', ',') }}
+                                </h3>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px; background-color: #dbeafe; border-radius: 10px;">
+                                <i class="bi bi-box-seam" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tarjeta 2: Bodegas Activas --}}
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                        <div class="card-body d-flex align-items-center justify-content-between py-3 px-4">
+                            <div>
+                                <p class="text-muted mb-1 small fw-medium">Bodegas Activas</p>
+                                <h3 class="fw-bold mb-0" style="font-size: 1.75rem; color: #1f2937;">
+                                    {{ count($almacenes ?? []) }}
+                                </h3>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px; background-color: #fef3c7; border-radius: 10px;">
+                                <i class="bi bi-building" style="font-size: 1.5rem; color: #f59e0b;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tarjeta 3: Items en Inventario --}}
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                        <div class="card-body d-flex align-items-center justify-content-between py-3 px-4">
+                            <div>
+                                <p class="text-muted mb-1 small fw-medium">Items en Inventario</p>
+                                <h3 class="fw-bold mb-0" style="font-size: 1.75rem; color: #1f2937;">
+                                    {{ number_format(($attention->getTotalStock() ?? 0) + ($ok->getTotalStock() ?? 0), 0, ',', '.') }}
+                                </h3>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px; background-color: #d1fae5; border-radius: 10px;">
+                                <i class="bi bi-check-circle" style="font-size: 1.5rem; color: #10b981;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tarjeta 4: Criticos (<90 dias) --}}
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; background-color: #fef2f2;">
+                        <div class="card-body d-flex align-items-center justify-content-between py-3 px-4">
+                            <div>
+                                <p class="mb-1 small fw-medium" style="color: #dc2626;">Criticos (&lt;90 dias)</p>
+                                <h3 class="fw-bold mb-0" style="font-size: 1.75rem; color: #dc2626;">
+                                    {{ number_format($critical->getTotalStock() ?? 0, 0, ',', '.') }}
+                                </h3>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px; background-color: #fecaca; border-radius: 10px;">
+                                <i class="bi bi-exclamation-triangle" style="font-size: 1.5rem; color: #dc2626;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- ============================================================= --}}
-            {{--              SEMÁFORO DE CADUCIDAD - NUEVA SECCIÓN            --}}
+            {{--              SEMAFORO DE CADUCIDAD - ESTILO LIMPIO            --}}
             {{-- ============================================================= --}}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card shadow border-0">
-                        <div class="card-body">
-                            <h5 class="card-title d-flex align-items-center gap-2 mb-4">
-                                <i class="bi bi-clock-history text-primary"></i>
-                                <span>Semáforo de Caducidad</span>
-                                @if ( $critical->getTotalStock() > 0)
-                                    <span class="badge bg-danger ms-2 animate__animated animate__pulse animate__infinite">
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $critical->getTotalStock() }} críticos
-                                    </span>
-                                @endif
-                            </h5>
-                            <div class="row g-3">
-                                {{-- Tarjeta CRÍTICO (Rojo) - Menos de 90 días --}}
-                                <div class="col-lg-4 col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden clickable-card"
-                                        style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 4px solid #dc2626 !important; cursor: pointer;"
-                                        onclick="openSemaforoModal('critical')">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center gap-2 mb-3">
-                                                <span
-                                                    class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                    style="width: 14px; height: 14px; background-color: #dc2626; box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);">
-                                                </span>
-                                                <span class="fw-semibold text-danger">Crítico</span>
-                                            </div>
-                                            <h2 class="fw-bold mb-2" style="color: #dc2626; font-size: 2.5rem;">
-                                                {{ number_format($critical->getTotalStock() ?? 0, 0, ',', '.') }}
-                                            </h2>
-                                            <p class="text-danger mb-3 small fw-medium">
-                                                <i class="bi bi-calendar-x me-1"></i>Menos de 90 días
-                                            </p>
-                                            <hr class="my-2" style="border-color: rgba(220, 38, 38, 0.2);">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-clock-history" style="font-size: 1.25rem; color: #6b7280;"></i>
+                        <h5 class="fw-semibold mb-0" style="color: #374151;">Semaforo de Caducidad</h5>
+                    </div>
+                    
+                    <div class="row g-3">
+                        {{-- Tarjeta CRITICO (Rojo) - Menos de 90 dias --}}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card h-100 border-0 clickable-card"
+                                style="background-color: #fef2f2; border-radius: 12px; border-left: 4px solid #dc2626 !important; cursor: pointer;"
+                                onclick="openSemaforoModal('critical')">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="rounded-circle"
+                                            style="width: 12px; height: 12px; background-color: #dc2626; display: inline-block;">
+                                        </span>
+                                        <span class="fw-semibold" style="color: #dc2626;">Critico</span>
+                                    </div>
+                                    <h2 class="fw-bold mb-2" style="color: #dc2626; font-size: 2.5rem;">
+                                        {{ number_format($critical->getTotalStock() ?? 0, 0, ',', '.') }}
+                                    </h2>
+                                    <p class="mb-0 small" style="color: #f87171;">
+                                        Menos de 90 dias
+                                    </p>
+                                    <hr class="my-2" style="border-color: rgba(220, 38, 38, 0.2);">
                                             @forelse ($statsWarehouses[3] ?? [] as $warehouseStat)
                                                 <div class="d-flex justify-content-between small">
                                                     <span class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
@@ -81,34 +140,29 @@
                                                     <span class="fw-bold" style="color: #dc2626;">0</span>
                                                 </div>
                                             @endforelse
-                                        </div>
-                                        {{-- Icono decorativo de fondo --}}
-                                        <i class="bi bi-exclamation-triangle-fill position-absolute"
-                                            style="font-size: 5rem; bottom: -10px; right: -10px; color: rgba(220, 38, 38, 0.1);"></i>
-                                    </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                {{-- Tarjeta ATENCIÓN (Amarillo) - Entre 90 y 120 días --}}
-                                <div class="col-lg-4 col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden clickable-card"
-                                        style="background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%); border-left: 4px solid #ca8a04 !important; cursor: pointer;"
-                                        onclick="openSemaforoModal('attention')">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center gap-2 mb-3">
-                                                <span
-                                                    class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                    style="width: 14px; height: 14px; background-color: #ca8a04; box-shadow: 0 0 8px rgba(202, 138, 4, 0.6);">
-                                                </span>
-                                                <span class="fw-semibold" style="color: #a16207;">Atención</span>
-                                            </div>
-                                            <h2 class="fw-bold mb-2" style="color: #ca8a04; font-size: 2.5rem;">
-                                                {{ number_format($attention->getTotalStock() ?? 0, 0, ',', '.') }}
-                                            </h2>
-                                            <p class="small fw-medium mb-3" style="color: #a16207;">
-                                                <i class="bi bi-calendar-event me-1"></i>Entre 90 y 120 días
-                                            </p>
-                                            <hr class="my-2" style="border-color: rgba(202, 138, 4, 0.2);">
-                                            @forelse ($statsWarehouses[2] ?? [] as $warehouseStat)
+                        {{-- Tarjeta ATENCION (Amarillo) - Entre 90 y 120 dias --}}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card h-100 border-0 clickable-card"
+                                style="background-color: #fefce8; border-radius: 12px; border-left: 4px solid #ca8a04 !important; cursor: pointer;"
+                                onclick="openSemaforoModal('attention')">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="rounded-circle"
+                                            style="width: 12px; height: 12px; background-color: #ca8a04; display: inline-block;">
+                                        </span>
+                                        <span class="fw-semibold" style="color: #ca8a04;">Atencion</span>
+                                    </div>
+                                    <h2 class="fw-bold mb-2" style="color: #ca8a04; font-size: 2.5rem;">
+                                        {{ number_format($attention->getTotalStock() ?? 0, 0, ',', '.') }}
+                                    </h2>
+                                    <p class="mb-0 small" style="color: #eab308;">
+                                        Entre 90 y 120 dias
+                                    </p>
+                                    @forelse ($statsWarehouses[2] ?? [] as $warehouseStat)
                                                 <div class="d-flex justify-content-between small">
                                                     <span class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
                                                     <span class="fw-bold"
@@ -120,33 +174,29 @@
                                                     <span class="fw-bold" style="color: #ca8a04;">0</span>
                                                 </div>
                                             @endforelse
-                                        </div>
-                                        {{-- Icono decorativo de fondo --}}
-                                        <i class="bi bi-clock-fill position-absolute"
-                                            style="font-size: 5rem; bottom: -10px; right: -10px; color: rgba(202, 138, 4, 0.1);"></i>
-                                    </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                {{-- Tarjeta OK (Verde) - Más de 120 días --}}
-                                <div class="col-lg-4 col-md-12">
-                                    <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden clickable-card"
-                                        style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-left: 4px solid #16a34a !important; cursor: pointer;"
-                                        onclick="openSemaforoModal('ok')">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center gap-2 mb-3">
-                                                <span
-                                                    class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                    style="width: 14px; height: 14px; background-color: #16a34a; box-shadow: 0 0 8px rgba(22, 163, 74, 0.6);">
-                                                </span>
-                                                <span class="fw-semibold text-success">OK</span>
-                                            </div>
-                                            <h2 class="fw-bold mb-2" style="color: #16a34a; font-size: 2.5rem;">
-                                                {{ number_format($ok->getTotalStock() ?? 0, 0, ',', '.') }}
-                                            </h2>
-                                            <p class="text-success mb-3 small fw-medium">
-                                                <i class="bi bi-calendar-check me-1"></i>Más de 120 días
-                                            </p>
-                                            <hr class="my-2" style="border-color: rgba(22, 163, 74, 0.2);">
+                        {{-- Tarjeta OK (Verde) - Mas de 120 dias --}}
+                        <div class="col-lg-4 col-md-12">
+                            <div class="card h-100 border-0 clickable-card"
+                                style="background-color: #f0fdf4; border-radius: 12px; border-left: 4px solid #16a34a !important; cursor: pointer;"
+                                onclick="openSemaforoModal('ok')">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="rounded-circle"
+                                            style="width: 12px; height: 12px; background-color: #16a34a; display: inline-block;">
+                                        </span>
+                                        <span class="fw-semibold" style="color: #16a34a;">OK</span>
+                                    </div>
+                                    <h2 class="fw-bold mb-2" style="color: #16a34a; font-size: 2.5rem;">
+                                        {{ number_format($ok->getTotalStock() ?? 0, 0, ',', '.') }}
+                                    </h2>
+                                    <p class="mb-0 small" style="color: #22c55e;">
+                                        Mas de 120 dias
+                                    </p>
+                                    <hr class="my-2" style="border-color: rgba(22, 163, 74, 0.2);">
                                             @forelse ($statsWarehouses[1] ?? [] as $warehouseStat)
                                                 <div class="d-flex justify-content-between small">
                                                     <span class="text-muted">{{ $warehouseStat->getWarehouseName() }}:</span>
@@ -159,11 +209,6 @@
                                                     <span class="fw-bold" style="color: #16a34a;">0</span>
                                                 </div>
                                             @endforelse
-                                        </div>
-                                        {{-- Icono decorativo de fondo --}}
-                                        <i class="bi bi-check-circle-fill position-absolute"
-                                            style="font-size: 5rem; bottom: -10px; right: -10px; color: rgba(22, 163, 74, 0.1);"></i>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +216,7 @@
                 </div>
             </div>
             {{-- ============================================================= --}}
-            {{--              FIN SEMÁFORO DE CADUCIDAD                        --}}
+            {{--              FIN SEMAFORO DE CADUCIDAD                        --}}
             {{-- ============================================================= --}}
 
             <div class="row">
@@ -222,16 +267,16 @@
         </section>
 
         {{-- ============================================================= --}}
-        {{--              MODALES DEL SEMÁFORO DE CADUCIDAD                  --}}
+        {{--              MODALES DEL SEMAFORO DE CADUCIDAD                  --}}
         {{-- ============================================================= --}}
 
-        {{-- Modal CRÍTICO --}}
+        {{-- Modal CRITICO --}}
         <div class="modal fade" id="modalCritical" tabindex="-1" aria-labelledby="modalCriticalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content border-0 shadow" style="border-left: 5px solid #dc2626 !important;">
                     <div class="modal-header" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
                         <h5 class="modal-title fw-bold" id="modalCriticalLabel" style="color: #dc2626;">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Productos Críticos
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Productos Criticos
                         </h5>
                         <span class="badge bg-danger ms-2">{{ $critical->getTotalStock() ?? 0 }}</span>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -240,7 +285,7 @@
                     <div class="px-3 pt-3 pb-0">
                         <div class="row g-2">
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Almacén</label>
+                                <label class="form-label small fw-semibold text-muted">Almacen</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseCritical" onchange="filterSemaforoTable('critical')">
                                     <option value="">Todos los almacenes</option>
                                     @foreach($almacenes as $almacen)
@@ -253,7 +298,7 @@
                                 <input type="text" class="form-control form-control-sm" id="filterProductCritical" placeholder="Buscar producto..." onkeyup="filterSemaforoTable('critical')">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Fecha Máx. Caducidad</label>
+                                <label class="form-label small fw-semibold text-muted">Fecha Max. Caducidad</label>
                                 <input type="date" class="form-control form-control-sm" id="filterDateCritical" onchange="filterSemaforoTable('critical')">
                             </div>
                         </div>
@@ -264,21 +309,21 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
-                                        <th style="min-width: 120px;">Código</th>
+                                        <th style="min-width: 120px;">Codigo</th>
                                         <th style="min-width: 120px;">Producto</th>
-                                        <th style="min-width: 100px;">Almacén</th>
+                                        <th style="min-width: 100px;">Almacen</th>
                                         <th style="min-width: 70px;">Rack</th>
                                         <th class="text-center" style="min-width: 60px;">Nivel</th>
                                         <th style="min-width: 100px;">Lote</th>
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
-                                        <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Dias</th>
                                         <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableCriticalBody">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="11" class="text-center text-muted py-4">
                                             <i class="bi bi-hourglass-split me-2"></i>Cargando datos...
                                         </td>
                                     </tr>
@@ -296,13 +341,13 @@
             </div>
         </div>
 
-        {{-- Modal ATENCIÓN --}}
+        {{-- Modal ATENCION --}}
         <div class="modal fade" id="modalAttention" tabindex="-1" aria-labelledby="modalAttentionLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content border-0 shadow" style="border-left: 5px solid #ca8a04 !important;">
                     <div class="modal-header" style="background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);">
                         <h5 class="modal-title fw-bold" id="modalAttentionLabel" style="color: #a16207;">
-                            <i class="bi bi-clock-fill me-2"></i>Productos en Atención
+                            <i class="bi bi-clock-fill me-2"></i>Productos en Atencion
                         </h5>
                         <span class="badge bg-warning text-dark ms-2">{{ $attention->getTotalStock() ?? 0 }}</span>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -311,7 +356,7 @@
                     <div class="px-3 pt-3 pb-0">
                         <div class="row g-2">
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Almacén</label>
+                                <label class="form-label small fw-semibold text-muted">Almacen</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseAttention" onchange="filterSemaforoTable('attention')">
                                     <option value="">Todos los almacenes</option>
                                     @foreach($almacenes as $almacen)
@@ -324,7 +369,7 @@
                                 <input type="text" class="form-control form-control-sm" id="filterProductAttention" placeholder="Buscar producto..." onkeyup="filterSemaforoTable('attention')">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Fecha Máx. Caducidad</label>
+                                <label class="form-label small fw-semibold text-muted">Fecha Max. Caducidad</label>
                                 <input type="date" class="form-control form-control-sm" id="filterDateAttention" onchange="filterSemaforoTable('attention')">
                             </div>
                         </div>
@@ -335,21 +380,21 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
-                                        <th style="min-width: 120px;">Código</th>
+                                        <th style="min-width: 120px;">Codigo</th>
                                         <th style="min-width: 120px;">Producto</th>
-                                        <th style="min-width: 100px;">Almacén</th>
+                                        <th style="min-width: 100px;">Almacen</th>
                                         <th style="min-width: 70px;">Rack</th>
                                         <th class="text-center" style="min-width: 60px;">Nivel</th>
                                         <th style="min-width: 100px;">Lote</th>
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
-                                        <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Dias</th>
                                         <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableAttentionBody">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="11" class="text-center text-muted py-4">
                                             <i class="bi bi-hourglass-split me-2"></i>Cargando datos...
                                         </td>
                                     </tr>
@@ -382,7 +427,7 @@
                     <div class="px-3 pt-3 pb-0">
                         <div class="row g-2">
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Almacén</label>
+                                <label class="form-label small fw-semibold text-muted">Almacen</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseOk" onchange="filterSemaforoTable('ok')">
                                     <option value="">Todos los almacenes</option>
                                     @foreach($almacenes as $almacen)
@@ -395,7 +440,7 @@
                                 <input type="text" class="form-control form-control-sm" id="filterProductOk" placeholder="Buscar producto..." onkeyup="filterSemaforoTable('ok')">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small fw-semibold text-muted">Fecha Máx. Caducidad</label>
+                                <label class="form-label small fw-semibold text-muted">Fecha Max. Caducidad</label>
                                 <input type="date" class="form-control form-control-sm" id="filterDateOk" onchange="filterSemaforoTable('ok')">
                             </div>
                         </div>
@@ -406,21 +451,21 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-center" style="min-width: 40px;">#</th>
-                                        <th style="min-width: 120px;">Código</th>
+                                        <th style="min-width: 120px;">Codigo</th>
                                         <th style="min-width: 120px;">Producto</th>
-                                        <th style="min-width: 100px;">Almacén</th>
+                                        <th style="min-width: 100px;">Almacen</th>
                                         <th style="min-width: 70px;">Rack</th>
                                         <th class="text-center" style="min-width: 60px;">Nivel</th>
                                         <th style="min-width: 100px;">Lote</th>
                                         <th class="text-center" style="min-width: 70px;">Cantidad</th>
                                         <th class="text-center" style="min-width: 95px;">Fecha Caducidad</th>
-                                        <th class="text-center" style="min-width: 85px;">Días</th>
+                                        <th class="text-center" style="min-width: 85px;">Dias</th>
                                         <th class="text-center" style="min-width: 85px;">Obsolescencia (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableOkBody">
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">
+                                        <td colspan="11" class="text-center text-muted py-4">
                                             <i class="bi bi-hourglass-split me-2"></i>Cargando datos...
                                         </td>
                                     </tr>
@@ -476,8 +521,8 @@
             if (!data || data.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoría
+                        <td colspan="11" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoria
                         </td>
                     </tr>
                 `;
@@ -498,9 +543,10 @@
                     <td class="text-center">${formatDate(item.expirationDate)}</td>
                     <td class="text-center">
                         <span class="badge ${getBadgeClass(item.remainingDays)}">
-                            ${item.remainingDays < 0 ? 'Vencido' : item.remainingDays + ' días'}
+                            ${item.remainingDays < 0 ? 'Vencido' : item.remainingDays + ' dias'}
                         </span>
                     </td>
+                    <td class="text-center">${item.obsolescencia || '-'}</td>
                 </tr>
             `).join('');
 
@@ -560,8 +606,8 @@
                 if (tbody) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoría
+                            <td colspan="11" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox-fill me-2"></i>No hay productos en esta categoria
                             </td>
                         </tr>
                     `;

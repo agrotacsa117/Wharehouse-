@@ -711,7 +711,8 @@
 
                         <!-- Botones de Acción -->
                         <div class="button-group">
-                            <button type="button" class="btn-secondary" id="cancelBtn">
+                            <button type="button" class="btn-secondary" id="cancelBtn"
+                            onclick="window.location.href='{{ route('warehouse-managment.get') }}'">
                                 ✕ Cancelar
                             </button>
                             <button type="submit" class="btn-primary">

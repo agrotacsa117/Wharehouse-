@@ -357,7 +357,8 @@
 
                 <!-- Botones de accion -->
                 <div class="form-actions">
-                    <button type="button" class="btn-tacsa-cancel" id="btnCancel">
+                    <button type="button" class="btn-tacsa-cancel" id="btnCancel"
+                    onclick="window.location.href='{{ route('warehouse-managment.get') }}'">
                         <i class="bi bi-x-lg"></i>
                         Cancelar
                     </button>

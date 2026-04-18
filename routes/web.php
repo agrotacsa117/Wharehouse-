@@ -19,7 +19,7 @@ use App\Http\Controllers\WarehouseRegistrationController;
 use App\Http\Controllers\WarehouseTypeController;
 use App\Http\Controllers\WareouseInventoryController;
 use App\Http\Controllers\InventoryManagementController;
-
+use App\Http\Controllers\ReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -139,6 +139,12 @@ Route::middleware("auth")->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+Route::middleware("auth")->group(function () {
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.get');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
 Route::prefix('categorias')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [Categorias::class, 'index'])->name('categorias.index');
     Route::get('/create', [Categorias::class, 'create'])->name('categorias.create');

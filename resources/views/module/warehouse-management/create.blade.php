@@ -5,27 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>TACSA - Gestion de Almacenes</title>
+    <title>TACSA - Gestión de bodegas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* TACSA Brand Colors */
             --tacsa-red: #DC2626;
             --tacsa-red-dark: #B91C1C;
             --tacsa-red-light: rgba(220, 38, 38, 0.08);
-            --tacsa-red-light2: rgba(220, 38, 38, 0.15);
+            --tacsa-red-light2: rgba(220, 38, 38, 0.12);
+            
+            /* Semantic Colors */
             --tacsa-green: #16a34a;
             --tacsa-green-light: rgba(22, 163, 74, 0.1);
             --tacsa-amber: #d97706;
             --tacsa-amber-light: rgba(217, 119, 6, 0.1);
-            --tacsa-blue: #2563eb;
-            --tacsa-blue-light: rgba(37, 99, 235, 0.1);
-            --text-primary: #1a1a1a;
+            --tacsa-blue: #3b82f6;
+            --tacsa-blue-light: rgba(59, 130, 246, 0.1);
+            
+            /* Neutral Palette */
+            --text-primary: #111827;
             --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
             --border-color: #e5e7eb;
-            --bg-body: #f4f4f5;
+            --border-light: #f3f4f6;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
+            --bg-hover: #fafafa;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
         }
 
         * {
@@ -38,17 +51,23 @@
             color: var(--text-primary);
             min-height: 100vh;
             margin: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* ══════════════════════════════════
-           TOP BAR
+           TOP BAR - TACSA Identity
         ══════════════════════════════════ */
         .topbar {
             background: var(--tacsa-red);
-            padding: 0.75rem 2rem;
+            padding: 0 2.5rem;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
         }
 
         .topbar-brand {
@@ -59,133 +78,160 @@
             font-weight: 700;
             font-size: 1.125rem;
             text-decoration: none;
+            letter-spacing: -0.01em;
         }
 
-        .topbar-brand .logo-sm {
-            width: 36px;
-            height: 36px;
+        .topbar-brand .logo-circle {
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            border: 2px solid #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.625rem;
+            font-size: 0.75rem;
             font-weight: 700;
             color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .topbar-nav {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
 
         .topbar-nav a {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
             font-size: 0.8125rem;
             font-weight: 500;
-            padding: 0.375rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.15s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
-        .topbar-nav a:hover,
+        .topbar-nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
         .topbar-nav a.active {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.18);
         }
 
         /* ══════════════════════════════════
-           PAGE WRAPPER
+           PAGE WRAPPER - Modern Spacing
         ══════════════════════════════════ */
         .page-wrapper {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem 1.5rem 3rem;
+            padding: 2.5rem 2rem 4rem;
         }
 
         /* ══════════════════════════════════
-           PAGE HEADER
+           PAGE HEADER - Clean & Bold
         ══════════════════════════════════ */
         .page-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.75rem;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .page-header h1 {
-            font-size: 1.5rem;
+        .page-header-text h1 {
+            font-size: 1.75rem;
             font-weight: 700;
             color: var(--text-primary);
             margin: 0;
+            letter-spacing: -0.02em;
         }
 
-        .page-header p {
-            font-size: 0.875rem;
+        .page-header-text p {
+            font-size: 0.9375rem;
             color: var(--text-secondary);
-            margin: 0.25rem 0 0;
+            margin: 0.5rem 0 0;
+            line-height: 1.5;
         }
 
         .btn-new-warehouse {
-            height: 42px;
-            padding: 0 1.25rem;
-            font-size: 0.8125rem;
+            height: 44px;
+            padding: 0 1.5rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 10px;
             border: none;
             background: var(--tacsa-red);
             color: #ffffff;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            transition: background-color 0.15s;
+            transition: all 0.2s ease;
             cursor: pointer;
             text-decoration: none;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
         }
 
         .btn-new-warehouse:hover {
             background: var(--tacsa-red-dark);
             color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-new-warehouse i {
+            font-size: 1rem;
         }
 
         /* ══════════════════════════════════
-           STAT CARDS
+           STAT CARDS - Modern Style (Inspiracion)
         ══════════════════════════════════ */
         .stat-cards {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.25rem;
+            border-radius: 14px;
+            padding: 1.5rem;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.375rem;
             flex-shrink: 0;
         }
 
         .stat-icon.red {
             background: var(--tacsa-red-light);
             color: var(--tacsa-red);
+        }
+
+        .stat-icon.blue {
+            background: var(--tacsa-blue-light);
+            color: var(--tacsa-blue);
         }
 
         .stat-icon.green {
@@ -198,61 +244,61 @@
             color: var(--tacsa-amber);
         }
 
-        .stat-icon.blue {
-            background: var(--tacsa-blue-light);
-            color: var(--tacsa-blue);
-        }
-
         .stat-info h3 {
-            font-size: 1.375rem;
+            font-size: 1.625rem;
             font-weight: 700;
             margin: 0;
             line-height: 1;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
         }
 
         .stat-info span {
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
             color: var(--text-secondary);
+            margin-top: 0.25rem;
+            display: block;
         }
 
         /* ══════════════════════════════════
-           TABLE CARD
+           TABLE CARD - Clean Container
         ══════════════════════════════════ */
         .table-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         /* ── Toolbar ── */
         .table-toolbar {
-            padding: 1.25rem 1.5rem;
+            padding: 1.25rem 1.75rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
             flex-wrap: wrap;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-light);
         }
 
-        .table-toolbar .section-title {
+        .section-title {
             display: flex;
             align-items: center;
-            gap: 0.625rem;
+            gap: 0.75rem;
             margin: 0;
         }
 
-        .table-toolbar .section-title .bar {
+        .section-title .indicator {
             width: 4px;
-            height: 22px;
+            height: 24px;
             background: var(--tacsa-red);
-            border-radius: 9999px;
+            border-radius: 4px;
             flex-shrink: 0;
         }
 
-        .table-toolbar .section-title h2 {
-            font-size: 1rem;
+        .section-title h2 {
+            font-size: 1.0625rem;
             font-weight: 600;
             color: var(--tacsa-red);
             margin: 0;
@@ -264,55 +310,69 @@
             gap: 0.75rem;
         }
 
+        .filter-select {
+            height: 40px;
+            min-width: 160px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 0.8125rem;
+            padding: 0 2.25rem 0 1rem;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.875rem center;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-select:hover {
+            border-color: #d1d5db;
+        }
+
+        .filter-select:focus {
+            border-color: var(--tacsa-red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+            outline: none;
+        }
+
         .search-box {
             position: relative;
         }
 
         .search-box i {
             position: absolute;
-            left: 0.875rem;
+            left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+            pointer-events: none;
         }
 
         .search-box input {
-            height: 38px;
-            width: 260px;
-            padding-left: 2.5rem;
+            height: 40px;
+            width: 280px;
+            padding-left: 2.75rem;
             padding-right: 1rem;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             font-size: 0.8125rem;
             color: var(--text-primary);
             background: var(--bg-card);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
         }
 
         .search-box input::placeholder {
-            color: #9ca3af;
+            color: var(--text-muted);
+        }
+
+        .search-box input:hover {
+            border-color: #d1d5db;
         }
 
         .search-box input:focus {
-            border-color: var(--tacsa-red);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-            outline: none;
-        }
-
-        .filter-select {
-            height: 38px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 0.8125rem;
-            padding: 0 2rem 0 0.75rem;
-            color: var(--text-primary);
-            background: var(--bg-card);
-            transition: border-color 0.2s;
-            cursor: pointer;
-        }
-
-        .filter-select:focus {
             border-color: var(--tacsa-red);
             box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
             outline: none;
@@ -330,29 +390,31 @@
         }
 
         .tacsa-table thead th {
-            background: #fafafa;
+            background: var(--bg-hover);
             padding: 0.875rem 1rem;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
+            text-align: left;
         }
 
         .tacsa-table tbody td {
             padding: 1rem;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid var(--border-light);
             vertical-align: middle;
+            color: var(--text-primary);
         }
 
         .tacsa-table tbody tr {
-            transition: background 0.1s;
+            transition: background 0.15s ease;
         }
 
         .tacsa-table tbody tr:hover {
-            background: #fafafa;
+            background: var(--bg-hover);
         }
 
         .tacsa-table tbody tr:last-child td {
@@ -363,30 +425,39 @@
         .cell-key {
             font-weight: 600;
             color: var(--tacsa-red);
+            font-size: 0.8125rem;
         }
 
         .cell-name {
             font-weight: 500;
+            color: var(--text-primary);
         }
 
+        .cell-secondary {
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+        }
+
+        /* Badges */
         .badge-type {
             display: inline-block;
-            padding: 0.25rem 0.625rem;
+            padding: 0.3125rem 0.75rem;
             font-size: 0.6875rem;
             font-weight: 600;
-            border-radius: 9999px;
+            border-radius: 6px;
             background: var(--tacsa-red-light);
             color: var(--tacsa-red);
+            letter-spacing: 0.01em;
         }
 
         .badge-active {
             display: inline-flex;
             align-items: center;
             gap: 0.375rem;
-            padding: 0.25rem 0.625rem;
+            padding: 0.3125rem 0.75rem;
             font-size: 0.6875rem;
             font-weight: 600;
-            border-radius: 9999px;
+            border-radius: 20px;
             background: var(--tacsa-green-light);
             color: var(--tacsa-green);
         }
@@ -402,10 +473,10 @@
             display: inline-flex;
             align-items: center;
             gap: 0.375rem;
-            padding: 0.25rem 0.625rem;
+            padding: 0.3125rem 0.75rem;
             font-size: 0.6875rem;
             font-weight: 600;
-            border-radius: 9999px;
+            border-radius: 20px;
             background: #f3f4f6;
             color: var(--text-secondary);
         }
@@ -417,7 +488,13 @@
             background: var(--text-secondary);
         }
 
-        /* Action buttons in table */
+        /* Action buttons */
+        .actions-cell {
+            display: flex;
+            gap: 0.375rem;
+            justify-content: center;
+        }
+
         .action-btn {
             width: 34px;
             height: 34px;
@@ -429,13 +506,19 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
             font-size: 0.875rem;
         }
 
         .action-btn:hover {
             border-color: #d1d5db;
-            background: #f9fafb;
+            background: var(--bg-hover);
+        }
+
+        .action-btn.view:hover {
+            color: var(--tacsa-green);
+            border-color: var(--tacsa-green);
+            background: var(--tacsa-green-light);
         }
 
         .action-btn.edit:hover {
@@ -450,26 +533,34 @@
             background: var(--tacsa-red-light);
         }
 
-        .action-btn.view:hover {
-            color: var(--tacsa-green);
-            border-color: var(--tacsa-green);
-            background: var(--tacsa-green-light);
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
         }
 
-        .actions-cell {
-            display: flex;
-            gap: 0.375rem;
+        .empty-state i {
+            font-size: 3rem;
+            color: #e5e7eb;
+            margin-bottom: 1rem;
         }
 
-        /* ── Table footer ── */
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            margin: 0;
+        }
+
+        /* ── Table Footer ── */
         .table-footer {
-            padding: 1rem 1.5rem;
+            padding: 1rem 1.75rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-light);
             font-size: 0.8125rem;
             color: var(--text-secondary);
+            background: var(--bg-hover);
         }
 
         .pagination-btns {
@@ -478,9 +569,9 @@
         }
 
         .page-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-secondary);
@@ -490,12 +581,12 @@
             font-size: 0.8125rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
         }
 
         .page-btn:hover {
             border-color: #d1d5db;
-            background: #f9fafb;
+            background: var(--bg-hover);
         }
 
         .page-btn.active {
@@ -505,30 +596,31 @@
         }
 
         /* ══════════════════════════════════
-           MODALS (shared)
+           MODALS - Modern & Clean
         ══════════════════════════════════ */
         .modal-content {
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
         }
 
         .modal-header {
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-light);
             padding: 1.25rem 1.5rem;
         }
 
         .modal-header .section-title {
             display: flex;
             align-items: center;
-            gap: 0.625rem;
+            gap: 0.75rem;
             margin: 0;
         }
 
-        .modal-header .section-title .bar {
+        .modal-header .section-title .indicator {
             width: 4px;
             height: 22px;
             background: var(--tacsa-red);
-            border-radius: 9999px;
+            border-radius: 4px;
         }
 
         .modal-header .section-title h5 {
@@ -543,16 +635,19 @@
         }
 
         .modal-footer {
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-light);
             padding: 1rem 1.5rem;
+            background: var(--bg-hover);
+            border-radius: 0 0 16px 16px;
         }
 
-        /* ── Form fields (reused) ── */
+        /* Form fields */
         .field-label {
             font-size: 0.8125rem;
             font-weight: 500;
             color: var(--text-primary);
-            margin-bottom: 0.375rem;
+            margin-bottom: 0.5rem;
+            display: block;
         }
 
         .field-label .required {
@@ -563,31 +658,36 @@
         .tacsa-input,
         .tacsa-select {
             height: 44px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             padding: 0 1rem;
-            font-size: 0.8125rem;
+            font-size: 0.875rem;
             color: var(--text-primary);
             background-color: var(--bg-card);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
             width: 100%;
         }
 
         .tacsa-input::placeholder {
-            color: #9ca3af;
+            color: var(--text-muted);
+        }
+
+        .tacsa-input:hover,
+        .tacsa-select:hover {
+            border-color: #d1d5db;
         }
 
         .tacsa-input:focus,
         .tacsa-select:focus {
             border-color: var(--tacsa-red);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
             outline: none;
         }
 
         .section-separator {
             border: none;
             height: 1px;
-            background: var(--tacsa-red-light2);
+            background: var(--border-light);
             margin: 1.5rem 0;
         }
 
@@ -598,11 +698,11 @@
             margin-bottom: 1rem;
         }
 
-        .modal-section-title .bar {
+        .modal-section-title .indicator {
             width: 4px;
             height: 20px;
             background: var(--tacsa-red);
-            border-radius: 9999px;
+            border-radius: 4px;
         }
 
         .modal-section-title span {
@@ -611,13 +711,13 @@
             color: var(--tacsa-red);
         }
 
-        /* ── Buttons ── */
+        /* Buttons */
         .btn-tacsa-cancel {
             height: 42px;
             padding: 0 1.25rem;
             font-size: 0.8125rem;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-primary);
@@ -625,11 +725,11 @@
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
         }
 
         .btn-tacsa-cancel:hover {
-            background: #f9fafb;
+            background: var(--bg-hover);
             border-color: #d1d5db;
         }
 
@@ -638,7 +738,7 @@
             padding: 0 1.25rem;
             font-size: 0.8125rem;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 10px;
             border: none;
             background: var(--tacsa-red);
             color: #ffffff;
@@ -646,7 +746,7 @@
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s ease;
         }
 
         .btn-tacsa-save:hover {
@@ -658,7 +758,7 @@
             padding: 0 1.25rem;
             font-size: 0.8125rem;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 10px;
             border: none;
             background: var(--tacsa-red);
             color: #ffffff;
@@ -666,17 +766,17 @@
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s ease;
         }
 
         .btn-tacsa-delete:hover {
             background: var(--tacsa-red-dark);
         }
 
-        /* ── Delete modal ── */
+        /* Delete modal */
         .delete-icon-wrapper {
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             background: var(--tacsa-red-light);
             display: flex;
@@ -686,7 +786,7 @@
         }
 
         .delete-icon-wrapper i {
-            font-size: 1.75rem;
+            font-size: 2rem;
             color: var(--tacsa-red);
         }
 
@@ -695,15 +795,17 @@
         }
 
         .delete-text h5 {
-            font-size: 1.0625rem;
+            font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
         .delete-text p {
             font-size: 0.875rem;
             color: var(--text-secondary);
             margin: 0;
+            line-height: 1.5;
         }
 
         .delete-text .item-name {
@@ -711,11 +813,11 @@
             color: var(--tacsa-red);
         }
 
-        /* ── Detail modal ── */
+        /* Detail modal */
         .detail-row {
             display: flex;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border-light);
         }
 
         .detail-row:last-child {
@@ -731,7 +833,7 @@
         }
 
         .detail-value {
-            font-size: 0.8125rem;
+            font-size: 0.875rem;
             font-weight: 500;
             color: var(--text-primary);
         }
@@ -743,11 +845,31 @@
             .stat-cards {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .page-wrapper {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .toolbar-actions {
+                flex-direction: column;
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
         }
 
         @media (max-width: 576px) {
             .page-wrapper {
-                padding: 1.25rem 1rem;
+                padding: 1.5rem 1rem;
             }
 
             .stat-cards {
@@ -755,7 +877,7 @@
             }
 
             .topbar {
-                padding: 0.75rem 1rem;
+                padding: 0 1rem;
             }
 
             .topbar-nav {
@@ -764,21 +886,26 @@
 
             .page-header {
                 flex-direction: column;
+                gap: 1rem;
             }
 
-            .toolbar-actions {
-                flex-direction: column;
-                width: 100%;
+            .page-header-text h1 {
+                font-size: 1.5rem;
             }
 
-            .search-box input {
+            .btn-new-warehouse {
                 width: 100%;
+                justify-content: center;
             }
 
             .table-footer {
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 1rem;
                 text-align: center;
+            }
+
+            .table-toolbar {
+                padding: 1rem;
             }
         }
     </style>
@@ -786,39 +913,41 @@
 
 <body>
 
-    <!-- ══════════ TOP BAR ══════════ -->
+    <!-- ══════════ TOP BAR - TACSA Identity ══════════ -->
     <nav class="topbar">
         <a href="#" class="topbar-brand">
-            <div class="logo-sm">T</div>
+            <div class="logo-circle">T</div>
             TACSA
         </a>
         <div class="topbar-nav">
             <a href="{{ route('home') }}">Inicio</a>
-            <a href="#" class="active">Almacenes</a>
-            <a href="#">Inventario</a>
-            <a href="#">Ubicaciones</a>
+            <a href="{{ route('warehouse-type.get') }}" class="active">Categorías</a>
+            <a href="{{ route('inventory.management') }}">Inventario</a>
+            <a href="{{ route('location.store') }}">Ubicaciones</a>
         </div>
     </nav>
 
-    <!-- ══════════ PAGE ══════════ -->
+    <!-- ══════════ PAGE CONTENT ══════════ -->
     <div class="page-wrapper">
 
-        <!-- Page header -->
+        <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h1>Gestion de Almacenes</h1>
-                <p>Administra, edita y elimina los almacenes registrados en el sistema.</p>
+            <div class="page-header-text">
+                <h1>Gestión de Bodegas</h1>
+                <p>Gestión de bodegas,racks,ubicaciónes y categorías.</p>
             </div>
             <a href="{{ route('warehouses.create') }}" class="btn-new-warehouse" title="Ir al formulario de registro">
                 <i class="bi bi-plus-lg"></i>
-                Nuevo Almacen
+                Nueva Bodega
             </a>
         </div>
 
-        <!-- Stat cards -->
+        <!-- Stat Cards -->
         <div class="stat-cards">
             <div class="stat-card">
-                <div class="stat-icon red"><i class="bi bi-building"></i></div>
+                <div class="stat-icon red">
+                    <i class="bi bi-building"></i>
+                </div>
                 <div class="stat-info">
                     <h3>{{ $totalWarehouses }}</h3>
                     <span>Total Almacenes</span>
@@ -826,7 +955,9 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon blue"><i class="bi bi-geo-alt"></i></div>
+                <div class="stat-icon blue">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
                 <div class="stat-info">
                     <h3>{{ $totalLocation }}</h3>
                     <span>Ubicaciones</span>
@@ -834,13 +965,13 @@
             </div>
         </div>
 
-        <!-- Table card -->
+        <!-- Table Card -->
         <div class="table-card">
 
             <!-- Toolbar -->
             <div class="table-toolbar">
                 <div class="section-title">
-                    <div class="bar"></div>
+                    <div class="indicator"></div>
                     <h2>Listado de Almacenes</h2>
                 </div>
                 <div class="toolbar-actions">
@@ -877,20 +1008,19 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <!-- Rows rendered by JS -->
                         @foreach ($warehouses as $warehouse)
                             <tr>
-                                <td>{{ $warehouse->getWarehouseKey() }}</td>
-                                <td>{{ $warehouse->getWarehouseName() }}</td>
-                                <td>{{ $warehouse->getCreatedAt()->format('Y-m-d H:i') }}</td>
-                                <td>{{ $warehouse->getUpdatedAt()->format('Y-m-d H:i') }}</td>
+                                <td><span class="cell-key">{{ $warehouse->getWarehouseKey() }}</span></td>
+                                <td><span class="cell-name">{{ $warehouse->getWarehouseName() }}</span></td>
+                                <td class="cell-secondary">{{ $warehouse->getCreatedAt()->format('d-m-Y') }}</td>
+                                <td class="cell-secondary">{{ $warehouse->getUpdatedAt()->format('d-m-Y') }}</td>
                                 <td>{{ $warehouse->getWarehouseManager() }}</td>
-                                <td>{{ $warehouse->getUserName() }}</td>
+                                <td class="cell-secondary">{{ $warehouse->getUserName() }}</td>
                                 <td>{{ $warehouse->getPhoneNumber() }}</td>
                                 <td>{{ $warehouse->getHeadquartersName() }}</td>
-                                <td>{{ $warehouse->getEmail() }}</td>
-                                <td>{{ $warehouse->getCategoryWarehouse() }}</td>
-                                <td>Activo</td>
+                                <td class="cell-secondary">{{ $warehouse->getEmail() }}</td>
+                                <td><span class="badge-type">{{ $warehouse->getCategoryWarehouse() }}</span></td>
+                                <td><span class="badge-active"><span class="dot"></span>Activo</span></td>
                                 <td>
                                     <div class="actions-cell">
                                         <button class="action-btn view" title="Ver detalle"
@@ -913,11 +1043,10 @@
                 </table>
             </div>
 
-            <!-- Empty state -->
-            <div id="emptyState" class="text-center py-5 d-none">
-                <i class="bi bi-inbox" style="font-size: 2.5rem; color: #d1d5db;"></i>
-                <p class="mt-2" style="color: var(--text-secondary); font-size: 0.875rem;">No se encontraron almacenes
-                    con ese criterio.</p>
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state d-none">
+                <i class="bi bi-inbox"></i>
+                <p>No se encontraron almacenes con ese criterio.</p>
             </div>
 
             <!-- Footer -->
@@ -941,7 +1070,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="section-title">
-                        <div class="bar"></div>
+                        <div class="indicator"></div>
                         <h5>Detalle del Almacen</h5>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -966,7 +1095,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="section-title">
-                        <div class="bar"></div>
+                        <div class="indicator"></div>
                         <h5>Editar Almacen</h5>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -976,7 +1105,7 @@
 
                         <!-- Seccion: Info General -->
                         <div class="modal-section-title">
-                            <div class="bar"></div>
+                            <div class="indicator"></div>
                             <span>Informacion General</span>
                         </div>
                         <div class="row g-3 mb-0">
@@ -998,7 +1127,7 @@
 
                         <!-- Seccion: Contacto -->
                         <div class="modal-section-title">
-                            <div class="bar"></div>
+                            <div class="indicator"></div>
                             <span>Contacto y Responsable</span>
                         </div>
                         <div class="row g-3 mb-0">
@@ -1026,7 +1155,7 @@
 
                         <!-- Seccion: Ubicacion -->
                         <div class="modal-section-title">
-                            <div class="bar"></div>
+                            <div class="indicator"></div>
                             <span>Ubicacion</span>
                         </div>
                         <div class="row g-3 mb-0">
@@ -1048,7 +1177,7 @@
 
                         <!-- Seccion: Configuracion -->
                         <div class="modal-section-title">
-                            <div class="bar"></div>
+                            <div class="indicator"></div>
                             <span>Configuracion del Almacen</span>
                         </div>
                         <div class="row g-3 mb-0">
@@ -1182,13 +1311,13 @@
             <tr>
                 <td><span class="cell-key">${w.key}</span></td>
                 <td><span class="cell-name">${w.name}</span></td>
-                <td>${w.createdAt}</td>
-                <td>${w.updatedAt}</td>
+                <td class="cell-secondary">${w.createdAt}</td>
+                <td class="cell-secondary">${w.updatedAt}</td>
                 <td>${w.responsable}</td>
-                <td>${w.userName}</td>
+                <td class="cell-secondary">${w.userName}</td>
                 <td>${w.phone}</td>
                 <td>${w.location}</td>
-                <td>${w.email}</td>
+                <td class="cell-secondary">${w.email}</td>
                 <td><span class="badge-type">${w.type}</span></td>
                 <td>
                     ${w.active
@@ -1229,8 +1358,8 @@
             <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${warehouse.email}</div></div>
             <div class="detail-row"><div class="detail-label">Ubicacion</div><div class="detail-value">${warehouse.location}</div></div>
             <div class="detail-row"><div class="detail-label">Tipo</div><div class="detail-value"><span class="badge-type">${warehouse.type}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Fecha de creación</div><div class="detail-value">${warehouse.createdAt}</div></div>
-            <div class="detail-row"><div class="detail-label">Ultima actualización</div><div class="detail-value">${warehouse.updatedAt}</div></div>
+            <div class="detail-row"><div class="detail-label">Fecha de creacion</div><div class="detail-value">${warehouse.createdAt}</div></div>
+            <div class="detail-row"><div class="detail-label">Ultima actualizacion</div><div class="detail-value">${warehouse.updatedAt}</div></div>
             <div class="detail-row"><div class="detail-label">Modificado por</div><div class="detail-value">${warehouse.userName}</div></div>
         `;
             detailModal.show();
@@ -1315,14 +1444,14 @@
                 if (data.success) {
                     editModal.hide();
                     renderTable();
-                    showToast('Almacén "' + w.name + '" actualizado correctamente.', 'success');
+                    showToast('Almacen "' + w.name + '" actualizado correctamente.', 'success');
                 } else {
                     showToast('Error: ' + (data.message || 'Error desconocido'), 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error al actualizar el almacén.', 'error');
+                showToast('Error al actualizar el almacen.', 'error');
             });
         });
 
