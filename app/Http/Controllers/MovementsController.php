@@ -144,4 +144,15 @@ class MovementsController extends Controller
             'data' => $expiredInventory
         ]);
     }
+
+    public function reportByCaducidad(Request $request)
+    {
+        $expiredInventory = $this->warehouseInventoryService->getExpiredInventory();
+        $ranking = $this->warehouseInventoryService->getExpiredInventoryRanking();
+
+        return response()->json([
+            'data' => $expiredInventory,
+            'ranking' => $ranking
+        ]);
+    }
 }

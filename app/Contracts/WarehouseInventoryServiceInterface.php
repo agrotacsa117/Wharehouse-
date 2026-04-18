@@ -58,4 +58,6 @@ interface WarehouseInventoryServiceInterface
         string $rack,
         int $level
     ): ResultPattern;
+
+    public function getExpiredInventoryRanking(): array;
 }

@@ -9,17 +9,7 @@
             </a>
         </li>
 
-        @auth
-            @if (auth()->user()->rol === 'admin')
-                <li class="nav-item mb-2">
-                    <a class="nav-link {{ request()->routeIs('rack.index') ? '' : 'collapsed' }}"
-                        href="{{ route('rack.index') }}">
-                        <i class="fa-solid fa-boxes-stacked align-middle me-2 fs-5"></i>
-                        <span class="align-middle fw-bold">Asignar Rack</span>
-                    </a>
-                </li>
-            @endif
-        @endauth
+        
 
         @php
             // Determinar si el grupo de Productos debe mostrarse.
@@ -29,45 +19,7 @@
             $productRelatedRoutes = ['productos', 'productos.vencer', 'reportes_productos'];
         @endphp
 
-        @if ($showProductGroup)
-            <li class="nav-item mb-2">
-                <a class="nav-link {{ request()->routeIs(...$productRelatedRoutes) ? '' : 'collapsed' }}"
-                    data-bs-target="#productos-nav" data-bs-toggle="collapse" href="#">
-                    <i class="fa-solid fa-basket-shopping align-middle me-2 fs-5"></i>
-                    <span class="align-middle fw-bold">Productos</span>
-                    <i class="bi bi-chevron-down ms-auto align-middle"></i>
-                </a>
-                <ul id="productos-nav"
-                    class="nav-content collapse {{ request()->routeIs(...$productRelatedRoutes) ? 'show' : '' }}"
-                    data-bs-parent="#sidebar-nav">
-                    {{-- Sub-item visible para admin, tapachula, bodega_dorado --}}
-                    @if (in_array(auth()->user()->rol, ['admin', 'tapachula', 'bodega_dorado']))
-                        <li>
-                            <a href="{{ route('productos') }}"
-                                class="{{ request()->routeIs('productos') ? 'active' : '' }}">
-                                <span class="sub-item-text">Administrar Productos</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('productos.vencer') }}"
-                                class="{{ request()->routeIs('productos.vencer') ? 'active' : '' }}">
-                                <span class="sub-item-text">Productos a Punto de Vencer</span>
-                            </a>
-                        </li>
-                    @endif
-
-                    {{-- Sub-item visible solo para admin --}}
-                    @if (auth()->user()->rol === 'admin')
-                        <li>
-                            <a href="{{ route('reportes_productos') }}"
-                                class="{{ request()->routeIs('reportes_productos') ? 'active' : '' }}">
-                                <span class="sub-item-text">Reporte de Productos</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </li>
-        @endif
+       
 
         @if (auth()->user()->rol === 'admin')
             <li class="nav-item mb-2">

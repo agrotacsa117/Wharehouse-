@@ -315,4 +315,29 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             '_level' => $level,
         ]) > 0;
     }
+
+    public function findExpiredRanking(): array
+    {
+        $results = WarehouseInventoryModel::selectRaw("
+        wi.id,
+        wi.warehouse_id,
+        wi.product_id,
+        wi.rack,
+        wi._level,
+        wi.quantity,
+        wi.lot_number,
+        wi.warehouse_name AS product_name,
+        w.warehouses_name AS warehouse_name,
+        DATEDIFF(wi.expiration_date, CURDATE()) AS remaining_days,
+        DENSE_RANK() OVER (PARTITION BY wi.warehouse_id ORDER BY wi.quantity DESC) AS row_num
+    ")
+        ->from('warehouse_inventory AS wi')
+        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
+        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
+        ->orderByRaw('wi.warehouse_id, row_num')
+        ->get()
+        ->toArray();
+
+        return $results;
+    }
 }

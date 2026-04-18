@@ -59,4 +59,6 @@ interface WarehouseInventoryRepositoryInterface
         int $level
     ): bool;
 
+
+    public function findExpiredRanking(): array;
 }

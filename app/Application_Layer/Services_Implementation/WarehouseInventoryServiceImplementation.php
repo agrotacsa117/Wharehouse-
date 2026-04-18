@@ -502,4 +502,48 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
 
+    public function getExpiredInventoryRanking(): array
+    {
+        $rawResults = $this->warehouseInventoryRepository->findExpiredRanking();
+
+        $groupedByWarehouse = [];
+
+        foreach ($rawResults as $row) {
+            $warehouseId = $row['warehouse_id'];
+
+            if (!isset($groupedByWarehouse[$warehouseId])) {
+                $groupedByWarehouse[$warehouseId] = [
+                    'warehouseId' => $warehouseId,
+                    'warehouseName' => $row['warehouse_name'],
+                    'items' => []
+                ];
+            }
+
+            if ($row['row_num'] <= 3) {
+                $groupedByWarehouse[$warehouseId]['items'][] = [
+                    'id' => (int)$row['id'],
+                    'warehouseId' => (int)$row['warehouse_id'],
+                    'productId' => $row['product_id'],
+                    'productName' => $row['product_name'] ?? '',
+                    'rack' => $row['rack'],
+                    'level' => (int)$row['_level'],
+                    'quantity' => (int)$row['quantity'],
+                    'lotNumber' => $row['lot_number'],
+                    'remainingDays' => (int)$row['remaining_days'],
+                    'rank' => (int)$row['row_num']
+                ];
+            }
+        }
+
+        $result = [];
+        foreach ($groupedByWarehouse as $warehouse) {
+            $result[] = [
+                'warehouseId' => $warehouse['warehouseId'],
+                'warehouseName' => $warehouse['warehouseName'],
+                'expiredItems' => $warehouse['items']
+            ];
+        }
+
+        return $result;
+    }
 }

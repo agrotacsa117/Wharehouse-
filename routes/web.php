@@ -80,6 +80,11 @@ Route::get(
     [WarehouseManagmentController::class, 'getView']
 )->name('warehouse-managment.get');
 
+Route::post(
+    '/warehouse-movements/report-caducidad',
+    [MovementsController::class, 'reportByCaducidad']
+)->name('warehouse-movements.report-caducidad');
+
 Route::get(
     '/warehouse-movements',
     [MovementsController::class, 'getView']
