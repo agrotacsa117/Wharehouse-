@@ -235,11 +235,15 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $inventory = WarehouseInventoryModel::find($inventoryId);
 
         if (!$inventory) {
-            return ['success' => false, 'error' => 'Inventario no encontrado'];
+            return [
+                'success' => false,
+                'error' => 'Inventario no encontrado'];
         }
 
         if ($inventory->warehouse_id !== $fromWarehouseId) {
-            return ['success' => false, 'error' => 'El inventario no pertenece al almacén de origen'];
+            return [
+                'success' => false,
+                'error' => 'El inventario no pertenece al almacén de origen'];
         }
 
         if ($inventory->quantity < $quantity) {
@@ -318,25 +322,60 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
     public function findExpiredRanking(): array
     {
-        $results = WarehouseInventoryModel::selectRaw("
-        wi.id,
-        wi.warehouse_id,
-        wi.product_id,
-        wi.rack,
-        wi._level,
-        wi.quantity,
-        wi.lot_number,
-        wi.warehouse_name AS product_name,
-        w.warehouses_name AS warehouse_name,
-        DATEDIFF(wi.expiration_date, CURDATE()) AS remaining_days,
-        DENSE_RANK() OVER (PARTITION BY wi.warehouse_id ORDER BY wi.quantity DESC) AS row_num
-    ")
-        ->from('warehouse_inventory AS wi')
-        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
-        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
-        ->orderByRaw('wi.warehouse_id, row_num')
-        ->get()
-        ->toArray();
+        // Compatible con MySQL 5.7 (sin window functions)
+        // Obtener productos vencidos ordenados por bodega y cantidad desc
+        $expired = \Illuminate\Support\Facades\DB::select("
+            SELECT
+                wi.id,
+                wi.warehouse_id,
+                wi.product_id,
+                wi.rack,
+                wi._level            AS level,
+                wi.quantity,
+                wi.lot_number,
+                wi.warehouse_name    AS product_name,
+                w.warehouses_name    AS warehouse_name,
+                DATEDIFF(wi.expiration_date, CURDATE()) AS remaining_days
+            FROM warehouse_inventory AS wi
+            INNER JOIN warehouses AS w ON wi.warehouse_id = w.id
+            WHERE DATEDIFF(wi.expiration_date, CURDATE()) < 0
+            ORDER BY wi.warehouse_id ASC, wi.quantity DESC
+        ");
+
+        // Simular DENSE_RANK en PHP: agrupar por bodega y asignar rank
+        $grouped = [];
+
+        foreach ($expired as $row) {
+            $row = (array) $row;
+            $warehouseId = $row['warehouse_id'];
+
+            if (!isset($grouped[$warehouseId])) {
+                $grouped[$warehouseId] = [
+                    'warehouse_id'   => $warehouseId,
+                    'warehouse_name' => $row['warehouse_name'],
+                    'items'          => [],
+                ];
+            }
+
+            $rank = count(
+                $grouped[$warehouseId]['items']
+            ) + 1;
+
+            if ($rank <= 3) {
+                $grouped[$warehouseId]['items'][] = array_merge(
+                    $row,
+                    ['row_num' => $rank]
+                );
+            }
+        }
+
+        // Aplanar a lista de filas con row_num (mismo formato que antes)
+        $results = [];
+        foreach ($grouped as $warehouse) {
+            foreach ($warehouse['items'] as $item) {
+                $results[] = $item;
+            }
+        }
 
         return $results;
     }

@@ -13,7 +13,7 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
     public function toWarehouseInventoryMovementsEntity(
         WarehouseMovementsDTO $warehouseMovementsDTO
     ): WarehouseInventoryMovements {
-        return new WarehouseInventoryMovements(
+        $warehouseInventoryMovements = new WarehouseInventoryMovements(
             $warehouseMovementsDTO->getFolio(),
             $warehouseMovementsDTO->getWarehouseInventoryId(),
             $warehouseMovementsDTO->getMovementType(),
@@ -21,5 +21,6 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
             $warehouseMovementsDTO->getReason(),
             $warehouseMovementsDTO->getUserId()
         );
+        return $warehouseInventoryMovements;
     }
 }

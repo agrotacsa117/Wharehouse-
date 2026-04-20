@@ -61,7 +61,7 @@ class WarehouseMovementsDTO
         $this->operationDate = $operationDate;
     }
 
-    public function getSourceWarehouseId(): int
+    public function getSourceWarehouseId(): ?int
     {
         return $this->sourceWarehouseId;
     }

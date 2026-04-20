@@ -338,15 +338,21 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     ): ResultPattern {
 
 
-        if ($transferInventoryDTO->getFromWarehouseId() === $transferInventoryDTO->getToWarehouseId()) {
-            return ResultPattern::failure("No se puede transferir al mismo almacén.");
+        if (
+            $transferInventoryDTO->getFromWarehouseId()
+            === $transferInventoryDTO->getToWarehouseId()) {
+            return ResultPattern::failure(
+                "No se puede transferir al mismo almacén."
+            );
         }
 
-        $fromWarehouseName = $this->warehouseStorageService->getWarehouseNameById(
+        $fromWarehouseName = $this->warehouseStorageService
+        ->getWarehouseNameById(
             $transferInventoryDTO->getFromWarehouseId()
         );
 
-        $toWarehouseName = $this->warehouseStorageService->getWarehouseNameById(
+        $toWarehouseName = $this->warehouseStorageService
+        ->getWarehouseNameById(
             $transferInventoryDTO->getToWarehouseId()
         );
 
@@ -367,6 +373,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             }
 
             $folio = $this->warehouseMovementsService->generateMovementFolio();
+
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
                 $transferInventoryDTO->getInventoryId(),
@@ -376,7 +383,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 auth()->id()
             );
 
-
+            $this->warehouseMovementsDTO->setSourceWarehouseId(
+                $transferInventoryDTO->getToWarehouseId()
+            );
 
             $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
 
@@ -506,6 +515,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     {
         $rawResults = $this->warehouseInventoryRepository->findExpiredRanking();
 
+
         $groupedByWarehouse = [];
 
         foreach ($rawResults as $row) {
@@ -526,7 +536,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                     'productId' => $row['product_id'],
                     'productName' => $row['product_name'] ?? '',
                     'rack' => $row['rack'],
-                    'level' => (int)$row['_level'],
+                    'level' => (int)$row['level'],
                     'quantity' => (int)$row['quantity'],
                     'lotNumber' => $row['lot_number'],
                     'remainingDays' => (int)$row['remaining_days'],

@@ -35,13 +35,23 @@ class OutputController extends Controller
                 );
 
             case 'SALE':
-                return $this->processSale($request, $userId);
+                return $this->processSale(
+                    $request,
+                    $userId
+                );
 
             case 'OUT':
-                return $this->processSimpleOutput($request, $userId);
+                return $this->processSimpleOutput(
+                    $request,
+                    $userId
+                );
 
             case 'TRANSFER':
-                return $this->processTransfer($request, $userId);
+                return $this->processTransfer(
+                    $request,
+                    $userId,
+                    $movementType
+                );
 
             default:
                 return back()->withErrors('Tipo de movimiento no válido.');
@@ -241,10 +251,11 @@ class OutputController extends Controller
     // ═══════════════════════════════════════════════════════════
     // TRANSFER (Traslado) - PLACEHOLDER
     // ═══════════════════════════════════════════════════════════
-    private function processTransfer(Request $request, int $userId)
-    {
-
-       
+    private function processTransfer(
+        Request $request,
+        int $userId,
+        string $movementType
+    ) {
         $request->validate([
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
@@ -281,12 +292,25 @@ class OutputController extends Controller
             (int) $request->quantity,
             $request->reason
         );
+        
+        $this->removeWarehouseInventoryStockDTO
+        = $this->buildRemoveWarehouseInventoryStockDTO(
+            $request,
+            $userId,
+            $movementType
+        );
+
 
         // Ejecutar transferencia
-        $result = $this->warehouseInventoryService->transferInventory($transferDTO);
+        $result = $this->warehouseInventoryService
+        ->transferInventory(
+            $transferDTO
+        );
 
         if ($result->isFailure()) {
-            return back()->withErrors($result->getError())->withInput();
+            return back()->withErrors(
+                $result->getError()
+            )->withInput();
         }
 
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');

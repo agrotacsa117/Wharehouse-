@@ -15,6 +15,11 @@ class WarehouseInventoryMovementsModel extends Model
        'quantity',
        'reason',
        'user_id',
+       'user_id',
+        'client_id',
+        'invoice_sap',
+        'operation_date',
+        'source_warehouse_id',
        'created_at',
        'updated_at'
     ];
