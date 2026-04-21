@@ -11,6 +11,7 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
     public function mapToInventoryMovementsModel(
         WarehouseInventoryMovements $warehouseInventoryMovements
     ): WarehouseInventoryMovementsModel {
+
         $model = new WarehouseInventoryMovementsModel();
 
         $model->folio = $warehouseInventoryMovements->getFolio();
@@ -23,6 +24,22 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         // Si la entidad ya trae ID (caso update)
         if ($warehouseInventoryMovements->getId() !== null) {
             $model->id = $warehouseInventoryMovements->getId();
+        }
+
+        if ($warehouseInventoryMovements->getSourceWarehouseId() !== null) {
+            $model->source_warehouse_id = $warehouseInventoryMovements->getSourceWarehouseId();
+        }
+
+        if ($warehouseInventoryMovements->getClientId() !== null) {
+            $model->client_id = $warehouseInventoryMovements->getClientId();
+        }
+
+        if ($warehouseInventoryMovements->getInvoiceSap() !== null) {
+            $model->invoice_sap = $warehouseInventoryMovements->getInvoiceSap();
+        }
+
+        if ($warehouseInventoryMovements->getOperationDate() !== null) {
+            $model->operation_date = $warehouseInventoryMovements->getOperationDate();
         }
 
         return $model;

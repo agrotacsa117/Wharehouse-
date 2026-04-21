@@ -163,7 +163,7 @@ class ReportController extends Controller
                 'date'                     => $dto->getCreatedAt(),
                 'type'                     => strtolower($dto->getMovementType()),
                 'productName'              => $dto->getProductName(),
-                'warehouseOriginId'        => $dto->getWarehouseId(),
+                 'warehouseOriginId'        => $dto->getWarehouseId(),
                 'warehouseOriginName'      => $dto->getWarehousesName(),
                 'warehouseDestinationId'   => null,
                 'warehouseDestinationName' => null,

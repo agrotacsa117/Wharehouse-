@@ -306,13 +306,14 @@ class OutputController extends Controller
         ->transferInventory(
             $transferDTO
         );
-
+        
         if ($result->isFailure()) {
             return back()->withErrors(
                 $result->getError()
             )->withInput();
         }
-
+        
+        
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
     }
 

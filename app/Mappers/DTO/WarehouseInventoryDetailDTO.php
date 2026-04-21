@@ -15,6 +15,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private string $expirationDate;
     private ?string $lotNumber;
     private ?int $remainingDays;
+    private ?float $obsolescence;
 
     public function __construct(
         ?int $inventoryId,
@@ -27,7 +28,8 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         int $stock,
         string $expirationDate,
         ?string $lotNumber = null,
-        ?int $remainingDays = null
+        ?int $remainingDays = null,
+        ?float $obsolescence = null
     ) {
         $this->inventoryId =  $inventoryId;
         $this->productName = $productName;
@@ -40,8 +42,28 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->expirationDate = $expirationDate;
         $this->lotNumber = $lotNumber;
         $this->remainingDays = $remainingDays;
+        $this->obsolescence = $obsolescence;
     }
 
+
+    /**
+ * Obtiene el valor de obsolescence
+ */
+    public function getObsolescence(): ?float
+    {
+        return $this->obsolescence;
+    }
+
+    /**
+     * Establece el valor de obsolescence
+     */
+    public function setObsolescence(?float $obsolescence): self
+    {
+        // El uso de 'self' permite el encadenamiento de métodos (fluent interface)
+        $this->obsolescence = $obsolescence;
+
+        return $this;
+    }
     public function getInventoryId(): ?int
     {
         return $this->inventoryId;
@@ -135,7 +157,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-           'id' =>$this->inventoryId, 
+           'id' => $this->inventoryId,
            'productName' => $this->productName,
            'productId' => $this->productCode,
            'warehouseId' => $this->warehouseId,
@@ -145,7 +167,8 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
            'quantity' => $this->stock,
            'expirationDate' => $this->expirationDate,
            'lotNumber' => $this->lotNumber,
-           'remainingDays' => $this->remainingDays
+           'remainingDays' => $this->remainingDays,
+           'obsolescence' => $this->obsolescence
         ];
     }
 

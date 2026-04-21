@@ -178,7 +178,11 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $query = WarehouseInventoryModel::selectRaw("
             i.*,
             w.warehouses_name,
-            DATEDIFF(i.expiration_date, CURDATE()) as days_remaining
+            DATEDIFF(i.expiration_date, CURDATE()) as days_remaining,
+            ROUND((
+                DATEDIFF(CURDATE(), i.created_at) / 
+                NULLIF(DATEDIFF(i.expiration_date, i.created_at), 0)
+            ) * 100, 2) AS obsolescence
         ")
         ->from('warehouse_inventory as i')
         ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');

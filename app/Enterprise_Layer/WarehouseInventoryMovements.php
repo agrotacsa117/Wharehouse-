@@ -6,7 +6,7 @@ namespace App\Enterprise_Layer;
 
 use DateTime;
 
-class WarehouseInventoryMovements
+class WarehouseInventoryMovements 
 {
     public const TYPE_IN = 'IN';
     public const TYPE_OUT = 'OUT';
@@ -25,6 +25,10 @@ class WarehouseInventoryMovements
     private $userId;
     private $createdAt;
     private $updatedAt;
+    private ?int $sourceWarehouseId = null;
+    private ?int $clientId = null;
+    private ?int $invoiceSap = null;
+    private ?\DateTime $operationDate = null;
 
     public function __construct(
         string $folio,
@@ -66,6 +70,52 @@ class WarehouseInventoryMovements
         if (!in_array($type, $allowed, true)) {
             throw new \InvalidArgumentException("Invalid movement type.");
         }
+    }
+
+    // Getters
+    public function getSourceWarehouseId(): ?int
+    {
+        return $this->sourceWarehouseId;
+    }
+
+    public function getClientId(): ?int
+    {
+        return $this->clientId;
+    }
+
+    public function getInvoiceSap(): ?int
+    {
+        return $this->invoiceSap;
+    }
+
+    public function getOperationDate(): ?\DateTime
+    {
+        return $this->operationDate;
+    }
+
+    // Setters
+    public function setSourceWarehouseId(int $sourceWarehouseId): self
+    {
+        $this->sourceWarehouseId = $sourceWarehouseId;
+        return $this;
+    }
+
+    public function setClientId(int $clientId): self
+    {
+        $this->clientId = $clientId;
+        return $this;
+    }
+
+    public function setInvoiceSap(int $invoiceSap): self
+    {
+        $this->invoiceSap = $invoiceSap;
+        return $this;
+    }
+
+    public function setOperationDate(\DateTime $operationDate): self
+    {
+        $this->operationDate = $operationDate;
+        return $this;
     }
 
     private function validateQuantity(
@@ -140,4 +190,6 @@ class WarehouseInventoryMovements
         $this->createdAt = $createdAt;
         $this->updatedAt = $updatedAt;
     }
+
+   
 }

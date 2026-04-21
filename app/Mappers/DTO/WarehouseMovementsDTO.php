@@ -10,10 +10,10 @@ class WarehouseMovementsDTO
     private int $quantity;
     private string $reason;
     private int $userId;
-    private int $clientId;
-    private int $invoiceSap;
-    private \DateTime $operationDate;
-    private int $sourceWarehouseId;
+    private ?int $clientId;
+    private ?int $invoiceSap;
+    private ?\DateTime $operationDate;
+    private ?int $sourceWarehouseId;
 
     public function __construct(
         string $folio,
@@ -29,9 +29,13 @@ class WarehouseMovementsDTO
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
+        $this->clientId = null;
+        $this->invoiceSap = null;
+        $this->operationDate = null;
+        $this->sourceWarehouseId = null;
     }
 
-    public function getClientId(): int
+    public function getClientId(): ?int
     {
         return $this->clientId;
     }
@@ -41,7 +45,7 @@ class WarehouseMovementsDTO
         $this->clientId = $clientId;
     }
 
-    public function getInvoiceSap(): int
+    public function getInvoiceSap(): ?int
     {
         return $this->invoiceSap;
     }
@@ -51,7 +55,7 @@ class WarehouseMovementsDTO
         $this->invoiceSap = $invoiceSap;
     }
 
-    public function getOperationDate(): \DateTime
+    public function getOperationDate(): ?\DateTime
     {
         return $this->operationDate;
     }

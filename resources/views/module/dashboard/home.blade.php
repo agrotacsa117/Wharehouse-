@@ -546,7 +546,17 @@
                             ${item.remainingDays < 0 ? 'Vencido' : item.remainingDays + ' dias'}
                         </span>
                     </td>
-                    <td class="text-center">${item.obsolescencia || '-'}</td>
+                    <td class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <div class="progress" style="height: 6px; width: 50px;">
+                                <div class="progress-bar ${(item.obsolescence || 0) > 80 ? 'bg-danger' : (item.obsolescence || 0) > 50 ? 'bg-warning' : 'bg-success'}" 
+                                     role="progressbar" 
+                                     style="width: ${Math.min(100, Math.abs(item.obsolescence || 0))}%">
+                                </div>
+                            </div>
+                            <span class="small fw-medium">${(item.obsolescence || 0)}%</span>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
 

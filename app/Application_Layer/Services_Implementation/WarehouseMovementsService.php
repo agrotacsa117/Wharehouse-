@@ -11,7 +11,7 @@ use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
-{ 
+{
     private WarehouseMovementsRepositoryI $warehouseMovementsRepository;
     private WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper;
 
@@ -73,10 +73,11 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         try {
             $warehouseInventoryMovements = $this
             ->warehouseInventoryMovementsMapper
-        ->toWarehouseInventoryMovementsEntity(
-            $warehouseMovementsDTO
-        );
+            ->toWarehouseInventoryMovementsEntity(
+                $warehouseMovementsDTO
+            );
 
+            
             $this->warehouseMovementsRepository->save(
                 $warehouseInventoryMovements
             );
@@ -97,6 +98,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             $movementsByPeriodFilterDTO->getEndDate()
         );
 
+        
         $finalFiltered = array();
         $match = true;
         $index = 0;
@@ -128,8 +130,6 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             }
 
             $match = true;
-
-
 
             if ($hasFilter
             && $movementsByPeriodFilterDTO->getMovementType()
@@ -169,5 +169,5 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         );
     }
 
-    
+
 }

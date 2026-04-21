@@ -367,7 +367,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $transferInventoryDTO->getLotNumber(),
                 $transferInventoryDTO->getQuantity()
             );
-
+            
             if (!$result['success']) {
                 return ResultPattern::failure($result['error']);
             }
@@ -387,8 +387,14 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $transferInventoryDTO->getToWarehouseId()
             );
 
-            $this->warehouseMovementsService->saveWarehouseMovement($this->warehouseMovementsDTO);
 
+            $saveResult =  $this->warehouseMovementsService->saveWarehouseMovement(
+                $this->warehouseMovementsDTO
+            );
+
+            if ($saveResult->isFailure()) {
+                return  $saveResult;
+            }
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
@@ -397,6 +403,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             'newInventoryId' => $result['newInventoryId'],
             'remainingQuantity' => $result['remainingQuantity'] ?? 0
         ]);
+
     }
 
     public function generateWarehouseMovementsDTO(
@@ -421,7 +428,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function generateWarehouseInventoryDetailDTO(
         array $inventory
     ): array {
-
+        
         for ($i = 0; $i < count($inventory) ; $i++) {
             $inventory[$i] = new WarehouseInventoryDetailDTO(
                 $inventory[$i]['id'],
@@ -435,7 +442,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['quantity'],
                 $inventory[$i]['expiration_date'],
                 $inventory[$i]['lot_number'],
-                $inventory[$i]['days_remaining'] ?? null
+                $inventory[$i]['days_remaining'] ?? null,
+                $inventory[$i]['obsolescence'] ?? null
             );
         }
 
