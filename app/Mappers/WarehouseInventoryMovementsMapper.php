@@ -30,11 +30,7 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
             );
         }
 
-        if ($warehouseMovementsDTO->getInvoiceSap() !== null) {
-            $warehouseInventoryMovements->setInvoiceSap(
-                $warehouseMovementsDTO->getInvoiceSap()
-            );
-        }
+        
 
 
         if ($warehouseMovementsDTO->getOperationDate() !== null) {

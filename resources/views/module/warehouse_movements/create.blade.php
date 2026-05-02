@@ -1477,6 +1477,17 @@
                     <span>Traslados</span>
                 </div>
             </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="bi-box-arrow-in-right"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ $movementsTotalRELOCATION }}</h3>
+                    <span>Re ubicaciones</span>
+                </div>
+            </div>
+
             <div class="stat-card">
                 <div class="stat-icon orange">
                     <i class="bi bi-pencil-square"></i>
@@ -1484,6 +1495,16 @@
                 <div class="stat-info">
                     <h3>{{ $movementsTotalADJUSTMENT }}</h3>
                     <span>Ajustes</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ $movementsTotalSALE }}</h3>
+                    <span>Ventas</span>
                 </div>
             </div>
         </div>
@@ -1497,9 +1518,6 @@
                 <i class="bi bi-boxes"></i>&nbsp; Inventario Actual
             </button>
 
-            <button class="tacsa-tab" onclick="switchTab('reportes', this)" id="tabReportes">
-                <i class="bi bi-file-earmark-bar-graph"></i>&nbsp; Reportes
-            </button>
         </div>
 
         <!-- ═══════ TAB 1: HISTORIAL ═══════ -->
@@ -1523,6 +1541,7 @@
                             <option value="traslado">Traslado</option>
                             <option value="ajuste">Ajuste</option>
                             <option value="relocation">Reubicación</option>
+                            <option value="sales">Ventas</option>
                         </select>
                     </div>
                 </div>
@@ -2132,7 +2151,8 @@
 
                 let badgeClass, badgeIcon, badgeLabel;
 
-
+                //alert(m.movementType);
+                //SALE
                 if (m.movementType === 'IN') {
                     badgeClass = 'badge-entrada';
                     badgeIcon = 'bi-box-arrow-in-down';
@@ -2149,6 +2169,10 @@
                     badgeClass = 'badge-transferencia';
                     badgeIcon = 'bi-arrow-left-right';
                     badgeLabel = 'Reubicación';
+                } else if (m.movementType === 'SALE') {
+                    badgeClass = 'bi-cart-check';
+                    badgeIcon = 'bi-cash-stack';
+                    badgeLabel = 'Venta';
                 } else {
                     badgeClass = 'badge-ajuste';
                     badgeIcon = 'bi-arrow-repeat';
@@ -2282,9 +2306,11 @@
                     typeMatch = true;
                 } else if (typeFilter === 'relocation' && m.movementType === 'RELOCATION') {
                     typeMatch = true;
+                } else if (typeFilter === 'sales' && m.movementType === 'SALE') {
+                    typeMatch = true;
                 }
 
-                //
+                //sales
                 return matchesSearch && typeMatch;
             });
 
@@ -2315,6 +2341,7 @@
                 console.log('Movimiento no encontrado para folio:', folio);
                 return;
             }
+            console.log(m.movementType);
 
             let badgeHtml;
             if (m.movementType === 'IN') badgeHtml =
@@ -2880,7 +2907,7 @@
         // ══════════════════════════════════
         //  INIT
         // ══════════════════════════════════
-        renderMovements(movements);
+        renderMovements();
     </script>
 
 </body>

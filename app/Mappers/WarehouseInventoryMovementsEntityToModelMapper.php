@@ -30,14 +30,6 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
             $model->source_warehouse_id = $warehouseInventoryMovements->getSourceWarehouseId();
         }
 
-        if ($warehouseInventoryMovements->getClientId() !== null) {
-            $model->client_id = $warehouseInventoryMovements->getClientId();
-        }
-
-        if ($warehouseInventoryMovements->getInvoiceSap() !== null) {
-            $model->invoice_sap = $warehouseInventoryMovements->getInvoiceSap();
-        }
-
         if ($warehouseInventoryMovements->getOperationDate() !== null) {
             $model->operation_date = $warehouseInventoryMovements->getOperationDate();
         }

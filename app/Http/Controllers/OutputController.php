@@ -198,7 +198,8 @@ class OutputController extends Controller
         }
 
         $this->removeWarehouseInventoryStockDTO->setOperationDate($request->operation_date ?? now()->format('Y-m-d'));
-
+        
+        
         $result = $this->warehouseInventoryService->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
         );

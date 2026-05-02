@@ -60,6 +60,16 @@ class MovementsController extends Controller
             "ADJUSTMENT"
         );
 
+        $movementsTotalRELOCATION =  $this->warehouseMovementsService
+        ->countByMovementType(
+            "RELOCATION"
+        );
+
+        $movementsTotalSALE =  $this->warehouseMovementsService
+               ->countByMovementType(
+                   "SALE"
+               );
+
         $movements = $this->warehouseMovementsService->listAllMovements();
 
         $expiredProducts = $this->warehouseInventoryService
@@ -95,6 +105,8 @@ class MovementsController extends Controller
                 'movementsTotalOUT',
                 'movementsTotalTRANSFER',
                 'movementsTotalADJUSTMENT',
+                'movementsTotalRELOCATION',
+                'movementsTotalSALE',
                 'warehouses',
                 'paginationInfo'
             )

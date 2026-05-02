@@ -8,73 +8,84 @@ use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\WarehouseMovementsDTO;
+use App\Application_Layer\Services_Implementation\BaseOutputService;
+use App\Contracts\WarehouseSalesServiceI;
+use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 
-class SaleOutputService implements WarehouseOutputStrategy
+class SaleOutputService extends BaseOutputService
 {
-    private WarehouseInventoryRepositoryInterface $inventoryRepository;
-    private WarehouseMovementsServiceI $movementsService;
+    private WarehouseSalesServiceI $warehouseSalesService;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $inventoryRepository,
-        WarehouseMovementsServiceI $movementsService
+        WarehouseMovementsServiceI $movementsService,
+        WarehouseSalesServiceI $warehouseSalesService
     ) {
-        $this->inventoryRepository = $inventoryRepository;
-        $this->movementsService = $movementsService;
-    }
-
-    public function processOutput(RemoveWarehouseInventoryStockDTO $dto): ResultPattern
-    {
-        // 1. Validar stock
-        $currentQuantity = $this->inventoryRepository->findQuantityById(
-            $dto->getWarehouseInventoryId()
+        parent::__construct(
+            $inventoryRepository,
+            $movementsService
         );
 
-        if ($dto->getQuantity() > $currentQuantity) {
-            return ResultPattern::failure(
-                "¡Error! Stock insuficiente para la venta."
-            );
-        }
+        $this->warehouseSalesService = $warehouseSalesService;
+    }
 
+    public function processOutput(RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO): ResultPattern
+    {
+
+        $result =  $this->validateStockAvailability(
+            $removeWarehouseInventoryStockDTO
+        );
+
+        if ($result->isFailure()) {
+            return $result;
+        }
         // 2. Actualizar cantidad
         try {
-            $newQuantity = $currentQuantity - $dto->getQuantity();
+            $newQuantity = $result->getValue();
 
-            $updated = $this->inventoryRepository->updateQuantity(
-                $dto->getWarehouseInventoryId(),
-                $newQuantity
+            $result = $this->reduceStock(
+                $newQuantity,
+                $removeWarehouseInventoryStockDTO
             );
 
-            if (!$updated) {
-                return ResultPattern::failure("Error al actualizar inventario");
+            $newQuantity = $result->getValue();
+
+            if ($result->isFailure()) {
+                return $result;
             }
 
-            // 3. Preparar razón con datos de venta
-            $reason = sprintf(
-                "Venta - Cliente: %d | Factura SAP: %d | %s",
-                $dto->getClientId(),
-                $dto->getInvoiceId(),
-                $dto->getReason()
+            $movementDTO = $this->recordMovement(
+                $removeWarehouseInventoryStockDTO
             );
 
-            // 4. Crear DTO de movimiento
-            $folio = $this->movementsService->generateMovementFolio();
-
-            $movementDTO = new WarehouseMovementsDTO(
-                $folio,
-                $dto->getWarehouseInventoryId(),
-                $this->getType(),
-                $dto->getQuantity(),
-                $reason,
-                $dto->getUserId()
+            $movementDTO->setOperationDate(
+                new \DateTime(
+                    $removeWarehouseInventoryStockDTO
+                    ->getOperationDate()
+                )
             );
 
-
-            $movementDTO->setClientId($dto->getClientId());
-            $movementDTO->setInvoiceSap($dto->getInvoiceId());
-            $movementDTO->setOperationDate(new \DateTime($dto->getOperationDate()));
 
             // 5. Persistir
-            $this->movementsService->saveWarehouseMovement($movementDTO);
+            $result =  $this->warehouseMovementsService
+            ->saveWarehouseMovement(
+                $movementDTO
+            );
+
+            if ($result->isFailure()) {
+                return $result;
+            }
+
+            $warehouseSalesDTO = new WarehouseSalesRequestDTO(
+                $movementDTO->getFolio(),
+                $removeWarehouseInventoryStockDTO->getClientId(),
+                $removeWarehouseInventoryStockDTO->getInvoiceId()
+            );
+
+            $this->warehouseSalesService
+            ->saveWarehouseSales(
+                $warehouseSalesDTO
+            );
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
@@ -82,10 +93,10 @@ class SaleOutputService implements WarehouseOutputStrategy
 
         return ResultPattern::success([
             'message' => 'Venta registrada exitosamente',
-            'sold_quantity' => $dto->getQuantity(),
+            'sold_quantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
             'remaining_stock' => $newQuantity,
-            'client_id' => $dto->getClientId(),
-            'invoice_sap' => $dto->getInvoiceId()
+            'client_id' => $removeWarehouseInventoryStockDTO->getClientId(),
+            'invoice_sap' => $removeWarehouseInventoryStockDTO->getInvoiceId()
         ]);
     }
 

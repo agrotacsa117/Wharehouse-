@@ -26,8 +26,6 @@ class WarehouseInventoryMovements
     private $createdAt;
     private $updatedAt;
     private ?int $sourceWarehouseId = null;
-    private ?int $clientId = null;
-    private ?int $invoiceSap = null;
     private ?\DateTime $operationDate = null;
 
     public function __construct(
@@ -78,15 +76,7 @@ class WarehouseInventoryMovements
         return $this->sourceWarehouseId;
     }
 
-    public function getClientId(): ?int
-    {
-        return $this->clientId;
-    }
 
-    public function getInvoiceSap(): ?int
-    {
-        return $this->invoiceSap;
-    }
 
     public function getOperationDate(): ?\DateTime
     {
@@ -100,18 +90,7 @@ class WarehouseInventoryMovements
         return $this;
     }
 
-    public function setClientId(int $clientId): self
-    {
-        $this->clientId = $clientId;
-        return $this;
-    }
-
-    public function setInvoiceSap(int $invoiceSap): self
-    {
-        $this->invoiceSap = $invoiceSap;
-        return $this;
-    }
-
+   
     public function setOperationDate(\DateTime $operationDate): self
     {
         $this->operationDate = $operationDate;

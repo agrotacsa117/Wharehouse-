@@ -77,6 +77,15 @@ use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Application_Layer\Services_Implementation\WarehouseInventoryQueryService;
 use App\Contracts\WarehouseInventoryQueryServiceI;
+use App\Application_Layer\Services_Implementation\WarehouseSalesService;
+use App\Contracts\WarehouseSalesServiceI;
+use App\Contracts\WarehouseSalesRequestDTOToEntityMapperI;
+use App\Mappers\WarehouseSalesRequestDTOToEntityMapper;
+use App\Contracts\WarehouseSalesRepositoryI;
+use App\Application_Layer\Repository_Implementation\WarehouseSalesRepository;
+use App\Contracts\WarehouseSalesEntityToModelMapperI;
+use App\Mappers\WarehouseSalesEntityToModelMapper;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -254,6 +263,26 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseOutputStrategyFactoryInterface::class,
             WarehouseOutputStrategyFactory::class
+        );
+
+        $this->app->bind(
+            WarehouseSalesServiceI::class,
+            WarehouseSalesService::class
+        );
+
+        $this->app->bind(
+            WarehouseSalesRepositoryI::class,
+            WarehouseSalesRepository::class
+        );
+
+        $this->app->bind(
+            WarehouseSalesRequestDTOToEntityMapperI::class,
+            WarehouseSalesRequestDTOToEntityMapper::class
+        );
+
+        $this->app->bind(
+            WarehouseSalesEntityToModelMapperI::class,
+            WarehouseSalesEntityToModelMapper::class
         );
     }
 

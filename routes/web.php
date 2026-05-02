@@ -20,6 +20,7 @@ use App\Http\Controllers\WarehouseTypeController;
 use App\Http\Controllers\WareouseInventoryController;
 use App\Http\Controllers\InventoryManagementController;
 use App\Http\Controllers\ReportController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -134,6 +135,12 @@ Route::get('/output/{id}/inventory', [OutputController::class,
 Route::post('/output/process', [
     OutputController::class,
     'processOutput'])->name('output.inventory.process');
+
+Route::get(
+    '/reports/filter',
+    [ReportController::class,
+    'getTransactionsByDateRange']
+)->name('reports.filter.by.range');
 
 Route::middleware("auth")->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');

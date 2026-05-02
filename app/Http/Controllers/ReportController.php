@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Application_Layer\ResultPattern;
 use App\Models\Producto;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use Illuminate\Http\JsonResponse;
 
 class ReportController extends Controller
 {
@@ -63,7 +65,9 @@ class ReportController extends Controller
         $queryProximos = Producto::with(['categoria', 'proveedor'])
             ->where('fecha_caducidad', '>=', $hoy)->where('fecha_caducidad', '<=', $sieteDiasDespues)
             ->where('activo', true);
-        if (!$esAdmin) { $queryProximos->where('rol', $user->rol); }
+        if (!$esAdmin) {
+            $queryProximos->where('rol', $user->rol);
+        }
 
         $productosProximos = $queryProximos->orderBy('fecha_caducidad', 'asc')->limit(10)->get()
             ->map(function ($producto) use ($hoy) {
@@ -72,7 +76,7 @@ class ReportController extends Controller
                     'nombre'           => $producto->nombre ?? 'Sin nombre',
                     'bodega'           => ucfirst($producto->rol === 'bodega_dorado' ? 'dorado' : $producto->rol),
                     'cantidad'         => $producto->cantidad . ' unidades',
-                    'fecha_vencimiento'=> Carbon::parse($producto->fecha_caducidad)->format('d/m/Y'),
+                    'fecha_vencimiento' => Carbon::parse($producto->fecha_caducidad)->format('d/m/Y'),
                     'dias_restantes'   => $hoy->diffInDays(Carbon::parse($producto->fecha_caducidad)),
                     'categoria'        => $producto->categoria->nombre ?? 'Sin categoría',
                 ];
@@ -86,14 +90,18 @@ class ReportController extends Controller
         $totalRacksTapachula  = $racksTapachula->count();
         $capacidadMaxTapachula = $racksTapachula->sum('cantidad_max');
         $ocupacionTapachula   = 0;
-        foreach ($racksTapachula as $rack) { $ocupacionTapachula += $rack->productosCount()->where('cantidad', '>', 0)->count(); }
+        foreach ($racksTapachula as $rack) {
+            $ocupacionTapachula += $rack->productosCount()->where('cantidad', '>', 0)->count();
+        }
         $porcentajeOcupacionTapachula = $capacidadMaxTapachula > 0 ? round(min(100, ($ocupacionTapachula / $capacidadMaxTapachula) * 100), 1) : 0;
 
         $racksDorado       = \App\Models\Rack::where('bodega', 'bodega_dorado')->get();
         $totalRacksDorado  = $racksDorado->count();
         $capacidadMaxDorado = $racksDorado->sum('cantidad_max');
         $ocupacionDorado   = 0;
-        foreach ($racksDorado as $rack) { $ocupacionDorado += $rack->productosCount()->where('cantidad', '>', 0)->count(); }
+        foreach ($racksDorado as $rack) {
+            $ocupacionDorado += $rack->productosCount()->where('cantidad', '>', 0)->count();
+        }
         $porcentajeOcupacionDorado = $capacidadMaxDorado > 0 ? round(min(100, ($ocupacionDorado / $capacidadMaxDorado) * 100), 1) : 0;
 
         $vigentesTapachula            = $totalTapachula - $porVencerTapachula;
@@ -123,9 +131,12 @@ class ReportController extends Controller
 
         foreach ($stats as $stat) {
             switch ($stat->getState()) {
-                case 3: $critical  = $stat; break;
-                case 2: $attention = $stat; break;
-                case 1: $ok        = $stat; break;
+                case 3: $critical  = $stat;
+                    break;
+                case 2: $attention = $stat;
+                    break;
+                case 1: $ok        = $stat;
+                    break;
             }
         }
 
@@ -141,8 +152,9 @@ class ReportController extends Controller
         // ✅ RANKING TOP 3 CADUCADOS POR ALMACÉN
         // ============================================
         $rankingCaducidad = $this->warehouseInventoryService->getExpiredInventoryRanking();
+        $expiredProducts =  $this->warehouseInventoryService->getExpiredInventory();
 
-        // ============================================
+        // // // ============================================
         // ✅ MOVIMIENTOS DEL MES ACTUAL
         // ============================================
         $movimientosResult = $this->warehouseMovementsService->filterTransactionsByDateRange(
@@ -154,46 +166,154 @@ class ReportController extends Controller
             )
         );
 
-        $movimientosRaw = $movimientosResult->isSuccess() ? $movimientosResult->getValue() : [];
+        $movimientos =  $movimientosResult->getValue();
 
-        $movimientos = array_map(function ($dto) {
-            return [
-                'id'                       => $dto->getId(),
-                'folio'                    => $dto->getFolio(),
-                'date'                     => $dto->getCreatedAt(),
-                'type'                     => strtolower($dto->getMovementType()),
-                'productName'              => $dto->getProductName(),
-                 'warehouseOriginId'        => $dto->getWarehouseId(),
-                'warehouseOriginName'      => $dto->getWarehousesName(),
-                'warehouseDestinationId'   => null,
-                'warehouseDestinationName' => null,
-                'lotNumber'                => $dto->getLotNumber(),
-                'quantity'                 => $dto->getQuantity(),
-                'userName'                 => $dto->getUserName(),
-            ];
-        }, $movimientosRaw);
+        $movementsTotalIN = $this->warehouseMovementsService
+               ->countByMovementType(
+                   "IN"
+               );
+
+        $movementsTotalOUT = $this->warehouseMovementsService
+        ->countByMovementType(
+            "OUT"
+        );
+
+        $movementsTotalTRANSFER = $this->warehouseMovementsService
+        ->countByMovementType(
+            "TRANSFER"
+        );
+
+        $movementsTotalADJUSTMENT = $this->warehouseMovementsService
+        ->countByMovementType(
+            "ADJUSTMENT"
+        );
+
+        $movementsTotalRELOCATION =  $this->warehouseMovementsService
+        ->countByMovementType(
+            "RELOCATION"
+        );
+
+        $movementsTotalSALE =  $this->warehouseMovementsService
+               ->countByMovementType(
+                   "SALE"
+               );
+
+        // $movimientosRaw = $movimientosResult->isSuccess() ? $movimientosResult->getValue() : [];
+
+        // $movimientos = array_map(function ($dto) {
+        //     return [
+        //         'id'                       => $dto->getId(),
+        //         'folio'                    => $dto->getFolio(),
+        //         'date'                     => $dto->getCreatedAt(),
+        //         'type'                     => strtolower($dto->getMovementType()),
+        //         'productName'              => $dto->getProductName(),
+        //          'warehouseOriginId'        => $dto->getWarehouseId(),
+        //         'warehouseOriginName'      => $dto->getWarehousesName(),
+        //         'warehouseDestinationId'   => null,
+        //         'warehouseDestinationName' => null,
+        //         'lotNumber'                => $dto->getLotNumber(),
+        //         'quantity'                 => $dto->getQuantity(),
+        //         'userName'                 => $dto->getUserName(),
+        //     ];
+        // }, $movimientosRaw);
 
         $almacenes = \App\Models\WarehouseModel::select('id', 'warehouses_name')->get();
 
         return view('module.reports.report', compact(
             'titulo',
-            'totalTapachula', 'totalDorado', 'totalGeneral',
-            'porVencerTapachula', 'porVencerDorado',
-            'vigentesTapachula', 'porcentajePorVencerTapachula',
-            'vigentesDorado', 'porcentajePorVencerDorado',
-            'productosProximos', 'cambioTapachula', 'cambioDorado',
-            'precioTotalTapachula', 'precioTotalDorado', 'precioTotalGeneral',
-            'totalRacksTapachula', 'capacidadMaxTapachula', 'ocupacionTapachula', 'porcentajeOcupacionTapachula',
-            'totalRacksDorado', 'capacidadMaxDorado', 'ocupacionDorado', 'porcentajeOcupacionDorado',
-            'vencidosTapachula', 'vencidosDorado',
-            'porVencerYVencidosTapachula', 'porVencerYVencidosDorado',
-            'porcentajePorVencerTapachulaBarra', 'porcentajePorVencerDoradoBarra',
-            'critical', 'attention', 'ok',
+            'totalTapachula',
+            'totalDorado',
+            'totalGeneral',
+            'porVencerTapachula',
+            'porVencerDorado',
+            'vigentesTapachula',
+            'porcentajePorVencerTapachula',
+            'vigentesDorado',
+            'porcentajePorVencerDorado',
+            'productosProximos',
+            'cambioTapachula',
+            'cambioDorado',
+            'precioTotalTapachula',
+            'precioTotalDorado',
+            'precioTotalGeneral',
+            'totalRacksTapachula',
+            'capacidadMaxTapachula',
+            'ocupacionTapachula',
+            'porcentajeOcupacionTapachula',
+            'totalRacksDorado',
+            'capacidadMaxDorado',
+            'ocupacionDorado',
+            'porcentajeOcupacionDorado',
+            'vencidosTapachula',
+            'vencidosDorado',
+            'porVencerYVencidosTapachula',
+            'porVencerYVencidosDorado',
+            'porcentajePorVencerTapachulaBarra',
+            'porcentajePorVencerDoradoBarra',
+            'critical',
+            'attention',
+            'ok',
             'statsWarehouses',
-            'semaforoCritical', 'semaforoAttention', 'semaforoOk',
+            'semaforoCritical',
+            'semaforoAttention',
+            'semaforoOk',
             'almacenes',
-            'rankingCaducidad',  // ✅ Top 3 caducados por almacén
-            'movimientos'        // ✅ Movimientos del mes actual
+            'rankingCaducidad',
+            'movimientos',
+            'expiredProducts',
+            'movementsTotalIN',
+            'movementsTotalOUT',
+            'movementsTotalADJUSTMENT',
+            'movementsTotalRELOCATION',
+            'movementsTotalSALE',
+            'movementsTotalTRANSFER'
         ));
+    }
+
+    public function getTransactionsByDateRange(
+        Request $request
+    ): JsonResponse {
+
+        $validated = $request->validate([
+                   'start_date' => 'required|date_format:Y-m-d',
+                   'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
+                   'warehouse_id' => 'nullable|integer',
+                   '     ' => 'nullable|string'
+               ]);
+
+        $filterDTO = new MovementsByPeriodFilterDTO(
+            $validated['start_date'],
+            $validated['end_date'],
+            $validated['movement_type'],
+            $validated['warehouse_id']
+        );
+
+        $detailsOfMovements = $this
+        ->warehouseMovementsService
+        ->filterTransactionsByDateRange(
+            $filterDTO
+        );
+
+        if ($detailsOfMovements->isFailure()) {
+            return response()->json(
+                [
+              'success' => false,
+              'message' => $detailsOfMovements->getError(),
+              'data' => null
+              ],
+                400
+            );
+        }
+
+        $detailsOfMovements = $detailsOfMovements->getValue();
+       
+        return response()->json([
+            'success' => true,
+            'message' => 'Movimientos obtenidos exitosamente',
+            'data' => [
+                'details' => $detailsOfMovements->getDetails(),
+                'statistics' => $detailsOfMovements->getStatics()
+            ]
+        ], 200);
     }
 }

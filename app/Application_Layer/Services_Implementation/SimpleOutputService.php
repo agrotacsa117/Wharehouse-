@@ -9,58 +9,55 @@ use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 
-class SimpleOutputService implements WarehouseOutputStrategy
+class SimpleOutputService extends BaseOutputService
 {
-    private WarehouseInventoryRepositoryInterface $inventoryRepository;
-    private WarehouseMovementsServiceI $movementsService;
-
     public function __construct(
         WarehouseInventoryRepositoryInterface $inventoryRepository,
         WarehouseMovementsServiceI $movementsService
     ) {
-        $this->inventoryRepository = $inventoryRepository;
-        $this->movementsService = $movementsService;
+        parent::__construct(
+            $inventoryRepository,
+            $movementsService
+        );
     }
 
-    public function processOutput(RemoveWarehouseInventoryStockDTO $dto): ResultPattern
-    {
+    public function processOutput(
+        RemoveWarehouseInventoryStockDTO $dto
+    ): ResultPattern {
         // 1. Validar stock disponible
-        $currentQuantity = $this->inventoryRepository->findQuantityById(
-            $dto->getWarehouseInventoryId()
+        $result = $this
+        ->validateStockAvailability(
+            $dto
         );
 
-        if ($dto->getQuantity() > $currentQuantity) {
-            return ResultPattern::failure(
-                "¡Error! No puede retirar cantidad mayor al stock disponible."
-            );
+        if ($result->isFailure()) {
+            return $result;
         }
 
         // 2. Actualizar cantidad
         try {
-            $newQuantity = $currentQuantity - $dto->getQuantity();
+            $currentQuantity = $result->getValue();
 
-            $updated = $this->inventoryRepository->updateQuantity(
-                $dto->getWarehouseInventoryId(),
-                $newQuantity
+            $result = $this->reduceStock(
+                $currentQuantity,
+                $dto
             );
 
-            if (!$updated) {
-                return ResultPattern::failure("Error al actualizar el inventario");
+            $newQuantity = $result->getValue();
+
+            if ($result->isFailure()) {
+                return $result;
             }
 
             // 3. Registrar movimiento
-            $folio = $this->movementsService->generateMovementFolio();
-
-            $movementDTO = new WarehouseMovementsDTO(
-                $folio,
-                $dto->getWarehouseInventoryId(),
-                'OUT',
-                $dto->getQuantity(),
-                $dto->getReason(),
-                $dto->getUserId()
+            $movementDTO = $this->recordMovement(
+                $dto
             );
 
-            $this->movementsService->saveWarehouseMovement($movementDTO);
+            $result = $this->warehouseMovementsService
+            ->saveWarehouseMovement(
+                $movementDTO
+            );
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());

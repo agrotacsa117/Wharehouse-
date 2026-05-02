@@ -72,7 +72,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
             $warehouseInventoryMovementsModel->save();
         } catch (\Throwable $th) {
             throw new CouldNotPersistLocationException(
-                'Error saving Location',
+                $th->getMessage(),
                 0,
                 $th
             );
@@ -93,26 +93,58 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 
     }
 
-    public function findByDateRange(string $startDate, string $endDate): array
-    {
-        $filteredMovements =  WarehouseInventoryMovementsModel::with([
-        'inventory.warehouse',
-        'user'
-        ])
-        ->whereDate(
-            'created_at',
-            '>=',
-            $startDate
-        )
-         ->whereDate(
-             'created_at',
-             '<=',
-             $endDate
-         )
-        ->get();
+    public function findByDateRange(
+        string $startDate,
+        string $endDate,
+        ?int $warehouseId = null,
+        ?string $movementType = null
+    ): array {
 
+        $filteredMovements =  WarehouseInventoryMovementsModel::query()
+        ->with(['inventory.warehouse', 'user'])
+        ->whereBetween('created_at', [
+            $startDate,
+            $endDate
+        ]);
+
+        if ($warehouseId) {
+            $filteredMovements->where(
+                'warehouse_id',
+                $warehouseId
+            );
+        }
+
+        if ($movementType) {
+            $filteredMovements->where(
+                'movement_type',
+                $movementType
+            );
+        }
+
+        $filteredMovements = $filteredMovements->get();
         $filteredMovements = $filteredMovements->toArray();
 
         return $filteredMovements;
+    }
+
+    public function getMovementCountsByType(
+        string $startDate,
+        string $endDate
+    ): array {
+
+        $movementCounts = WarehouseInventoryMovementsModel::whereBetween(
+            'created_at',
+            [$startDate,
+            $endDate]
+        )->groupBy('movement_type')->selectRaw(
+            'movement_type, COUNT(movement_type) as count'
+        )->pluck(
+            'count',
+            'movement_type'
+        );
+
+        $movementCounts = $movementCounts->toArray();
+
+        return $movementCounts;
     }
 }

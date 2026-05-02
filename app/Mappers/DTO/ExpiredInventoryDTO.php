@@ -5,29 +5,38 @@ namespace App\Mappers\DTO;
 //
 class ExpiredInventoryDTO implements \JsonSerializable
 {
+    private int $warehouseId;
     private string $productCode;
     private string $productName;
     private string $warehouseName;
     private int $quantity;
     private string $lotNumber;
     private string $expirationDate;
+    private string $rack;
+    private int $level;
     private int $expiredDays;
 
     public function __construct(
         string $productCode,
+        int $warehouseId,
         string $productName,
         string $warehouseName,
         int $quantity,
         string $lotNumber,
         string $expirationDate,
+        string $rack,
+        int $level,
         int $expiredDays
     ) {
         $this->productCode = $productCode;
+        $this->warehouseId = $warehouseId;
         $this->productName = $productName;
         $this->warehouseName = $warehouseName;
         $this->quantity = $quantity;
         $this->lotNumber = $lotNumber;
         $this->expirationDate = $expirationDate;
+        $this->rack = $rack;
+        $this->level = $level;
         $this->expiredDays = $expiredDays;
     }
 
@@ -36,15 +45,18 @@ class ExpiredInventoryDTO implements \JsonSerializable
     {
         return [
             'productCode' => $this->productCode,
+            'warehouseId' => $this->warehouseId,
             'productName' => $this->productName,
             'warehouseName' => $this->warehouseName,
             'quantity' => $this->quantity,
             'lotNumber' => $this->lotNumber,
-            'expirationDate' => $this->expirationDate,
+            'expirationDate' => date('Y-m-d', strtotime($this->expirationDate)),
             'expiredDays' => $this->expiredDays,
+            'rack' => $this->rack,
+            'level' => $this->level
         ];
     }
-    
+
     // Getters
     public function getWarehouseName(): string
     {

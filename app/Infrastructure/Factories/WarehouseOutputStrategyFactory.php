@@ -11,22 +11,25 @@ use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Application_Layer\Services_Implementation\SimpleOutputService;
 use App\Application_Layer\Services_Implementation\SaleOutputService;
+use App\Contracts\WarehouseSalesServiceI;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
 {
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
     private WarehouseInventoryRepositoryInterface $inventoryRepository;
-
+    private WarehouseSalesServiceI $warehouseSalesService;
 
     public function __construct(
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
-        WarehouseInventoryRepositoryInterface $inventoryRepository
+        WarehouseInventoryRepositoryInterface $inventoryRepository,
+        WarehouseSalesServiceI $warehouseSalesService
     ) {
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->inventoryRepository = $inventoryRepository;
+        $this->warehouseSalesService = $warehouseSalesService;
     }
 
     public function make(string $type): WarehouseOutputStrategy
@@ -48,8 +51,12 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
             case "SALE":
                 return new SaleOutputService(
                     $this->inventoryRepository,
-                    $this->warehouseMovementsService
+                    $this->warehouseMovementsService,
+                    $this->warehouseSalesService
                 );
+
+            
+
             default:
                 throw new \InvalidArgumentException(
                     "Tipo de salida no soportado: {$type}"

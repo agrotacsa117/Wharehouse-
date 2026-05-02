@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\WarehouseSalesModel;
 
 class WarehouseInventoryMovementsModel extends Model
 {
@@ -20,8 +21,8 @@ class WarehouseInventoryMovementsModel extends Model
         'invoice_sap',
         'operation_date',
         'source_warehouse_id',
-       'created_at',
-       'updated_at'
+        'created_at',
+        'updated_at'
     ];
 
     public function inventory()
@@ -40,5 +41,12 @@ class WarehouseInventoryMovementsModel extends Model
             'user_id',
             'id'
         );
+    }
+
+    public function sale()
+    {
+        return $this->hasOne(
+            WarehouseSalesModel::class,
+             'movement_id');
     }
 }

@@ -6,8 +6,8 @@ class MovementsByPeriodFilterDTO  implements \JsonSerializable
 {
     private string $startDate;
     private string $endDate;
-    private ?string $movementType;
-    private ?int $warehouseId;
+    private ?string $movementType = null;
+    private ?int $warehouseId = null;
 
     public function __construct(
         string $startDate,

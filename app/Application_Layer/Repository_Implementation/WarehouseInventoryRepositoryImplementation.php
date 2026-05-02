@@ -10,6 +10,7 @@ use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 use App\Models\ProductModel;
+use App\Infrastructure\Exception\InventoryNotFoundException;
 
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
@@ -123,7 +124,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         int $warehouseInventoryId,
         int $quantity
     ): bool {
-
+        
         return WarehouseInventoryModel::where(
             'id',
             $warehouseInventoryId
@@ -142,6 +143,23 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         )->value(
             'quantity'
         );
+    }
+
+    public function findQuantityByIdWithLock(
+        int $warehouseInventoryId
+    ): int {
+
+        $warehouseInventoryModel
+        = WarehouseInventoryModel::lockForUpdate()
+        ->find($warehouseInventoryId);
+
+        if (!$warehouseInventoryModel) {
+            throw new InventoryNotFoundException(
+                "Inventario {$warehouseInventoryId} no encontrado."
+            );
+        }
+
+        return (int)$warehouseInventoryModel->quantity;
     }
 
     public function getInventoryStatsByState(): array
@@ -297,10 +315,13 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     {
         return WarehouseInventoryModel::selectRaw("
             wi.product_id,
+            wi.warehouse_id,
             wi.warehouse_name AS product_name,
             w.warehouses_name AS warehouse_name,
             wi.quantity,
             wi.lot_number,
+            wi.rack,
+            wi._level,
             wi.expiration_date,
             ABS(DATEDIFF(wi.expiration_date, CURDATE())) AS expired_days
         ")

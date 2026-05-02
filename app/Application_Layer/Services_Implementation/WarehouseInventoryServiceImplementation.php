@@ -24,6 +24,7 @@ use LDAP\Result;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseOutputStrategy;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -209,14 +210,30 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         RemoveWarehouseInventoryStockDTO $output
     ): ResultPattern {
 
-        $this->warehouseOutputStrategy =
-        $this->warehouseOutputStrategyFactory->make(
-            $output->getMovementType()
-        );
+        try {
+            return DB::transaction(function () use ($output) {
+                $this->warehouseOutputStrategy =
+                $this->warehouseOutputStrategyFactory->make(
+                    $output->getMovementType()
+                );
 
-        $this->warehouseOutputStrategy->processOutput(
-            $output
-        );
+                $result = $this->warehouseOutputStrategy
+                ->processOutput(
+                    $output
+                );
+
+                if ($result->isFailure()) {
+                    return $result;
+                }
+
+            });
+
+
+        } catch (\Throwable $th) {
+            ResultPattern::failure($th->getMessage());
+        }
+
+
 
         return ResultPattern::success($output);
     }
@@ -367,7 +384,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $transferInventoryDTO->getLotNumber(),
                 $transferInventoryDTO->getQuantity()
             );
-            
+
             if (!$result['success']) {
                 return ResultPattern::failure($result['error']);
             }
@@ -428,7 +445,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function generateWarehouseInventoryDetailDTO(
         array $inventory
     ): array {
-        
+
         for ($i = 0; $i < count($inventory) ; $i++) {
             $inventory[$i] = new WarehouseInventoryDetailDTO(
                 $inventory[$i]['id'],
@@ -453,18 +470,20 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getExpiredInventory(): array
     {
         $expiratedProducts = $this->warehouseInventoryRepository->findExpired();
-
-
+        
         for ($i = 0; $i < count($expiratedProducts); $i++) {
             $inventory = $expiratedProducts[$i];
 
             $expiratedProducts[$i] = new ExpiredInventoryDTO(
                 $inventory["product_id"],
+                $inventory["warehouse_id"],
                 $inventory["product_name"],
                 $inventory["warehouse_name"],
                 $inventory["quantity"],
                 $inventory["lot_number"],
                 $inventory["expiration_date"],
+                $inventory["rack"],
+                $inventory["_level"],
                 $inventory["expired_days"]
             );
         }

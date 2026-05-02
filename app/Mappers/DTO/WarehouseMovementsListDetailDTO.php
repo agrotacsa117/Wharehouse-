@@ -20,6 +20,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     private int $userId;
     private string $userName;
     private string $createdAt;
+    private string $expirationDate;
+
 
     public function __construct(
         int $id,
@@ -37,7 +39,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         string $reason,
         int $userId,
         string $userName,
-        string $createdAt
+        string $createdAt,
+        string $expirationDate
     ) {
         $this->id = $id;
         $this->folio = $folio;
@@ -55,9 +58,14 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         $this->userId = $userId;
         $this->userName = $userName;
         $this->createdAt = $createdAt;
+        $this->expirationDate = $expirationDate;
     }
 
     // Getters
+    public function getExpirationDate(): string
+    {
+        return $this->expirationDate;
+    }
 
     public function getId(): int
     {
@@ -192,7 +200,7 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     }
 
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
@@ -210,13 +218,15 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
             'reason' => $this->reason,
             'userId' => $this->userId,
             'userName' => $this->userName,
-            'createdAt' => $this->createdAt
+            'createdAt' => $this->createdAt,
+            'expiration_date' => $this->expirationDate
         ];
     }
 
 
     public static function fromModel(array $movement): self
     {
+
         return new self(
             $movement['id'],
             $movement['folio'],
@@ -233,7 +243,20 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
             $movement['reason'],
             $movement['user_id'],
             $movement['user']['name'],
-            date('Y-m-d', strtotime($movement['created_at']))
+            date(
+                'Y-m-d',
+                strtotime(
+                    $movement['created_at']
+                )
+            ),
+            date(
+                'Y-m-d',
+                strtotime(
+                    $movement['inventory']['expiration_date']
+                )
+            )
         );
+
+
     }
 }

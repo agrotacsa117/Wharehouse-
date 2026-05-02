@@ -10,8 +10,6 @@ class WarehouseMovementsDTO
     private int $quantity;
     private string $reason;
     private int $userId;
-    private ?int $clientId;
-    private ?int $invoiceSap;
     private ?\DateTime $operationDate;
     private ?int $sourceWarehouseId;
 
@@ -29,30 +27,8 @@ class WarehouseMovementsDTO
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
-        $this->clientId = null;
-        $this->invoiceSap = null;
         $this->operationDate = null;
         $this->sourceWarehouseId = null;
-    }
-
-    public function getClientId(): ?int
-    {
-        return $this->clientId;
-    }
-
-    public function setClientId(int $clientId): void
-    {
-        $this->clientId = $clientId;
-    }
-
-    public function getInvoiceSap(): ?int
-    {
-        return $this->invoiceSap;
-    }
-
-    public function setInvoiceSap(int $invoiceSap): void
-    {
-        $this->invoiceSap = $invoiceSap;
     }
 
     public function getOperationDate(): ?\DateTime

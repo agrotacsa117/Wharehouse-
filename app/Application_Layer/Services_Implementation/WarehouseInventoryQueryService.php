@@ -53,7 +53,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             );
 
             if (!$updated) {
-                ResultPattern::failure(
+                return ResultPattern::failure(
                     "¡Error: no fue posible "
                     ."modificar campos de ubicación!"
                 );

@@ -9,6 +9,7 @@ use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use App\Mappers\DTO\DetailsOfMovements;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
 {
@@ -77,7 +78,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                 $warehouseMovementsDTO
             );
 
-            
+
             $this->warehouseMovementsRepository->save(
                 $warehouseInventoryMovements
             );
@@ -92,28 +93,29 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern {
 
+        $movementsFiltered = $this->warehouseMovementsRepository
+        ->findByDateRange(
+            $movementsByPeriodFilterDTO->getStartDate(),
+            $movementsByPeriodFilterDTO->getEndDate(),
+            $movementsByPeriodFilterDTO->getWarehouseId(),
+            $movementsByPeriodFilterDTO->getMovementType()
+        );
 
-        $movementsFiltered = $this->warehouseMovementsRepository->findByDateRange(
+        $statistics = $this->warehouseMovementsRepository
+        ->getMovementCountsByType(
             $movementsByPeriodFilterDTO->getStartDate(),
             $movementsByPeriodFilterDTO->getEndDate()
         );
 
-        
-        $finalFiltered = array();
-        $match = true;
-        $index = 0;
-        $hasFilter = true;
 
-        if (!$movementsByPeriodFilterDTO
-        ->getWarehouseId()
-        && !$movementsByPeriodFilterDTO
-        ->getMovementType()) {
-            $hasFilter = false;
-        }
+        $finalFiltered = array();
+        $index = 0;
 
         for ($i = 0; $i < count($movementsFiltered) ; $i++) {
+
             $movementType =  $movementsFiltered[$i]['movement_type'];
             $saveMovementType = $movementType;
+
             switch ($movementType) {
                 case 'IN':
                     $movementType = "Entrada";
@@ -127,15 +129,16 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                 case 'TRANSFER':
                     $movementType = "Traslado";
                     break;
+
+                case 'SALE':
+                    $movementType = "Ventas";
+                    break;
+
+                case 'RELOCATION': 
+                    $movementType = "Reubicación";
+                    break;
             }
 
-            $match = true;
-
-            if ($hasFilter
-            && $movementsByPeriodFilterDTO->getMovementType()
-            && $saveMovementType !== $movementsByPeriodFilterDTO->getMovementType()) {
-                $match = false;
-            }
 
             $movementsFiltered[$i]['movement_type'] = $movementType;
 
@@ -143,20 +146,16 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                 $movementsFiltered[$i]
             );
 
-            if ($hasFilter && $movementsByPeriodFilterDTO->getWarehouseId()
-                && $register->getWarehouseId()
-                !== $movementsByPeriodFilterDTO->getWarehouseId()) {
-                $match = false;
-            }
-
-            if ($match) {
-                $finalFiltered[$index] = $register;
-                $index++;
-            }
-
+            $finalFiltered[$index] = $register;
+            $index++;
         }
 
-        return ResultPattern::success($finalFiltered);
+        $filteredReport = new DetailsOfMovements(
+            $finalFiltered,
+            $statistics
+        );
+
+        return ResultPattern::success($filteredReport);
     }
 
     public function generateMovementFolio(): string

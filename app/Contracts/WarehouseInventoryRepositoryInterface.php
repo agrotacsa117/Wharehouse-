@@ -30,6 +30,8 @@ interface WarehouseInventoryRepositoryInterface
         int $warehouseInventoryId
     ): int;
 
+    public function findQuantityByIdWithLock(int $warehouseInventoryId): int;
+
     public function getInventoryStatsByState(): array;
 
     public function getInventoryStatsByStateAndWarehouse(): array;
