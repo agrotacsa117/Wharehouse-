@@ -1,2075 +1,2076 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.main')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>TACSA - Movimientos de Inventario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --tacsa-red: #DC2626;
-            --tacsa-red-dark: #B91C1C;
-            --tacsa-red-light: rgba(220, 38, 38, 0.08);
-            --tacsa-red-light2: rgba(220, 38, 38, 0.15);
-            --tacsa-green: #16a34a;
-            --tacsa-green-dark: #15803d;
-            --tacsa-green-light: rgba(22, 163, 74, 0.1);
-            --tacsa-amber: #d97706;
-            --tacsa-amber-light: rgba(217, 119, 6, 0.1);
-            --tacsa-blue: #2563eb;
-            --tacsa-blue-light: rgba(37, 99, 235, 0.1);
-            --text-primary: #1a1a1a;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
-            --bg-body: #f4f4f5;
-            --bg-card: #ffffff;
-        }
+<style>
+    :root {
+        --tacsa-red: #DC2626;
+        --tacsa-red-dark: #B91C1C;
+        --tacsa-red-light: rgba(220, 38, 38, 0.08);
+        --tacsa-red-light2: rgba(220, 38, 38, 0.15);
+        --tacsa-green: #16a34a;
+        --tacsa-green-dark: #15803d;
+        --tacsa-green-light: rgba(22, 163, 74, 0.1);
+        --tacsa-amber: #d97706;
+        --tacsa-amber-light: rgba(217, 119, 6, 0.1);
+        --tacsa-blue: #2563eb;
+        --tacsa-blue-light: rgba(37, 99, 235, 0.1);
+        --text-primary: #1a1a1a;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-body: #f4f4f5;
+        --bg-card: #ffffff;
+    }
 
-        * {
-            box-sizing: border-box;
-        }
+    * {
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            min-height: 100vh;
-            margin: 0;
-        }
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-primary);
+        min-height: 100vh;
+        margin: 0;
+    }
 
-        /* ══════════════════════════════════
-           TOP BAR
-        ══════════════════════════════════ */
-        .topbar {
-            background: var(--tacsa-red);
-            padding: 0.75rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    /* ══════════════════════════════════
+                                   TOP BAR
+                                ══════════════════════════════════ */
+    .topbar {
+        background: var(--tacsa-red);
+        padding: 0.75rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
-        .topbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 1.125rem;
-            text-decoration: none;
-        }
+    .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.125rem;
+        text-decoration: none;
+    }
 
-        .topbar-brand .logo-sm {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.625rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
+    .topbar-brand .logo-sm {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.625rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
 
-        .topbar-nav {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-        .topbar-nav a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            padding: 0.375rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.15s;
-        }
+    .topbar-nav a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.15s;
+    }
 
-        .topbar-nav a:hover,
-        .topbar-nav a.active {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.15);
-        }
+    .topbar-nav a:hover,
+    .topbar-nav a.active {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.15);
+    }
 
-        /* ══════════════════════════════════
-           PAGE WRAPPER
-        ══════════════════════════════════ */
-        .page-wrapper {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem 3rem;
-        }
+    /* ══════════════════════════════════
+                                   PAGE WRAPPER
+                                ══════════════════════════════════ */
+    .page-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
+    }
 
-        /* ══════════════════════════════════
-           PAGE HEADER
-        ══════════════════════════════════ */
-        .page-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.75rem;
-        }
+    /* ══════════════════════════════════
+                                   PAGE HEADER
+                                ══════════════════════════════════ */
+    .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
 
-        .page-header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-        }
+    .page-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
 
-        .page-header p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin: 0.25rem 0 0;
-        }
+    .page-header p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0.25rem 0 0;
+    }
 
-        .header-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
 
-        .btn-entrada {
-            height: 42px;
-            padding: 0 1.25rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            background: var(--tacsa-green);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: background-color 0.15s;
-            cursor: pointer;
-        }
+    .btn-entrada {
+        height: 42px;
+        padding: 0 1.25rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        background: var(--tacsa-green);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background-color 0.15s;
+        cursor: pointer;
+    }
 
-        .btn-entrada:hover {
-            background: var(--tacsa-green-dark);
-            color: #ffffff;
-        }
+    .btn-entrada:hover {
+        background: var(--tacsa-green-dark);
+        color: #ffffff;
+    }
 
-        .btn-salida {
-            height: 42px;
-            padding: 0 1.25rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            background: var(--tacsa-red);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: background-color 0.15s;
-            cursor: pointer;
-        }
+    .btn-salida {
+        height: 42px;
+        padding: 0 1.25rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        background: var(--tacsa-red);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background-color 0.15s;
+        cursor: pointer;
+    }
 
-        .btn-salida:hover {
-            background: var(--tacsa-red-dark);
-            color: #ffffff;
-        }
+    .btn-salida:hover {
+        background: var(--tacsa-red-dark);
+        color: #ffffff;
+    }
 
-        /* ══════════════════════════════════
-           INLINE REPORTS TAB
-        ══════════════════════════════════ */
-        .report-type-selector {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+    /* ══════════════════════════════════
+                                   INLINE REPORTS TAB
+                                ══════════════════════════════════ */
+    .report-type-selector {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
 
-        .report-intro {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
+    .report-intro {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
 
+    .report-types-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .report-type-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: #fafafa;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .report-type-card:hover {
+        border-color: var(--tacsa-red);
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+    }
+
+    .report-type-card.selected {
+        border-color: var(--tacsa-red);
+        background: var(--tacsa-red-light);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+    }
+
+    .report-type-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .report-type-icon.blue {
+        background: var(--tacsa-blue-light);
+        color: var(--tacsa-blue);
+    }
+
+    .report-type-icon.green {
+        background: var(--tacsa-green-light);
+        color: var(--tacsa-green);
+    }
+
+    .report-type-icon.amber {
+        background: var(--tacsa-amber-light);
+        color: var(--tacsa-amber);
+    }
+
+    .report-type-icon.red {
+        background: var(--tacsa-red-light);
+        color: var(--tacsa-red);
+    }
+
+    .report-type-info h6 {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+        color: var(--text-primary);
+    }
+
+    .report-type-info p {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .report-filters-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .report-filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .btn-clear-report {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .btn-clear-report:hover {
+        border-color: var(--tacsa-red);
+        color: var(--tacsa-red);
+    }
+
+    .btn-generate-report {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #fff;
+        background: var(--tacsa-red);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    .btn-generate-report:hover:not(:disabled) {
+        background: var(--tacsa-red-dark);
+    }
+
+    .btn-generate-report:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .report-results {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .report-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: #fafafa;
+    }
+
+    .results-count {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .report-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+
+    .report-empty i {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    .report-empty p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
         .report-types-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .report-type-card {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1.25rem;
-            background: #fafafa;
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .report-type-card:hover {
-            border-color: var(--tacsa-red);
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
-        }
-
-        .report-type-card.selected {
-            border-color: var(--tacsa-red);
-            background: var(--tacsa-red-light);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
-        }
-
-        .report-type-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .report-type-icon.blue {
-            background: var(--tacsa-blue-light);
-            color: var(--tacsa-blue);
-        }
-
-        .report-type-icon.green {
-            background: var(--tacsa-green-light);
-            color: var(--tacsa-green);
-        }
-
-        .report-type-icon.amber {
-            background: var(--tacsa-amber-light);
-            color: var(--tacsa-amber);
-        }
-
-        .report-type-icon.red {
-            background: var(--tacsa-red-light);
-            color: var(--tacsa-red);
-        }
-
-        .report-type-info h6 {
-            font-size: 0.9375rem;
-            font-weight: 700;
-            margin: 0 0 0.25rem;
-            color: var(--text-primary);
-        }
-
-        .report-type-info p {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        .report-filters-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: 1fr;
         }
 
         .report-filters-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .btn-clear-report {
-            padding: 0.4rem 0.75rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .btn-clear-report:hover {
-            border-color: var(--tacsa-red);
-            color: var(--tacsa-red);
-        }
-
-        .btn-generate-report {
-            width: 100%;
-            padding: 0.625rem 1rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: #fff;
-            background: var(--tacsa-red);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-        }
-
-        .btn-generate-report:hover:not(:disabled) {
-            background: var(--tacsa-red-dark);
-        }
-
-        .btn-generate-report:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .report-results {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .report-results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background: #fafafa;
-        }
-
-        .results-count {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .report-empty {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-        }
-
-        .report-empty i {
-            font-size: 2.5rem;
-            color: #d1d5db;
-            display: block;
-            margin-bottom: 0.75rem;
-        }
-
-        .report-empty p {
-            margin: 0;
-            font-size: 0.875rem;
-        }
-
-        @media (max-width: 768px) {
-            .report-types-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .report-filters-header {
-                flex-direction: column;
-                gap: 0.75rem;
-                align-items: flex-start;
-            }
-        }
-
-        /* ══════════════════════════════════
-           STAT CARDS
-        ══════════════════════════════════ */
-        .stat-cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.25rem;
-            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
             align-items: flex-start;
-            gap: 1rem;
+        }
+    }
+
+    /* ══════════════════════════════════
+                                   STAT CARDS
+                                ══════════════════════════════════ */
+    .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.red {
+        background: var(--tacsa-red-light);
+        color: var(--tacsa-red);
+    }
+
+    .stat-icon.green {
+        background: var(--tacsa-green-light);
+        color: var(--tacsa-green);
+    }
+
+    .stat-icon.amber {
+        background: var(--tacsa-amber-light);
+        color: var(--tacsa-amber);
+    }
+
+    .stat-icon.blue {
+        background: var(--tacsa-blue-light);
+        color: var(--tacsa-blue);
+    }
+
+    .stat-icon.purple {
+        background: rgba(139, 92, 246, 0.15);
+        color: #8B5CF6;
+    }
+
+    .stat-icon.orange {
+        background: rgba(249, 115, 22, 0.15);
+        color: #F97316;
+    }
+
+    .stat-info h3 {
+        font-size: 1.375rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .stat-info span {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    /* ══════════════════════════════════
+                                   TABS
+                                ══════════════════════════════════ */
+    .tacsa-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .tacsa-tab {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.15s;
+    }
+
+    .tacsa-tab:hover {
+        color: var(--text-primary);
+    }
+
+    .tacsa-tab.active {
+        color: var(--tacsa-red);
+        font-weight: 600;
+    }
+
+    .tacsa-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--tacsa-red);
+        border-radius: 1px;
+    }
+
+    /* ══════════════════════════════════
+                                   TAB CONTENT
+                                ══════════════════════════════════ */
+    .tab-content-panel {
+        display: none;
+    }
+
+    .tab-content-panel.active {
+        display: block;
+    }
+
+    /* ══════════════════════════════════
+                                   TABLE CARD
+                                ══════════════════════════════════ */
+    .table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-toolbar .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        margin: 0;
+    }
+
+    .table-toolbar .section-title .bar {
+        width: 4px;
+        height: 22px;
+        background: var(--tacsa-red);
+        border-radius: 9999px;
+        flex-shrink: 0;
+    }
+
+    .table-toolbar .section-title h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--tacsa-red);
+        margin: 0;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .search-box input {
+        height: 38px;
+        width: 260px;
+        padding-left: 2.5rem;
+        padding-right: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 0.8125rem;
+        color: var(--text-primary);
+        background: var(--bg-card);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input::placeholder {
+        color: #9ca3af;
+    }
+
+    .search-box input:focus {
+        border-color: var(--tacsa-red);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        outline: none;
+    }
+
+    .filter-select {
+        height: 38px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 0.8125rem;
+        padding: 0 2rem 0 0.75rem;
+        color: var(--text-primary);
+        background: var(--bg-card);
+        transition: border-color 0.2s;
+        cursor: pointer;
+    }
+
+    .filter-select:focus {
+        border-color: var(--tacsa-red);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        outline: none;
+    }
+
+    .filter-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.375rem;
+    }
+
+    .filter-result-text {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .inventory-item.hidden-filter {
+        display: none !important;
+    }
+
+    .no-results-filter {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+
+    .no-results-filter i {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    /* ── Table ── */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .tacsa-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8125rem;
+    }
+
+    .tacsa-table thead th {
+        background: #fafafa;
+        padding: 0.875rem 1rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    .tacsa-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .tacsa-table tbody tr {
+        transition: background 0.1s;
+    }
+
+    .tacsa-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    .tacsa-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* ── Badges ── */
+    .badge-entrada {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: var(--tacsa-green-light);
+        color: var(--tacsa-green);
+    }
+
+    .badge-entrada i {
+        font-size: 0.75rem;
+    }
+
+    .badge-salida {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: var(--tacsa-red-light);
+        color: var(--tacsa-red);
+    }
+
+    .badge-salida i {
+        font-size: 0.75rem;
+    }
+
+    .badge-ajuste {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: var(--tacsa-amber-light);
+        color: var(--tacsa-amber);
+    }
+
+    .badge-ajuste i {
+        font-size: 0.75rem;
+    }
+
+    .badge-transferencia-in {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: var(--tacsa-blue-light);
+        color: var(--tacsa-blue);
+    }
+
+    .badge-transferencia-out {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: rgba(124, 58, 237, 0.1);
+        color: #7c3aed;
+    }
+
+    .badge-traslado {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: rgba(124, 58, 237, 0.15);
+        color: #6d28d9;
+    }
+
+    .transfer-warehouse {
+        color: var(--tacsa-red);
+        font-weight: 500;
+    }
+
+    .transfer-warehouse-dest {
+        color: #6d28d9;
+        font-weight: 600;
+    }
+
+    .badge-product {
+        display: inline-block;
+        padding: 0.25rem 0.625rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        background: var(--tacsa-blue-light);
+        color: var(--tacsa-blue);
+    }
+
+    .cell-qty {
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+
+    .cell-qty.positive {
+        color: var(--tacsa-green);
+    }
+
+    .cell-qty.negative {
+        color: var(--tacsa-red);
+    }
+
+    /* ── Action buttons ── */
+    .action-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-size: 0.875rem;
+    }
+
+    .action-btn:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .action-btn.view:hover {
+        color: var(--tacsa-green);
+        border-color: var(--tacsa-green);
+        background: var(--tacsa-green-light);
+    }
+
+    .action-btn.edit:hover {
+        color: var(--tacsa-blue);
+        border-color: var(--tacsa-blue);
+        background: var(--tacsa-blue-light);
+    }
+
+    .action-btn.delete:hover {
+        color: var(--tacsa-red);
+        border-color: var(--tacsa-red);
+        background: var(--tacsa-red-light);
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.375rem;
+    }
+
+    /* ── Table footer ── */
+    .table-footer {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+    }
+
+    .pagination-btns {
+        display: flex;
+        gap: 0.375rem;
+    }
+
+    .page-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .page-btn:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .page-btn.active {
+        background: var(--tacsa-red);
+        color: #ffffff;
+        border-color: var(--tacsa-red);
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ══════════════════════════════════
+                                   EMPTY STATE
+                                ══════════════════════════════════ */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #9ca3af;
+    }
+
+    .empty-state h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* ══════════════════════════════════
+                                   INVENTORY TAB - CARDS
+                                ══════════════════════════════════ */
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .inventory-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.25rem;
+        transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .inventory-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-color: #d1d5db;
+    }
+
+    .inventory-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .inventory-item-header h5 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .inventory-item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .inventory-item-row .label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .inventory-item-row .value {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .stock-bar-wrapper {
+        margin-top: 0.75rem;
+    }
+
+    .stock-bar-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.6875rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.375rem;
+    }
+
+    .stock-bar {
+        height: 6px;
+        background: #f3f4f6;
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    .stock-bar-fill {
+        height: 100%;
+        border-radius: 9999px;
+        transition: width 0.3s;
+    }
+
+    .stock-bar-fill.high {
+        background: var(--tacsa-green);
+    }
+
+    .stock-bar-fill.medium {
+        background: var(--tacsa-amber);
+    }
+
+    .stock-bar-fill.low {
+        background: var(--tacsa-red);
+    }
+
+    /* ══════════════════════════════════
+                                   MODALS
+                                ══════════════════════════════════ */
+    .modal {
+        display: none;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+        display: block !important;
+    }
+
+    .modal.show .modal-dialog {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        position: relative;
+        z-index: 1060;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-header .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        margin: 0;
+    }
+
+    .modal-header .section-title .bar {
+        width: 4px;
+        height: 22px;
+        background: var(--tacsa-red);
+        border-radius: 9999px;
+    }
+
+    .modal-header .section-title h5 {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: var(--tacsa-red);
+        margin: 0;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+    }
+
+    /* ── Form fields ── */
+    .field-label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.375rem;
+    }
+
+    .field-label .required {
+        color: var(--tacsa-red);
+        margin-left: 2px;
+    }
+
+    .tacsa-input,
+    .tacsa-select,
+    .tacsa-textarea {
+        height: 44px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 0 1rem;
+        font-size: 0.8125rem;
+        color: var(--text-primary);
+        background-color: var(--bg-card);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        width: 100%;
+    }
+
+    .tacsa-textarea {
+        height: auto;
+        padding: 0.75rem 1rem;
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .tacsa-input::placeholder,
+    .tacsa-textarea::placeholder {
+        color: #9ca3af;
+    }
+
+    .tacsa-input:focus,
+    .tacsa-select:focus,
+    .tacsa-textarea:focus {
+        border-color: var(--tacsa-red);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+        outline: none;
+    }
+
+    .section-separator {
+        border: none;
+        height: 1px;
+        background: var(--tacsa-red-light2);
+        margin: 1.5rem 0;
+    }
+
+    .modal-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        margin-bottom: 1rem;
+    }
+
+    .modal-section-title .bar {
+        width: 4px;
+        height: 20px;
+        background: var(--tacsa-red);
+        border-radius: 9999px;
+    }
+
+    .modal-section-title span {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--tacsa-red);
+    }
+
+    /* ── Buttons ── */
+    .btn-tacsa-cancel {
+        height: 42px;
+        padding: 0 1.25rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-tacsa-cancel:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+
+    .btn-tacsa-save {
+        height: 42px;
+        padding: 0 1.25rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        background: var(--tacsa-green);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .btn-tacsa-save:hover {
+        background: var(--tacsa-green-dark);
+    }
+
+    .btn-tacsa-save.red {
+        background: var(--tacsa-red);
+    }
+
+    .btn-tacsa-save.red:hover {
+        background: var(--tacsa-red-dark);
+    }
+
+    /* ── Detail modal ── */
+    .detail-row {
+        display: flex;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        width: 160px;
+        flex-shrink: 0;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .detail-value {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* ── Delete modal ── */
+    .delete-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--tacsa-red-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .delete-icon-wrapper i {
+        font-size: 1.75rem;
+        color: var(--tacsa-red);
+    }
+
+    .delete-text {
+        text-align: center;
+    }
+
+    .delete-text h5 {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-text p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .delete-text .item-name {
+        font-weight: 600;
+        color: var(--tacsa-red);
+    }
+
+    /* ══════════════════════════════════
+                                   TOAST
+                                ══════════════════════════════════ */
+    .tacsa-toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        z-index: 9999;
+        transform: translateY(120%);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .tacsa-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .tacsa-toast .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .tacsa-toast .toast-icon.success {
+        background: var(--tacsa-green-light);
+        color: var(--tacsa-green);
+    }
+
+    .tacsa-toast .toast-icon.error {
+        background: var(--tacsa-red-light);
+        color: var(--tacsa-red);
+    }
+
+    /* ══════════════════════════════════
+                                   FOOTER
+                                ══════════════════════════════════ */
+    .site-footer {
+        border-top: 2px solid var(--tacsa-red);
+        text-align: center;
+        padding: 1.25rem;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 2rem;
+    }
+
+
+
+    /* 3. El Sidebar */
+
+    /* ══════════════════════════════════
+                                   RESPONSIVE
+                                ══════════════════════════════════ */
+    @media (max-width: 992px) {
+        .stat-cards {
+            grid-template-columns: repeat(2, 1fr);
         }
 
-        .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
+        .inventory-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-wrapper {
+            padding: 1.25rem 1rem;
         }
 
-        .stat-icon.red {
-            background: var(--tacsa-red-light);
-            color: var(--tacsa-red);
+        .stat-cards {
+            grid-template-columns: 1fr;
         }
 
-        .stat-icon.green {
-            background: var(--tacsa-green-light);
-            color: var(--tacsa-green);
+        .inventory-grid {
+            grid-template-columns: 1fr;
         }
 
-        .stat-icon.amber {
-            background: var(--tacsa-amber-light);
-            color: var(--tacsa-amber);
+        .topbar {
+            padding: 0.75rem 1rem;
         }
 
-        .stat-icon.blue {
-            background: var(--tacsa-blue-light);
-            color: var(--tacsa-blue);
-        }
-
-        .stat-icon.purple {
-            background: rgba(139, 92, 246, 0.15);
-            color: #8B5CF6;
-        }
-
-        .stat-icon.orange {
-            background: rgba(249, 115, 22, 0.15);
-            color: #F97316;
-        }
-
-        .stat-info h3 {
-            font-size: 1.375rem;
-            font-weight: 700;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .stat-info span {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* ══════════════════════════════════
-           TABS
-        ══════════════════════════════════ */
-        .tacsa-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 1.5rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .tacsa-tab {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            background: none;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            transition: color 0.15s;
-        }
-
-        .tacsa-tab:hover {
-            color: var(--text-primary);
-        }
-
-        .tacsa-tab.active {
-            color: var(--tacsa-red);
-            font-weight: 600;
-        }
-
-        .tacsa-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--tacsa-red);
-            border-radius: 1px;
-        }
-
-        /* ══════════════════════════════════
-           TAB CONTENT
-        ══════════════════════════════════ */
-        .tab-content-panel {
+        .topbar-nav {
             display: none;
         }
 
-        .tab-content-panel.active {
-            display: block;
+        .page-header {
+            flex-direction: column;
         }
 
-        /* ══════════════════════════════════
-           TABLE CARD
-        ══════════════════════════════════ */
-        .table-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
+        .header-actions {
+            width: 100%;
         }
 
-        .table-toolbar {
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .table-toolbar .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            margin: 0;
-        }
-
-        .table-toolbar .section-title .bar {
-            width: 4px;
-            height: 22px;
-            background: var(--tacsa-red);
-            border-radius: 9999px;
-            flex-shrink: 0;
-        }
-
-        .table-toolbar .section-title h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--tacsa-red);
-            margin: 0;
+        .header-actions .btn-entrada,
+        .header-actions .btn-salida {
+            flex: 1;
+            justify-content: center;
         }
 
         .toolbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 0.875rem;
+            width: 100%;
+            flex-wrap: wrap;
         }
 
         .search-box input {
-            height: 38px;
-            width: 260px;
-            padding-left: 2.5rem;
-            padding-right: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 0.8125rem;
-            color: var(--text-primary);
-            background: var(--bg-card);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .search-box input::placeholder {
-            color: #9ca3af;
-        }
-
-        .search-box input:focus {
-            border-color: var(--tacsa-red);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-            outline: none;
-        }
-
-        .filter-select {
-            height: 38px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 0.8125rem;
-            padding: 0 2rem 0 0.75rem;
-            color: var(--text-primary);
-            background: var(--bg-card);
-            transition: border-color 0.2s;
-            cursor: pointer;
-        }
-
-        .filter-select:focus {
-            border-color: var(--tacsa-red);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-            outline: none;
-        }
-
-        .filter-label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.375rem;
-        }
-
-        .filter-result-text {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .inventory-item.hidden-filter {
-            display: none !important;
-        }
-
-        .no-results-filter {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-        }
-
-        .no-results-filter i {
-            font-size: 2.5rem;
-            color: #d1d5db;
-            display: block;
-            margin-bottom: 0.75rem;
-        }
-
-        /* ── Table ── */
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        .tacsa-table {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8125rem;
         }
 
-        .tacsa-table thead th {
-            background: #fafafa;
-            padding: 0.875rem 1rem;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
-
-        .tacsa-table tbody td {
-            padding: 1rem;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-        }
-
-        .tacsa-table tbody tr {
-            transition: background 0.1s;
-        }
-
-        .tacsa-table tbody tr:hover {
-            background: #fafafa;
-        }
-
-        .tacsa-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* ── Badges ── */
-        .badge-entrada {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: var(--tacsa-green-light);
-            color: var(--tacsa-green);
-        }
-
-        .badge-entrada i {
-            font-size: 0.75rem;
-        }
-
-        .badge-salida {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: var(--tacsa-red-light);
-            color: var(--tacsa-red);
-        }
-
-        .badge-salida i {
-            font-size: 0.75rem;
-        }
-
-        .badge-ajuste {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: var(--tacsa-amber-light);
-            color: var(--tacsa-amber);
-        }
-
-        .badge-ajuste i {
-            font-size: 0.75rem;
-        }
-
-        .badge-transferencia-in {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: var(--tacsa-blue-light);
-            color: var(--tacsa-blue);
-        }
-
-        .badge-transferencia-out {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: rgba(124, 58, 237, 0.1);
-            color: #7c3aed;
-        }
-
-        .badge-traslado {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: rgba(124, 58, 237, 0.15);
-            color: #6d28d9;
-        }
-
-        .transfer-warehouse {
-            color: var(--tacsa-red);
-            font-weight: 500;
-        }
-
-        .transfer-warehouse-dest {
-            color: #6d28d9;
-            font-weight: 600;
-        }
-
-        .badge-product {
-            display: inline-block;
-            padding: 0.25rem 0.625rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: var(--tacsa-blue-light);
-            color: var(--tacsa-blue);
-        }
-
-        .cell-qty {
-            font-weight: 700;
-            font-size: 0.875rem;
-        }
-
-        .cell-qty.positive {
-            color: var(--tacsa-green);
-        }
-
-        .cell-qty.negative {
-            color: var(--tacsa-red);
-        }
-
-        /* ── Action buttons ── */
-        .action-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-size: 0.875rem;
-        }
-
-        .action-btn:hover {
-            border-color: #d1d5db;
-            background: #f9fafb;
-        }
-
-        .action-btn.view:hover {
-            color: var(--tacsa-green);
-            border-color: var(--tacsa-green);
-            background: var(--tacsa-green-light);
-        }
-
-        .action-btn.edit:hover {
-            color: var(--tacsa-blue);
-            border-color: var(--tacsa-blue);
-            background: var(--tacsa-blue-light);
-        }
-
-        .action-btn.delete:hover {
-            color: var(--tacsa-red);
-            border-color: var(--tacsa-red);
-            background: var(--tacsa-red-light);
-        }
-
-        .actions-cell {
-            display: flex;
-            gap: 0.375rem;
-        }
-
-        /* ── Table footer ── */
         .table-footer {
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-        }
-
-        .pagination-btns {
-            display: flex;
-            gap: 0.375rem;
-        }
-
-        .page-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .page-btn:hover {
-            border-color: #d1d5db;
-            background: #f9fafb;
-        }
-
-        .page-btn.active {
-            background: var(--tacsa-red);
-            color: #ffffff;
-            border-color: var(--tacsa-red);
-        }
-
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* ══════════════════════════════════
-           EMPTY STATE
-        ══════════════════════════════════ */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-
-        .empty-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.25rem;
-        }
-
-        .empty-icon i {
-            font-size: 2rem;
-            color: #9ca3af;
-        }
-
-        .empty-state h4 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.375rem;
-            color: var(--text-primary);
-        }
-
-        .empty-state p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-
-        /* ══════════════════════════════════
-           INVENTORY TAB - CARDS
-        ══════════════════════════════════ */
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .inventory-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.25rem;
-            transition: box-shadow 0.15s, border-color 0.15s;
-        }
-
-        .inventory-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-            border-color: #d1d5db;
-        }
-
-        .inventory-item-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .inventory-item-header h5 {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin: 0;
-            color: var(--text-primary);
-        }
-
-        .inventory-item-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .inventory-item-row .label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .inventory-item-row .value {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .stock-bar-wrapper {
-            margin-top: 0.75rem;
-        }
-
-        .stock-bar-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.6875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.375rem;
-        }
-
-        .stock-bar {
-            height: 6px;
-            background: #f3f4f6;
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-
-        .stock-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            transition: width 0.3s;
-        }
-
-        .stock-bar-fill.high {
-            background: var(--tacsa-green);
-        }
-
-        .stock-bar-fill.medium {
-            background: var(--tacsa-amber);
-        }
-
-        .stock-bar-fill.low {
-            background: var(--tacsa-red);
-        }
-
-        /* ══════════════════════════════════
-           MODALS
-        ══════════════════════════════════ */
-        .modal {
-            display: none;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal.show {
-            display: block !important;
-        }
-
-        .modal.show .modal-dialog {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            border: none;
-            border-radius: 12px;
-            position: relative;
-            z-index: 1060;
-        }
-
-        .modal-header {
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 1.5rem;
-        }
-
-        .modal-header .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            margin: 0;
-        }
-
-        .modal-header .section-title .bar {
-            width: 4px;
-            height: 22px;
-            background: var(--tacsa-red);
-            border-radius: 9999px;
-        }
-
-        .modal-header .section-title h5 {
-            font-size: 1.0625rem;
-            font-weight: 600;
-            color: var(--tacsa-red);
-            margin: 0;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            border-top: 1px solid var(--border-color);
-            padding: 1rem 1.5rem;
-        }
-
-        /* ── Form fields ── */
-        .field-label {
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.375rem;
-        }
-
-        .field-label .required {
-            color: var(--tacsa-red);
-            margin-left: 2px;
-        }
-
-        .tacsa-input,
-        .tacsa-select,
-        .tacsa-textarea {
-            height: 44px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 0 1rem;
-            font-size: 0.8125rem;
-            color: var(--text-primary);
-            background-color: var(--bg-card);
-            transition: border-color 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-
-        .tacsa-textarea {
-            height: auto;
-            padding: 0.75rem 1rem;
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .tacsa-input::placeholder,
-        .tacsa-textarea::placeholder {
-            color: #9ca3af;
-        }
-
-        .tacsa-input:focus,
-        .tacsa-select:focus,
-        .tacsa-textarea:focus {
-            border-color: var(--tacsa-red);
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-            outline: none;
-        }
-
-        .section-separator {
-            border: none;
-            height: 1px;
-            background: var(--tacsa-red-light2);
-            margin: 1.5rem 0;
-        }
-
-        .modal-section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-section-title .bar {
-            width: 4px;
-            height: 20px;
-            background: var(--tacsa-red);
-            border-radius: 9999px;
-        }
-
-        .modal-section-title span {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--tacsa-red);
-        }
-
-        /* ── Buttons ── */
-        .btn-tacsa-cancel {
-            height: 42px;
-            padding: 0 1.25rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-tacsa-cancel:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-        .btn-tacsa-save {
-            height: 42px;
-            padding: 0 1.25rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            background: var(--tacsa-green);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-tacsa-save:hover {
-            background: var(--tacsa-green-dark);
-        }
-
-        .btn-tacsa-save.red {
-            background: var(--tacsa-red);
-        }
-
-        .btn-tacsa-save.red:hover {
-            background: var(--tacsa-red-dark);
-        }
-
-        /* ── Detail modal ── */
-        .detail-row {
-            display: flex;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            width: 160px;
-            flex-shrink: 0;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .detail-value {
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        /* ── Delete modal ── */
-        .delete-icon-wrapper {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: var(--tacsa-red-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.25rem;
-        }
-
-        .delete-icon-wrapper i {
-            font-size: 1.75rem;
-            color: var(--tacsa-red);
-        }
-
-        .delete-text {
-            text-align: center;
-        }
-
-        .delete-text h5 {
-            font-size: 1.0625rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .delete-text p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-
-        .delete-text .item-name {
-            font-weight: 600;
-            color: var(--tacsa-red);
-        }
-
-        /* ══════════════════════════════════
-           TOAST
-        ══════════════════════════════════ */
-        .tacsa-toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 0.75rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            z-index: 9999;
-            transform: translateY(120%);
-            opacity: 0;
-            transition: all 0.3s ease;
         }
+    }
+</style>
 
-        .tacsa-toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
+@section('title', 'TACSA - Movimientos de Inventario')
+@section('contenido')
+    <main id="main" class="main bg-light py-4">
+        <div class="container-fluid">
 
-        .tacsa-toast .toast-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
+            <!-- ══════════ PAGE CONTENT ══════════ -->
+            <div class="page-wrapper">
 
-        .tacsa-toast .toast-icon.success {
-            background: var(--tacsa-green-light);
-            color: var(--tacsa-green);
-        }
-
-        .tacsa-toast .toast-icon.error {
-            background: var(--tacsa-red-light);
-            color: var(--tacsa-red);
-        }
-
-        /* ══════════════════════════════════
-           FOOTER
-        ══════════════════════════════════ */
-        .site-footer {
-            border-top: 2px solid var(--tacsa-red);
-            text-align: center;
-            padding: 1.25rem;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 2rem;
-        }
-
-        /* ══════════════════════════════════
-           RESPONSIVE
-        ══════════════════════════════════ */
-        @media (max-width: 992px) {
-            .stat-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .inventory-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 576px) {
-            .page-wrapper {
-                padding: 1.25rem 1rem;
-            }
-
-            .stat-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .inventory-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .topbar {
-                padding: 0.75rem 1rem;
-            }
-
-            .topbar-nav {
-                display: none;
-            }
-
-            .page-header {
-                flex-direction: column;
-            }
-
-            .header-actions {
-                width: 100%;
-            }
-
-            .header-actions .btn-entrada,
-            .header-actions .btn-salida {
-                flex: 1;
-                justify-content: center;
-            }
-
-            .toolbar-actions {
-                width: 100%;
-                flex-wrap: wrap;
-            }
-
-            .search-box input {
-                width: 100%;
-            }
-
-            .table-footer {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- ══════════ TOP BAR ══════════ -->
-    <nav class="topbar">
-        <a href="#" class="topbar-brand">
-            <span class="logo-sm">TACSA</span>
-            TACSA
-        </a>
-        <div class="topbar-nav">
-            <a href="{{ route('home') }}">Inicio</a>
-        </div>
-    </nav>
-
-    <!-- ══════════ PAGE CONTENT ══════════ -->
-    <div class="page-wrapper">
-
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1>Movimientos</h1>
-                <p>Entradas y salidas de inventario</p>
-            </div>
-            <div class="header-actions">
-                <button onclick="window.location='{{ route('operation.get') }}'" class="btn-entrada"
-                    data-bs-toggle="modal" data-bs-target="#entradaModal">
-                    <i class="bi bi-box-arrow-in-down"></i> Entrada
-                </button>
-                <button onclick="window.location='{{ route('output.get') }}'" class="btn-salida" data-bs-toggle="modal"
-                    data-bs-target="#salidaModal">
-                    <i class="bi bi-box-arrow-up"></i> Salida
-                </button>
-            </div>
-        </div>
-
-        <!-- Stat Cards -->
-        <div class="stat-cards">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="bi bi-arrow-left-right"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotal }}</h3>
-                    <span>Total Movimientos</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="bi bi-box-arrow-in-down"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalIN }}</h3>
-                    <span>Entradas</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon red">
-                    <i class="bi bi-box-arrow-up"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalOUT }}</h3>
-                    <span>Salidas</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon purple">
-                    <i class="bi bi-arrows-move"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalTRANSFER }}</h3>
-                    <span>Traslados</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon purple">
-                    <i class="bi-box-arrow-in-right"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalRELOCATION }}</h3>
-                    <span>Re ubicaciones</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <i class="bi bi-pencil-square"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalADJUSTMENT }}</h3>
-                    <span>Ajustes</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <i class="bi bi-cash-stack"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ $movementsTotalSALE }}</h3>
-                    <span>Ventas</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tacsa-tabs">
-            <button class="tacsa-tab active" onclick="switchTab('historial', this)">
-                <i class="bi bi-clock-history"></i>&nbsp; Historial de Movimientos
-            </button>
-            <button class="tacsa-tab" onclick="switchTab('inventario', this)">
-                <i class="bi bi-boxes"></i>&nbsp; Inventario Actual
-            </button>
-
-        </div>
-
-        <!-- ═══════ TAB 1: HISTORIAL ═══════ -->
-        <div class="tab-content-panel active" id="tab-historial">
-            <div class="table-card">
-                <div class="table-toolbar">
-                    <div class="section-title">
-                        <span class="bar"></span>
-                        <h2>Registro de Movimientos</h2>
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1>Movimientos</h1>
+                        <p>Entradas y salidas de inventario</p>
                     </div>
-                    <div class="toolbar-actions">
-                        <div class="search-box">
-                            <i class="bi bi-search"></i>
-                            <input type="text" id="searchMovements" placeholder="Buscar por producto, lote..."
-                                oninput="filterMovements()">
-                        </div>
-                        <select class="filter-select" id="filterType" onchange="filterMovements()">
-                            <option value="">Todos los tipos</option>
-                            <option value="entrada">Entrada</option>
-                            <option value="salida">Salida</option>
-                            <option value="traslado">Traslado</option>
-                            <option value="ajuste">Ajuste</option>
-                            <option value="relocation">Reubicación</option>
-                            <option value="sales">Ventas</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="tacsa-table">
-                        <thead>
-                            <tr>
-                                <th>Folio</th>
-                                <th>Fecha</th>
-                                <th>Tipo</th>
-                                <th>Producto</th>
-                                <th>Almacen</th>
-                                <th>Cantidad</th>
-                                <th>Lote</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movementsBody">
-                            <!-- Rows injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Empty state (hidden when there are rows) -->
-                <div class="empty-state" id="emptyHistorial" style="display:none;">
-                    <div class="empty-icon">
-                        <i class="bi bi-arrow-left-right"></i>
-                    </div>
-                    <h4>No hay movimientos registrados</h4>
-                    <p>Los movimientos de entrada y salida se mostraran aqui</p>
-                </div>
-                <div class="table-footer" id="historialFooter">
-                    <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de <strong
-                            id="showingTotal">0</strong> movimientos</span>
-                    <div class="pagination-btns" id="paginationBtns">
-                        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i
-                                class="bi bi-chevron-left"></i></button>
-                        <span id="pageNumbers"></span>
-                        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i
-                                class="bi bi-chevron-right"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════ TAB 2: INVENTARIO ACTUAL ═══════ -->
-        <div class="tab-content-panel" id="tab-inventario">
-            <div class="table-card" style="border:none; background:transparent; overflow:visible;">
-                <div class="table-toolbar"
-                    style="border-radius:12px 12px 0 0; background: var(--bg-card); border: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-                    <div class="section-title">
-                        <span class="bar"></span>
-                        <h2>Stock por Producto</h2>
-                    </div>
-                </div>
-
-                <div class="inventory-filters"
-                    style="padding:1rem 1.5rem; border:1px solid var(--border-color); border-top:none; background:var(--bg-card);">
-                    <div class="row g-3">
-                        <div class="col-md-3 col-sm-6">
-                            <label class="filter-label">Producto</label>
-                            <select class="form-select filter-select" id="filterProducto"
-                                onchange="filterInventory()">
-                                <option value="">Todos los productos</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <label class="filter-label">Bodega</label>
-                            <select class="form-select filter-select" id="filterBodega" onchange="filterInventory()">
-                                <option value="">Todas las bodegas</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <label class="filter-label">Rack</label>
-                            <select class="form-select filter-select" id="filterRack" onchange="filterInventory()">
-                                <option value="">Todos los racks</option>
-
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <label class="filter-label">Nivel</label>
-                            <select class="form-select filter-select" id="filterNivel" onchange="filterInventory()">
-                                <option value="">Todos los niveles</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between mt-3" id="filterStatus"
-                        style="display:none!important;">
-                        <span class="filter-result-text"><i class="bi bi-funnel-fill"
-                                style="color:var(--tacsa-red);"></i> <span id="filterCount">6</span> productos
-                            encontrados</span>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="clearFilters()"
-                            style="font-size:0.8rem; border-radius:8px;">
-                            <i class="bi bi-x-lg"></i> Limpiar filtros
+                    <div class="header-actions">
+                        <button onclick="window.location='{{ route('operation.get') }}'" class="btn-entrada">
+                            <i class="bi bi-box-arrow-in-down"></i> Entrada
+                        </button>
+                        <button onclick="window.location='{{ route('output.get') }}'" class="btn-salida">
+                            <i class="bi bi-box-arrow-up"></i> Salida
                         </button>
                     </div>
                 </div>
+
+                <!-- Stat Cards -->
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotal }}</h3>
+                            <span>Total Movimientos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalIN }}</h3>
+                            <span>Entradas</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-box-arrow-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalOUT }}</h3>
+                            <span>Salidas</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-arrows-move"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalTRANSFER }}</h3>
+                            <span>Traslados</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi-box-arrow-in-right"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalRELOCATION }}</h3>
+                            <span>Re ubicaciones</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-pencil-square"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalADJUSTMENT }}</h3>
+                            <span>Ajustes</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ $movementsTotalSALE }}</h3>
+                            <span>Ventas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tacsa-tabs">
+                    <button class="tacsa-tab active" onclick="switchTab('historial', this)">
+                        <i class="bi bi-clock-history"></i>&nbsp; Historial de Movimientos
+                    </button>
+                    <button class="tacsa-tab" onclick="switchTab('inventario', this)">
+                        <i class="bi bi-boxes"></i>&nbsp; Inventario Actual
+                    </button>
+
+                </div>
+
+                <!-- ═══════ TAB 1: HISTORIAL ═══════ -->
+                <div class="tab-content-panel active" id="tab-historial">
+                    <div class="table-card">
+                        <div class="table-toolbar">
+                            <div class="section-title">
+                                <span class="bar"></span>
+                                <h2>Registro de Movimientos</h2>
+                            </div>
+                            <div class="toolbar-actions">
+                                <div class="search-box">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" id="searchMovements" placeholder="Buscar por producto, lote..."
+                                        oninput="filterMovements()">
+                                </div>
+                                <select class="filter-select" id="filterType" onchange="filterMovements()">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="entrada">Entrada</option>
+                                    <option value="salida">Salida</option>
+                                    <option value="traslado">Traslado</option>
+                                    <option value="ajuste">Ajuste</option>
+                                    <option value="relocation">Reubicación</option>
+                                    <option value="sales">Ventas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="tacsa-table">
+                                <thead>
+                                    <tr>
+                                        <th>Folio</th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Producto</th>
+                                        <th>Almacen</th>
+                                        <th>Cantidad</th>
+                                        <th>Lote</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="movementsBody">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Empty state (hidden when there are rows) -->
+                        <div class="empty-state" id="emptyHistorial" style="display:none;">
+                            <div class="empty-icon">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </div>
+                            <h4>No hay movimientos registrados</h4>
+                            <p>Los movimientos de entrada y salida se mostraran aqui</p>
+                        </div>
+                        <div class="table-footer" id="historialFooter">
+                            <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de
+                                <strong id="showingTotal">0</strong> movimientos</span>
+                            <div class="pagination-btns" id="paginationBtns">
+                                <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <span id="pageNumbers"></span>
+                                <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 2: INVENTARIO ACTUAL ═══════ -->
+                <div class="tab-content-panel" id="tab-inventario">
+                    <div class="table-card" style="border:none; background:transparent; overflow:visible;">
+                        <div class="table-toolbar"
+                            style="border-radius:12px 12px 0 0; background: var(--bg-card); border: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                            <div class="section-title">
+                                <span class="bar"></span>
+                                <h2>Stock por Producto</h2>
+                            </div>
+                        </div>
+
+                        <div class="inventory-filters"
+                            style="padding:1rem 1.5rem; border:1px solid var(--border-color); border-top:none; background:var(--bg-card);">
+                            <div class="row g-3">
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="filter-label">Producto</label>
+                                    <select class="form-select filter-select" id="filterProducto"
+                                        onchange="filterInventory()">
+                                        <option value="">Todos los productos</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="filter-label">Bodega</label>
+                                    <select class="form-select filter-select" id="filterBodega"
+                                        onchange="filterInventory()">
+                                        <option value="">Todas las bodegas</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="filter-label">Rack</label>
+                                    <select class="form-select filter-select" id="filterRack"
+                                        onchange="filterInventory()">
+                                        <option value="">Todos los racks</option>
+
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <label class="filter-label">Nivel</label>
+                                    <select class="form-select filter-select" id="filterNivel"
+                                        onchange="filterInventory()">
+                                        <option value="">Todos los niveles</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-3" id="filterStatus"
+                                style="display:none!important;">
+                                <span class="filter-result-text"><i class="bi bi-funnel-fill"
+                                        style="color:var(--tacsa-red);"></i> <span id="filterCount">6</span> productos
+                                    encontrados</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="clearFilters()"
+                                    style="font-size:0.8rem; border-radius:8px;">
+                                    <i class="bi bi-x-lg"></i> Limpiar filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inventory-grid" style="margin-top:1rem;">
+                        <!-- Product 1 -->
+                        @foreach ($inventories as $item)
+                            <div class="inventory-item" data-product="{{ $item->getProductName() }}"
+                                data-warehouse="{{ $item->getWarehouseName() }}" data-rack="{{ $item->getRack() }}"
+                                data-level="{{ $item->getLevel() }}">
+                                <div class="inventory-item-header">
+                                    <h5>{{ $item->getProductName() }}</h5>
+                                    <span class="badge-product">{{ $item->getProductCode() }}</span>
+                                </div>
+                                <div class="inventory-item-row">
+                                    <span class="label">Almacen</span>
+                                    <span class="value">{{ $item->getWarehouseName() }}</span>
+                                </div>
+                                <div class="inventory-item-row">
+                                    <span class="label">Rack / Nivel</span>
+                                    <span class="value">{{ $item->getRack() }} / Nivel
+                                        {{ $item->getLevel() }}</span>
+                                </div>
+                                <div class="inventory-item-row">
+                                    <span class="label">Stock Actual</span>
+                                    <span class="value" style="color:var(--tacsa-green);">{{ $item->getStock() }}
+                                        pzs</span>
+                                </div>
+                                <div class="inventory-item-row">
+                                    <span class="label">Fecha de caducidad</span>
+                                    <span class="value"
+                                        style="color:red;">{{ substr($item->getExpirationDate(), 0, 10) }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
             </div>
-            <div class="inventory-grid" style="margin-top:1rem;">
-                <!-- Product 1 -->
-                @foreach ($inventories as $item)
-                    <div class="inventory-item" data-product="{{ $item->getProductName() }}"
-                        data-warehouse="{{ $item->getWarehouseName() }}" data-rack="{{ $item->getRack() }}"
-                        data-level="{{ $item->getLevel() }}">
-                        <div class="inventory-item-header">
-                            <h5>{{ $item->getProductName() }}</h5>
-                            <span class="badge-product">{{ $item->getProductCode() }}</span>
-                        </div>
-                        <div class="inventory-item-row">
-                            <span class="label">Almacen</span>
-                            <span class="value">{{ $item->getWarehouseName() }}</span>
-                        </div>
-                        <div class="inventory-item-row">
-                            <span class="label">Rack / Nivel</span>
-                            <span class="value">{{ $item->getRack() }} / Nivel {{ $item->getLevel() }}</span>
-                        </div>
-                        <div class="inventory-item-row">
-                            <span class="label">Stock Actual</span>
-                            <span class="value" style="color:var(--tacsa-green);">{{ $item->getStock() }} pzs</span>
-                        </div>
-                        <div class="inventory-item-row">
-                            <span class="label">Fecha de caducidad</span>
-                            <span class="value"
-                                style="color:red;">{{ substr($item->getExpirationDate(), 0, 10) }}</span>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
 
-    </div>
+            <div class="tab-content-panel" id="tab-reportes">
 
-    <div class="tab-content-panel" id="tab-reportes">
-
-        <!-- Report Type Selection -->
-        <div class="report-type-selector">
-            <p class="report-intro">Seleccione el tipo de reporte que desea generar:</p>
-            <div class="report-types-grid">
-                <div class="report-type-card" onclick="selectReportType('bodega')" id="rptType-bodega">
-                    <div class="report-type-icon blue">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div class="report-type-info">
-                        <h6>Por Bodega</h6>
-                        <p>Inventario completo de una bodega con detalles de productos y ubicaciones</p>
+                <!-- Report Type Selection -->
+                <div class="report-type-selector">
+                    <p class="report-intro">Seleccione el tipo de reporte que desea generar:</p>
+                    <div class="report-types-grid">
+                        <div class="report-type-card" onclick="selectReportType('bodega')" id="rptType-bodega">
+                            <div class="report-type-icon blue">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div class="report-type-info">
+                                <h6>Por Bodega</h6>
+                                <p>Inventario completo de una bodega con detalles de productos y ubicaciones</p>
+                            </div>
+                        </div>
+                        <div class="report-type-card" onclick="selectReportType('articulo')" id="rptType-articulo">
+                            <div class="report-type-icon green">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <div class="report-type-info">
+                                <h6>Por Articulo</h6>
+                                <p>Movimientos y existencias de un producto en todos los almacenes</p>
+                            </div>
+                        </div>
+                        <div class="report-type-card" onclick="selectReportType('caducidad')" id="rptType-caducidad">
+                            <div class="report-type-icon amber">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                            <div class="report-type-info">
+                                <h6>Por Caducidad</h6>
+                                <p>Productos proximos a caducar o ya caducados para tomar accion</p>
+                            </div>
+                        </div>
+                        <div class="report-type-card" onclick="selectReportType('periodo')" id="rptType-periodo">
+                            <div class="report-type-icon red">
+                                <i class="bi bi-calendar-range"></i>
+                            </div>
+                            <div class="report-type-info">
+                                <h6>Movimientos por Periodo</h6>
+                                <p>Entradas, salidas y ajustes dentro de un rango de fechas</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="report-type-card" onclick="selectReportType('articulo')" id="rptType-articulo">
-                    <div class="report-type-icon green">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <div class="report-type-info">
-                        <h6>Por Articulo</h6>
-                        <p>Movimientos y existencias de un producto en todos los almacenes</p>
-                    </div>
-                </div>
-                <div class="report-type-card" onclick="selectReportType('caducidad')" id="rptType-caducidad">
-                    <div class="report-type-icon amber">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <div class="report-type-info">
-                        <h6>Por Caducidad</h6>
-                        <p>Productos proximos a caducar o ya caducados para tomar accion</p>
-                    </div>
-                </div>
-                <div class="report-type-card" onclick="selectReportType('periodo')" id="rptType-periodo">
-                    <div class="report-type-icon red">
-                        <i class="bi bi-calendar-range"></i>
-                    </div>
-                    <div class="report-type-info">
-                        <h6>Movimientos por Periodo</h6>
-                        <p>Entradas, salidas y ajustes dentro de un rango de fechas</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Report Filters Panel (dynamic) -->
-        <div class="report-filters-panel" id="reportFiltersPanel" style="display:none;">
-            <div class="report-filters-header">
-                <div class="section-title">
-                    <span class="bar"></span>
-                    <h5 id="reportFiltersPanelTitle">Filtros del Reporte</h5>
-                </div>
-                <button type="button" class="btn-clear-report" onclick="clearReportSelection()">
-                    <i class="bi bi-arrow-left"></i> Cambiar tipo
-                </button>
-            </div>
-
-            <!-- Filters for Bodega -->
-            <div class="report-filter-group" id="filtersForBodega" style="display:none;">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label class="field-label">Bodega <span class="required">*</span></label>
-                        <select class="tacsa-select" id="rptBodegaSelect" onchange="checkReportFilters()">
-                            <option value="">Seleccione una bodega</option>
-                            <option value="13">Almacen Central</option>
-                            <option value="14">Almacen Norte</option>
-                            <option value="15">Almacen Sur</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Rack (opcional)</label>
-                        <select class="tacsa-select" id="rptBodegaRack">
-                            <option value="">Todos</option>
-                            <option value="R-01">R-01</option>
-                            <option value="R-02">R-02</option>
-                            <option value="R-05">R-05</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Nivel (opcional)</label>
-                        <select class="tacsa-select" id="rptBodegaNivel">
-                            <option value="">Todos</option>
-                            <option value="1">Nivel 1</option>
-                            <option value="2">Nivel 2</option>
-                            <option value="3">Nivel 3</option>
-                            <option value="4">Nivel 4</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn-generate-report" id="btnGenBodega"
-                            onclick="generateReportInline('bodega')" disabled>
-                            <i class="bi bi-search"></i> Consultar
+                <!-- Report Filters Panel (dynamic) -->
+                <div class="report-filters-panel" id="reportFiltersPanel" style="display:none;">
+                    <div class="report-filters-header">
+                        <div class="section-title">
+                            <span class="bar"></span>
+                            <h5 id="reportFiltersPanelTitle">Filtros del Reporte</h5>
+                        </div>
+                        <button type="button" class="btn-clear-report" onclick="clearReportSelection()">
+                            <i class="bi bi-arrow-left"></i> Cambiar tipo
                         </button>
                     </div>
-                </div>
-            </div>
 
-            <!-- Filters for Articulo -->
-            <div class="report-filter-group" id="filtersForArticulo" style="display:none;">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-5">
-                        <label class="field-label">Producto <span class="required">*</span></label>
-                        <select class="tacsa-select" id="rptArticuloSelect" onchange="checkReportFilters()">
-                            <option value="">Seleccione un producto</option>
-                            <option value="mf019">Tacsa Power; 50 kgs.</option>
-                            <option value="pi004">Anibac Plus; 20 lts.</option>
-                            <option value="fo048">Agrovida; 1 lt.</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="field-label">Bodega (opcional)</label>
-                        <select class="tacsa-select" id="rptArticuloBodega">
-                            <option value="">Todas</option>
-                            <option value="13">Almacen Central</option>
-                            <option value="14">Almacen Norte</option>
-                            <option value="15">Almacen Sur</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn-generate-report" id="btnGenArticulo"
-                            onclick="generateReportInline('articulo')" disabled>
-                            <i class="bi bi-search"></i> Consultar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filters for Caducidad -->
-            <div class="report-filter-group" id="filtersForCaducidad" style="display:none;">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label class="field-label">Productos ya caducados</label>
-                        <p class="text-muted small mb-0">Se mostrarán todos los productos cuya fecha de caducidad haya
-                            pasado</p>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn-generate-report" id="btnGenCaducidad"
-                            onclick="generateReportInline('caducidad')">
-                            <i class="bi bi-search"></i> Consultar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filters for Periodo -->
-            <div class="report-filter-group" id="filtersForPeriodo" style="display:none;">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-2">
-                        <label class="field-label">Fecha inicio <span class="required">*</span></label>
-                        <input type="date" class="tacsa-input" id="rptPeriodoInicio"
-                            onchange="checkReportFilters()">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="field-label">Fecha fin <span class="required">*</span></label>
-                        <input type="date" class="tacsa-input" id="rptPeriodoFin"
-                            onchange="checkReportFilters()">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Tipo de movimiento</label>
-                        <select class="tacsa-select" id="rptPeriodoTipoInline">
-                            <option value="">Todos</option>
-                            <option value="IN">Entradas</option>
-                            <option value="OUT">Salidas</option>
-                            <option value="TRANSFER">Traslados</option>
-                            <option value="ADJUSTMENT">Ajustes</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="field-label">Bodega (opcional)</label>
-                        <select class="tacsa-select" id="rptPeriodoBodega">
-                            <option value="">Todas</option>
-                            @foreach ($warehouses as $warehouse)
-                                <option value="{{ $warehouse->getId() }}">{{ $warehouse->getWarehouseName() }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn-generate-report" id="btnGenPeriodo"
-                            onclick="generateReportInline('periodo')" disabled>
-                            <i class="bi bi-search"></i> Consultar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Report Results Area -->
-        <div class="report-results" id="reportResults" style="display:none;">
-            <div class="report-results-header">
-                <div class="section-title">
-                    <span class="bar"></span>
-                    <h5 id="reportResultsTitle">Resultados</h5>
-                </div>
-                <div class="report-results-actions">
-                    <span class="results-count" id="resultsCount">0 registros encontrados</span>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="tacsa-table" id="reportTable">
-                    <thead id="reportTableHead">
-                        <!-- Dynamic headers -->
-                    </thead>
-                    <tbody id="reportTableBody">
-                        <!-- Dynamic rows -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="report-empty" id="reportEmpty" style="display:none;">
-                <i class="bi bi-inbox"></i>
-                <p>No se encontraron registros con los filtros seleccionados</p>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Footer -->
-    <div class="site-footer">
-        &copy; 2026 Copyright &copy; Tacsa . Sistemas TACSA Todos los derechos reservados.
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         MODAL: NUEVA ENTRADA
-    ══════════════════════════════════════════════ -->
-    <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="section-title">
-                        <span class="bar"></span>
-                        <h5>Registrar Entrada</h5>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <form id="entradaForm" onsubmit="return handleEntrada(event)">
-                    <div class="modal-body" id="modalContent">
-                        <div class="text-center p-4">
-                            <div class="spinner-border"></div>
-                            <p class="mt-2">Cargando información...</p>
+                    <!-- Filters for Bodega -->
+                    <div class="report-filter-group" id="filtersForBodega" style="display:none;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="field-label">Bodega <span class="required">*</span></label>
+                                <select class="tacsa-select" id="rptBodegaSelect" onchange="checkReportFilters()">
+                                    <option value="">Seleccione una bodega</option>
+                                    <option value="13">Almacen Central</option>
+                                    <option value="14">Almacen Norte</option>
+                                    <option value="15">Almacen Sur</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="field-label">Rack (opcional)</label>
+                                <select class="tacsa-select" id="rptBodegaRack">
+                                    <option value="">Todos</option>
+                                    <option value="R-01">R-01</option>
+                                    <option value="R-02">R-02</option>
+                                    <option value="R-05">R-05</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="field-label">Nivel (opcional)</label>
+                                <select class="tacsa-select" id="rptBodegaNivel">
+                                    <option value="">Todos</option>
+                                    <option value="1">Nivel 1</option>
+                                    <option value="2">Nivel 2</option>
+                                    <option value="3">Nivel 3</option>
+                                    <option value="4">Nivel 4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn-generate-report" id="btnGenBodega"
+                                    onclick="generateReportInline('bodega')" disabled>
+                                    <i class="bi bi-search"></i> Consultar
+                                </button>
+                            </div>
                         </div>
-                        <div class="modal-footer justify-content-end gap-2">
+                    </div>
+
+                    <!-- Filters for Articulo -->
+                    <div class="report-filter-group" id="filtersForArticulo" style="display:none;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="field-label">Producto <span class="required">*</span></label>
+                                <select class="tacsa-select" id="rptArticuloSelect" onchange="checkReportFilters()">
+                                    <option value="">Seleccione un producto</option>
+                                    <option value="mf019">Tacsa Power; 50 kgs.</option>
+                                    <option value="pi004">Anibac Plus; 20 lts.</option>
+                                    <option value="fo048">Agrovida; 1 lt.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="field-label">Bodega (opcional)</label>
+                                <select class="tacsa-select" id="rptArticuloBodega">
+                                    <option value="">Todas</option>
+                                    <option value="13">Almacen Central</option>
+                                    <option value="14">Almacen Norte</option>
+                                    <option value="15">Almacen Sur</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn-generate-report" id="btnGenArticulo"
+                                    onclick="generateReportInline('articulo')" disabled>
+                                    <i class="bi bi-search"></i> Consultar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters for Caducidad -->
+                    <div class="report-filter-group" id="filtersForCaducidad" style="display:none;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="field-label">Productos ya caducados</label>
+                                <p class="text-muted small mb-0">Se mostrarán todos los productos cuya fecha de
+                                    caducidad
+                                    haya
+                                    pasado</p>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn-generate-report" id="btnGenCaducidad"
+                                    onclick="generateReportInline('caducidad')">
+                                    <i class="bi bi-search"></i> Consultar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters for Periodo -->
+                    <div class="report-filter-group" id="filtersForPeriodo" style="display:none;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-2">
+                                <label class="field-label">Fecha inicio <span class="required">*</span></label>
+                                <input type="date" class="tacsa-input" id="rptPeriodoInicio"
+                                    onchange="checkReportFilters()">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="field-label">Fecha fin <span class="required">*</span></label>
+                                <input type="date" class="tacsa-input" id="rptPeriodoFin"
+                                    onchange="checkReportFilters()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="field-label">Tipo de movimiento</label>
+                                <select class="tacsa-select" id="rptPeriodoTipoInline">
+                                    <option value="">Todos</option>
+                                    <option value="IN">Entradas</option>
+                                    <option value="OUT">Salidas</option>
+                                    <option value="TRANSFER">Traslados</option>
+                                    <option value="ADJUSTMENT">Ajustes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="field-label">Bodega (opcional)</label>
+                                <select class="tacsa-select" id="rptPeriodoBodega">
+                                    <option value="">Todas</option>
+                                    @foreach ($warehouses as $warehouse)
+                                        <option value="{{ $warehouse->getId() }}">
+                                            {{ $warehouse->getWarehouseName() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn-generate-report" id="btnGenPeriodo"
+                                    onclick="generateReportInline('periodo')" disabled>
+                                    <i class="bi bi-search"></i> Consultar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Results Area -->
+                <div class="report-results" id="reportResults" style="display:none;">
+                    <div class="report-results-header">
+                        <div class="section-title">
+                            <span class="bar"></span>
+                            <h5 id="reportResultsTitle">Resultados</h5>
+                        </div>
+                        <div class="report-results-actions">
+                            <span class="results-count" id="resultsCount">0 registros encontrados</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="tacsa-table" id="reportTable">
+                            <thead id="reportTableHead">
+                                <!-- Dynamic headers -->
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="report-empty" id="reportEmpty" style="display:none;">
+                        <i class="bi bi-inbox"></i>
+                        <p>No se encontraron registros con los filtros seleccionados</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="site-footer">
+                &copy; 2026 Copyright &copy; Tacsa . Sistemas TACSA Todos los derechos reservados.
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                                     MODAL: NUEVA ENTRADA
+                                ══════════════════════════════════════════════ -->
+            <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="section-title">
+                                <span class="bar"></span>
+                                <h5>Registrar Entrada</h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                        </div>
+                        <form id="entradaForm" onsubmit="return handleEntrada(event)">
+                            <div class="modal-body" id="modalContent">
+                                <div class="text-center p-4">
+                                    <div class="spinner-border"></div>
+                                    <p class="mt-2">Cargando información...</p>
+                                </div>
+                                <div class="modal-footer justify-content-end gap-2">
+                                    <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-lg"></i> Cancelar
+                                    </button>
+                                    <button type="submit" class="btn-tacsa-save">
+                                        <i class="bi bi-box-arrow-in-down"></i> Registrar Entrada
+                                    </button>
+                                </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                                     MODAL: NUEVA SALIDA
+                                ══════════════════════════════════════════════ -->
+            <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="section-title">
+                                <span class="bar"></span>
+                                <h5>Registrar Salida</h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                        </div>
+                        <form id="salidaForm" onsubmit="return handleSalida(event)">
+                            <div class="modal-body">
+                                <div class="modal-section-title">
+                                    <span class="bar"></span>
+                                    <span>Producto y Almacen</span>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="field-label">Producto <span class="required">*</span></label>
+                                        <select class="tacsa-select" required>
+                                            <option value="">Seleccione un producto</option>
+                                            <option value="1">SKU-001 - Tornillo Hex 1/4"</option>
+                                            <option value="2">SKU-002 - Tuerca M8</option>
+                                            <option value="3">SKU-003 - Arandela Plana 3/8"</option>
+                                            <option value="4">SKU-004 - Varilla Roscada 5/16"</option>
+                                            <option value="5">SKU-005 - Clavo 2.5"</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="field-label">Almacen <span class="required">*</span></label>
+                                        <select class="tacsa-select" required>
+                                            <option value="">Seleccione un almacen</option>
+                                            <option value="1">ALM-001 - Almacen Central</option>
+                                            <option value="2">ALM-002 - Almacen Norte</option>
+                                            <option value="3">ALM-003 - Almacen Sur</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <hr class="section-separator">
+
+                                <div class="modal-section-title">
+                                    <span class="bar"></span>
+                                    <span>Detalle de Salida</span>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="field-label">Cantidad <span class="required">*</span></label>
+                                        <input type="number" class="tacsa-input" placeholder="0" min="1"
+                                            required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="field-label">No. de Lote</label>
+                                        <input type="text" class="tacsa-input" placeholder="Ej: LOT-2026-001">
+                                    </div>
+                                </div>
+
+                                <hr class="section-separator">
+
+                                <div class="modal-section-title">
+                                    <span class="bar"></span>
+                                    <span>Motivo de Salida</span>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="field-label">Motivo <span class="required">*</span></label>
+                                    <textarea class="tacsa-textarea" placeholder="Describa el motivo de la salida..." rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer justify-content-end gap-2">
+                                <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-lg"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn-tacsa-save red">
+                                    <i class="bi bi-box-arrow-up"></i> Registrar Salida
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                                     MODAL: VER DETALLE
+                                 ══════════════════════════════════════════════ -->
+            <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="section-title">
+                                <span class="bar"></span>
+                                <h5>Detalle del Movimiento</h5>
+                            </div>
+                            <button type="button" class="btn-close" onclick="closeDetailModal()"
+                                aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body" id="detailBody">
+                            <!-- Filled by JS -->
+                        </div>
+                        <div class="modal-footer justify-content-end">
+                            <button type="button" class="btn-tacsa-cancel" onclick="closeDetailModal()">
+                                <i class="bi bi-x-lg"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                                     MODAL: ELIMINAR
+                                ══════════════════════════════════════════════ -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body" style="padding:2rem 1.5rem;">
+                            <div class="delete-icon-wrapper">
+                                <i class="bi bi-trash3"></i>
+                            </div>
+                            <div class="delete-text">
+                                <h5>Eliminar Movimiento</h5>
+                                <p>Se eliminara el movimiento <span class="item-name" id="deleteItemName">MOV-001</span>.
+                                    Esta
+                                    accion no se puede deshacer.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-center gap-2" style="border:none; padding-top:0;">
                             <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
                                 <i class="bi bi-x-lg"></i> Cancelar
                             </button>
-                            <button type="submit" class="btn-tacsa-save">
-                                <i class="bi bi-box-arrow-in-down"></i> Registrar Entrada
+                            <button type="button" class="btn-tacsa-save red" onclick="confirmDelete()">
+                                <i class="bi bi-trash3"></i> Eliminar
                             </button>
                         </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         MODAL: NUEVA SALIDA
-    ══════════════════════════════════════════════ -->
-    <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="section-title">
-                        <span class="bar"></span>
-                        <h5>Registrar Salida</h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <form id="salidaForm" onsubmit="return handleSalida(event)">
-                    <div class="modal-body">
-                        <div class="modal-section-title">
-                            <span class="bar"></span>
-                            <span>Producto y Almacen</span>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="field-label">Producto <span class="required">*</span></label>
-                                <select class="tacsa-select" required>
-                                    <option value="">Seleccione un producto</option>
-                                    <option value="1">SKU-001 - Tornillo Hex 1/4"</option>
-                                    <option value="2">SKU-002 - Tuerca M8</option>
-                                    <option value="3">SKU-003 - Arandela Plana 3/8"</option>
-                                    <option value="4">SKU-004 - Varilla Roscada 5/16"</option>
-                                    <option value="5">SKU-005 - Clavo 2.5"</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="field-label">Almacen <span class="required">*</span></label>
-                                <select class="tacsa-select" required>
-                                    <option value="">Seleccione un almacen</option>
-                                    <option value="1">ALM-001 - Almacen Central</option>
-                                    <option value="2">ALM-002 - Almacen Norte</option>
-                                    <option value="3">ALM-003 - Almacen Sur</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr class="section-separator">
-
-                        <div class="modal-section-title">
-                            <span class="bar"></span>
-                            <span>Detalle de Salida</span>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="field-label">Cantidad <span class="required">*</span></label>
-                                <input type="number" class="tacsa-input" placeholder="0" min="1" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="field-label">No. de Lote</label>
-                                <input type="text" class="tacsa-input" placeholder="Ej: LOT-2026-001">
-                            </div>
-                        </div>
-
-                        <hr class="section-separator">
-
-                        <div class="modal-section-title">
-                            <span class="bar"></span>
-                            <span>Motivo de Salida</span>
-                        </div>
-                        <div class="mb-0">
-                            <label class="field-label">Motivo <span class="required">*</span></label>
-                            <textarea class="tacsa-textarea" placeholder="Describa el motivo de la salida..." rows="3" required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-end gap-2">
-                        <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
-                            <i class="bi bi-x-lg"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn-tacsa-save red">
-                            <i class="bi bi-box-arrow-up"></i> Registrar Salida
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         MODAL: VER DETALLE
-     ══════════════════════════════════════════════ -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="section-title">
-                        <span class="bar"></span>
-                        <h5>Detalle del Movimiento</h5>
-                    </div>
-                    <button type="button" class="btn-close" onclick="closeDetailModal()"
-                        aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body" id="detailBody">
-                    <!-- Filled by JS -->
-                </div>
-                <div class="modal-footer justify-content-end">
-                    <button type="button" class="btn-tacsa-cancel" onclick="closeDetailModal()">
-                        <i class="bi bi-x-lg"></i> Cerrar
-                    </button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ══════════════════════════════════════════════
-         MODAL: ELIMINAR
-    ══════════════════════════════════════════════ -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-body" style="padding:2rem 1.5rem;">
-                    <div class="delete-icon-wrapper">
-                        <i class="bi bi-trash3"></i>
-                    </div>
-                    <div class="delete-text">
-                        <h5>Eliminar Movimiento</h5>
-                        <p>Se eliminara el movimiento <span class="item-name" id="deleteItemName">MOV-001</span>. Esta
-                            accion no se puede deshacer.</p>
-                    </div>
+            <!-- TOAST -->
+            <div class="tacsa-toast" id="toast">
+                <div class="toast-icon success" id="toastIcon">
+                    <i class="bi bi-check-lg"></i>
                 </div>
-                <div class="modal-footer justify-content-center gap-2" style="border:none; padding-top:0;">
-                    <button type="button" class="btn-tacsa-cancel" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg"></i> Cancelar
-                    </button>
-                    <button type="button" class="btn-tacsa-save red" onclick="confirmDelete()">
-                        <i class="bi bi-trash3"></i> Eliminar
-                    </button>
-                </div>
+                <span id="toastMsg">Movimiento registrado exitosamente</span>
             </div>
-        </div>
-    </div>
 
-    <!-- TOAST -->
-    <div class="tacsa-toast" id="toast">
-        <div class="toast-icon success" id="toastIcon">
-            <i class="bi bi-check-lg"></i>
         </div>
-        <span id="toastMsg">Movimiento registrado exitosamente</span>
-    </div>
+    </main>
 
+@endsection
+@push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ══════════════════════════════════
@@ -2909,7 +2910,4 @@
         // ══════════════════════════════════
         renderMovements();
     </script>
-
-</body>
-
-</html>
+@endpush

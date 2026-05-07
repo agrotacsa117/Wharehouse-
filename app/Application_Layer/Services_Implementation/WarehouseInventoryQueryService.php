@@ -6,6 +6,8 @@ use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
 {
@@ -63,6 +65,27 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             return ResultPattern::failure($th->getMessage());
         }
 
+        return ResultPattern::success(true);
+    }
+
+    public function updateOrCreateInventory(
+        RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO,
+        WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
+    ): ResultPattern {
+
+        $warehouseInventoryEntity =  $this
+        ->warehouseInventoryRepository
+        ->findSpecificInventory(
+            $removeWarehouseInventoryStockDTO->getWarehouseId(),
+            $removeWarehouseInventoryStockDTO->getRack(),
+            $removeWarehouseInventoryStockDTO->getLevel(),
+            $warehouseInventoryOutDetailDTO->getProductCode(),
+            $warehouseInventoryOutDetailDTO->getLotNumber()
+        );
+
+        if (!$warehouseInventoryEntity) {
+            
+        }
         return ResultPattern::success(true);
     }
 }

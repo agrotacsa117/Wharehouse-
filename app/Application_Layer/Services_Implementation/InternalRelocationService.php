@@ -11,6 +11,8 @@ use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Contracts\WarehouseInventoryQueryServiceI;
+use App\Application_Layer\Services_Implementation\BaseOutputService;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 
 class InternalRelocationService implements WarehouseOutputStrategy
 {
@@ -19,6 +21,7 @@ class InternalRelocationService implements WarehouseOutputStrategy
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
+    private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 
     public function __construct(
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
@@ -31,6 +34,7 @@ class InternalRelocationService implements WarehouseOutputStrategy
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
+
         $this->result = $this->warehouseInventoryQueryService
         ->getInventoryById(
             $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
@@ -69,6 +73,13 @@ class InternalRelocationService implements WarehouseOutputStrategy
         || $this->warehouseInventoryOutDetailDTO->getRack()
         !== $removeWarehouseInventoryStockDTO->getRack();
 
+        if (
+            $removeWarehouseInventoryStockDTO
+            ->getWarehouseId()
+        ) {
+            
+        }
+
         if (!$hasChange) {
             return ResultPattern::success(
                 "¡No hay cambios detectados!"
@@ -103,9 +114,10 @@ class InternalRelocationService implements WarehouseOutputStrategy
                 $removeWarehouseInventoryStockDTO->getUserId()
             );
 
-            $this->result = 
+            $this->result =
             $this->warehouseMovementsService->saveWarehouseMovement(
-                $movementDTO);
+                $movementDTO
+            );
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());

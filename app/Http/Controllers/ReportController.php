@@ -28,6 +28,7 @@ class ReportController extends Controller
 
     public function index()
     {
+    
         $titulo = "Reportes";
         $hoy = Carbon::now();
         $sieteDiasDespues = $hoy->copy()->addDays(7);
@@ -159,7 +160,7 @@ class ReportController extends Controller
         // ============================================
         $movimientosResult = $this->warehouseMovementsService->filterTransactionsByDateRange(
             new MovementsByPeriodFilterDTO(
-                now()->startOfMonth()->format('Y-m-d'),
+                now()->startOfMonth()->format('2026-01-01'),
                 now()->format('Y-m-d'),
                 null,
                 null
@@ -167,7 +168,7 @@ class ReportController extends Controller
         );
 
         $movimientos =  $movimientosResult->getValue();
-
+      
         $movementsTotalIN = $this->warehouseMovementsService
                ->countByMovementType(
                    "IN"
@@ -278,14 +279,14 @@ class ReportController extends Controller
                    'start_date' => 'required|date_format:Y-m-d',
                    'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
                    'warehouse_id' => 'nullable|integer',
-                   '     ' => 'nullable|string'
+                   'movement_type' => 'nullable|string'
                ]);
 
         $filterDTO = new MovementsByPeriodFilterDTO(
             $validated['start_date'],
             $validated['end_date'],
-            $validated['movement_type'],
-            $validated['warehouse_id']
+            $validated['movement_type'] ?? null,
+            $validated['warehouse_id'] ?? null
         );
 
         $detailsOfMovements = $this
@@ -306,7 +307,7 @@ class ReportController extends Controller
         }
 
         $detailsOfMovements = $detailsOfMovements->getValue();
-       
+
         return response()->json([
             'success' => true,
             'message' => 'Movimientos obtenidos exitosamente',

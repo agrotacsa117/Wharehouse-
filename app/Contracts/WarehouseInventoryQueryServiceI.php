@@ -3,6 +3,8 @@
 namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 interface WarehouseInventoryQueryServiceI
 {
@@ -12,5 +14,10 @@ interface WarehouseInventoryQueryServiceI
         int $id,
         string $rack,
         int $level
+    ): ResultPattern;
+
+    public function updateOrCreateInventory(
+        RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO,
+        WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern;
 }

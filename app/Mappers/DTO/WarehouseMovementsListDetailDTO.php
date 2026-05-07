@@ -21,6 +21,7 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     private string $userName;
     private string $createdAt;
     private string $expirationDate;
+    private string $destinationWarehouseName;
 
 
     public function __construct(
@@ -40,7 +41,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         int $userId,
         string $userName,
         string $createdAt,
-        string $expirationDate
+        string $expirationDate,
+        string $destinationWarehouseName
     ) {
         $this->id = $id;
         $this->folio = $folio;
@@ -59,6 +61,7 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         $this->userName = $userName;
         $this->createdAt = $createdAt;
         $this->expirationDate = $expirationDate;
+        $this->destinationWarehouseName = $destinationWarehouseName;
     }
 
     // Getters
@@ -219,14 +222,14 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
             'userId' => $this->userId,
             'userName' => $this->userName,
             'createdAt' => $this->createdAt,
-            'expiration_date' => $this->expirationDate
+            'expiration_date' => $this->expirationDate,
+            'destinationWarehouseName' => $this->destinationWarehouseName
         ];
     }
 
 
     public static function fromModel(array $movement): self
-    {
-
+    {    
         return new self(
             $movement['id'],
             $movement['folio'],
@@ -254,7 +257,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
                 strtotime(
                     $movement['inventory']['expiration_date']
                 )
-            )
+            ),
+            $movement['source_warehouse']['warehouses_name']?? "Sin destino"
         );
 
 

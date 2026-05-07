@@ -16,9 +16,6 @@ class WarehouseInventoryMovementsModel extends Model
        'quantity',
        'reason',
        'user_id',
-       'user_id',
-        'client_id',
-        'invoice_sap',
         'operation_date',
         'source_warehouse_id',
         'created_at',
@@ -34,6 +31,14 @@ class WarehouseInventoryMovementsModel extends Model
         );
     }
 
+    public function sourceWarehouse()
+    {
+        return $this->belongsTo(
+            WarehouseModel::class,
+            'source_warehouse_id', // Tu llave foránea en los movimientos
+            'id'                    // La llave primaria en la tabla warehouses
+        );
+    }
     public function user()
     {
         return $this->belongsTo(
@@ -47,6 +52,7 @@ class WarehouseInventoryMovementsModel extends Model
     {
         return $this->hasOne(
             WarehouseSalesModel::class,
-             'movement_id');
+            'movement_id'
+        );
     }
 }

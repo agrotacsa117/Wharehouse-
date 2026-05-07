@@ -86,10 +86,14 @@ Route::post(
     [MovementsController::class, 'reportByCaducidad']
 )->name('warehouse-movements.report-caducidad');
 
-Route::get(
-    '/warehouse-movements',
-    [MovementsController::class, 'getView']
-)->name('warehouse-movements.get');
+Route::middleware("auth")->group(function () {
+    Route::get(
+        '/warehouse-movements',
+        [MovementsController::class, 'getView']
+    )->name('warehouse-movements.get');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
 
 
 Route::post(

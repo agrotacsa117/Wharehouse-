@@ -2,6 +2,8 @@
 
 namespace App\Mappers\DTO;
 
+use Carbon\Carbon;
+
 //
 class ExpiredInventoryDTO implements \JsonSerializable
 {
@@ -35,6 +37,11 @@ class ExpiredInventoryDTO implements \JsonSerializable
         $this->quantity = $quantity;
         $this->lotNumber = $lotNumber;
         $this->expirationDate = $expirationDate;
+        $date = Carbon::parse(
+            $this->expirationDate
+        );
+        $date->format('Y-m-d');
+        $this->expirationDate = $date->toDateString();
         $this->rack = $rack;
         $this->level = $level;
         $this->expiredDays = $expiredDays;
@@ -50,7 +57,7 @@ class ExpiredInventoryDTO implements \JsonSerializable
             'warehouseName' => $this->warehouseName,
             'quantity' => $this->quantity,
             'lotNumber' => $this->lotNumber,
-            'expirationDate' => date('Y-m-d', strtotime($this->expirationDate)),
+            'expirationDate' => Carbon::parse($this->expirationDate)->format('Y-m-d'),
             'expiredDays' => $this->expiredDays,
             'rack' => $this->rack,
             'level' => $this->level

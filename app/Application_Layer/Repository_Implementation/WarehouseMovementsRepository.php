@@ -101,21 +101,31 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     ): array {
 
         $filteredMovements =  WarehouseInventoryMovementsModel::query()
-        ->with(['inventory.warehouse', 'user'])
+        ->with([
+            'inventory.warehouse',
+            'user',
+            'sourceWarehouse' => function ($q) {
+                $q->select('id', 'warehouses_name');
+            }])
         ->whereBetween('created_at', [
-            $startDate,
-            $endDate
-        ]);
+                $startDate,
+                $endDate
+            ]);
 
         if ($warehouseId) {
-            $filteredMovements->where(
-                'warehouse_id',
-                $warehouseId
+            $filteredMovements->whereHas(
+                'inventory',
+                function ($query) use ($warehouseId) {
+                    $query->where(
+                        'warehouse_id',
+                        $warehouseId
+                    );
+                }
             );
         }
 
         if ($movementType) {
-            $filteredMovements->where(
+            $filteredMovements = $filteredMovements->where(
                 'movement_type',
                 $movementType
             );

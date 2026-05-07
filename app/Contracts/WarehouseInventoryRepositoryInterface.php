@@ -63,4 +63,12 @@ interface WarehouseInventoryRepositoryInterface
 
 
     public function findExpiredRanking(): array;
+
+    public function findSpecificInventory(
+        int $warehouseId,
+        string $rack,
+        int $level,
+        string $productId,
+        string $lotNumber
+    ): ?WarehouseInventory;
 }

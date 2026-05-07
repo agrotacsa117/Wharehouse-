@@ -1,5 +1,6 @@
 @extends('layouts.main')
 @section('titulo', $titulo)
+-
 
 @section('contenido')
 <main id="main" class="main bg-light py-4">

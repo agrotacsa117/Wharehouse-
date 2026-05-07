@@ -38,7 +38,7 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Main content -->
-        <div class="content">
+       container-fluidcontainer-fluid
             <div class="container-fluid">
                 @yield('content')
             </div>

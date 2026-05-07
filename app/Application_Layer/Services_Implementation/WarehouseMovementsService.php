@@ -101,6 +101,9 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             $movementsByPeriodFilterDTO->getMovementType()
         );
 
+
+
+
         $statistics = $this->warehouseMovementsRepository
         ->getMovementCountsByType(
             $movementsByPeriodFilterDTO->getStartDate(),
@@ -134,13 +137,14 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                     $movementType = "Ventas";
                     break;
 
-                case 'RELOCATION': 
-                    $movementType = "Reubicación";
+                case 'RELOCATION':
+                    $movementType = "Reubicacion";
                     break;
             }
 
 
             $movementsFiltered[$i]['movement_type'] = $movementType;
+
 
             $register = WarehouseMovementsListDetailDTO::fromModel(
                 $movementsFiltered[$i]
@@ -149,6 +153,9 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             $finalFiltered[$index] = $register;
             $index++;
         }
+
+       
+
 
         $filteredReport = new DetailsOfMovements(
             $finalFiltered,

@@ -15,6 +15,7 @@ class RemoveWarehouseInventoryStockDTO
     private int $clientId;
     private int $invoiceId;
     private int $userId;
+    private string $lotNumber;
 
 
     public function __construct(
@@ -27,6 +28,9 @@ class RemoveWarehouseInventoryStockDTO
         $this->reason = $reason;
     }
 
+    function getLotNumber() : string {
+        return $this->lotNumber;
+    }
     public function getUserId(): int
     {
         return $this->userId;

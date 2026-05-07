@@ -76,6 +76,7 @@ class OutputController extends Controller
 
     public function getView()
     {
+
         $warehousesId = $this->warehouseInventoryService
         ->getWarehouseIdsWithInventory();
 
@@ -109,7 +110,6 @@ class OutputController extends Controller
         $coLocatedWarehouses = $this->warehouseStorageService->getWarehousesByLocationId(
             $locationId
         );
-
         return response()->json($coLocatedWarehouses);
     }
 
@@ -117,10 +117,12 @@ class OutputController extends Controller
         Request $request,
         int $userId
     ) {
+
         $movementType = $request->movement_type;
         $request->validate([
                     'new_rack' => 'required|string|max:50',
                     'new_level' => 'required|integer|min:1',
+                    'quantity' => 'required|integer|min:1'
                 ]);
 
         $this->removeWarehouseInventoryStockDTO =
@@ -130,6 +132,11 @@ class OutputController extends Controller
             $movementType
         );
 
+        $this->removeWarehouseInventoryStockDTO
+        ->setQuantity(
+            $request->quantity
+        );
+        
         $this->removeWarehouseInventoryStockDTO
         ->setRack(
             $request->new_rack
@@ -143,6 +150,11 @@ class OutputController extends Controller
         $this->removeWarehouseInventoryStockDTO
         ->setOperationDate(
             $request->operation_date
+        );
+
+        $this->removeWarehouseInventoryStockDTO
+        ->setWarehouseId(
+            $request->destination_warehouse_id
         );
 
         $this->warehouseInventoryService
@@ -198,8 +210,8 @@ class OutputController extends Controller
         }
 
         $this->removeWarehouseInventoryStockDTO->setOperationDate($request->operation_date ?? now()->format('Y-m-d'));
-        
-        
+
+
         $result = $this->warehouseInventoryService->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
         );
@@ -293,7 +305,7 @@ class OutputController extends Controller
             (int) $request->quantity,
             $request->reason
         );
-        
+
         $this->removeWarehouseInventoryStockDTO
         = $this->buildRemoveWarehouseInventoryStockDTO(
             $request,
@@ -307,14 +319,14 @@ class OutputController extends Controller
         ->transferInventory(
             $transferDTO
         );
-        
+
         if ($result->isFailure()) {
             return back()->withErrors(
                 $result->getError()
             )->withInput();
         }
-        
-        
+
+
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
     }
 

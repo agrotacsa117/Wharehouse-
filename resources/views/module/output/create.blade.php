@@ -470,7 +470,16 @@
                                         <div class="alert alert-primary">
                                             <i class="bi bi-arrows-move"></i> Reubicación Interna
                                         </div>
+
                                         <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Bodega Destino *</label>
+                                                <select name="destination_warehouse_id"
+                                                    id="input-relocation-destination" class="form-select">
+                                                    <option value="">Seleccione bodega destino...</option>
+                                                </select>
+                                                <small class="text-muted">Solo bodegas del mismo location</small>
+                                            </div>
 
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Nuevo Rack *</label>
@@ -588,7 +597,7 @@
                     break;
                 case 'RELOCATION':
                     fieldsRelocation.classList.remove('d-none');
-                    document.getElementById('input-quantity').disabled = true;
+                    document.getElementById('input-quantity').disabled = false;
                     document.getElementById('input-relocation-destination').required = true;
                     document.getElementById('input-new-rack').required = true;
                     document.getElementById('input-new-level').required = true;
@@ -609,6 +618,7 @@
                 return;
             }
 
+            
             fetch('/warehouses/by-location/' + state.warehouseLocationId)
                 .then(response => response.json())
                 .then(warehouses => {

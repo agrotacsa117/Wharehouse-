@@ -124,7 +124,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         int $warehouseInventoryId,
         int $quantity
     ): bool {
-        
+
         return WarehouseInventoryModel::where(
             'id',
             $warehouseInventoryId
@@ -403,5 +403,31 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         }
 
         return $results;
+    }
+
+    public function findSpecificInventory(
+        int $warehouseId,
+        string $rack,
+        int $level,
+        string $productId,
+        string $lotNumber
+    ): ?WarehouseInventory {
+
+        // 1. Ejecutar la consulta con Eloquent
+        $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
+            ->where('rack', $rack)
+            ->where('_level', $level)
+            ->where('product_id', $productId)
+            ->where('lot_number', $lotNumber)
+            ->first();
+
+        if (!$model) {
+            return null;
+        }
+
+        return $this->warehouseInventoryModelToWarehouseInventory
+        ->convertWarehouseInventoryModelToWarehouseInventory(
+            $model
+        );
     }
 }

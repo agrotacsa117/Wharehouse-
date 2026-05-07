@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Mappers\DTO;
+use Carbon\Carbon;
 
 class WarehouseInventoryDetailDTO implements \JsonSerializable
 {
@@ -165,7 +166,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
            'level' => $this->level,
            'rack' => $this->rack,
            'quantity' => $this->stock,
-           'expirationDate' => $this->expirationDate,
+           'expirationDate' => Carbon::parse($this->expirationDate)->format('Y-m-d'),
            'lotNumber' => $this->lotNumber,
            'remainingDays' => $this->remainingDays,
            'obsolescence' => $this->obsolescence

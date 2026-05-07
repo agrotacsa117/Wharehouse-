@@ -36,7 +36,7 @@
 
         @if (auth()->user()->rol === 'admin')
             <li class="nav-item mb-2">
-                <a class="nav-link {{ request()->routeIs('warehouse-movements.get') ? '' : 'collapsed' }}"
+                <a class="nav-link {{ request()->routeIs('warehouse-managment.get') ? '' : 'collapsed' }}"
                     href="{{ route('warehouse-managment.get') }}">
                     <i class="fa-solid fa-warehouse align-middle me-2 fs-5"></i> {{-- Considera fa-truck-ramp-box o bi-person-rolodex --}}
                     <span class="align-middle fw-bold">Bodegas</span>

@@ -1,497 +1,500 @@
 @extends('layouts.main')
 @section('titulo', $titulo)
 
+
+@php
+    $user = auth()->user();
+    $esAdmin = $user->rol === 'admin';
+    $esTapachula = $user->rol === 'tapachula';
+    $esDorado = $user->rol === 'bodega_dorado';
+@endphp
+
+<style>
+    :root {
+        --tacsa-red: #DC2626;
+        --tacsa-red-dark: #B91C1C;
+        --tacsa-red-light: rgba(220, 38, 38, 0.08);
+        --color-critical: #dc2626;
+        --color-attention: #ca8a04;
+        --color-ok: #16a34a;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .breadcrumb-custom {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+
+    .breadcrumb-custom a {
+        color: var(--tacsa-red);
+        text-decoration: none;
+    }
+
+    .badge-critical-alert {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        animation: pulse-alert 2s infinite;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    @keyframes pulse-alert {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+        }
+
+        50% {
+            box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+        }
+    }
+
+    .date-badge {
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: #475569;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dot-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .dot-critical {
+        background-color: var(--color-critical);
+        animation: blink 1.5s infinite;
+    }
+
+    .dot-attention {
+        background-color: var(--color-attention);
+    }
+
+    .dot-ok {
+        background-color: var(--color-ok);
+    }
+
+    @keyframes blink {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    /* Chart y Resumen */
+    .chart-card,
+    .resumen-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1.25rem;
+    }
+
+    .chart-container {
+        position: relative;
+        max-width: 260px;
+        margin: 0 auto;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.25rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #475569;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    /* Mini Cards */
+    .semaforo-mini-card {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid transparent;
+    }
+
+    .semaforo-mini-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .semaforo-mini-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .semaforo-mini-card.critical {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border-left: 4px solid var(--color-critical) !important;
+    }
+
+    .semaforo-mini-card.attention {
+        background: linear-gradient(135deg, #fefce8, #fef9c3);
+        border-left: 4px solid var(--color-attention) !important;
+    }
+
+    .semaforo-mini-card.ok {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border-left: 4px solid var(--color-ok) !important;
+    }
+
+    .mini-card-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .mini-card-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .mini-card-value.critical {
+        color: var(--color-critical);
+    }
+
+    .mini-card-value.attention {
+        color: var(--color-attention);
+    }
+
+    .mini-card-value.ok {
+        color: var(--color-ok);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--tacsa-red);
+        display: inline-block;
+    }
+
+    /* Modales */
+    .modal-header.critical {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border-left: 5px solid var(--color-critical);
+    }
+
+    .modal-header.attention {
+        background: linear-gradient(135deg, #fef9c3, #fef08a);
+        border-left: 5px solid var(--color-attention);
+    }
+
+    .modal-header.ok {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        border-left: 5px solid var(--color-ok);
+    }
+
+    .modal-title-critical {
+        color: var(--color-critical);
+    }
+
+    .modal-title-attention {
+        color: #a16207;
+    }
+
+    .modal-title-ok {
+        color: var(--color-ok);
+    }
+
+    .filter-section {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .table-semaforo {
+        font-size: 0.85rem;
+    }
+
+    .table-semaforo th {
+        background: #f1f5f9;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .table-semaforo td {
+        vertical-align: middle;
+    }
+
+    .no-data-message {
+        padding: 3rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    /* TABS */
+    .tabs-nav {
+        display: flex;
+        gap: 0;
+        background: white;
+        border-radius: 12px;
+        padding: 0.35rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.75rem;
+        width: fit-content;
+    }
+
+    .tab-btn {
+        padding: 0.55rem 1.25rem;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .tab-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .tab-btn.active {
+        background: var(--tacsa-red);
+        color: white;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .tab-panel {
+        display: none;
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    /* TOP 3 */
+    .top3-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .top3-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.6rem;
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border-left: 4px solid var(--color-critical);
+        transition: transform 0.15s ease;
+    }
+
+    .top3-item:hover {
+        transform: translateX(3px);
+    }
+
+    .top3-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .top3-rank {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .top3-rank.rank-1 {
+        background: #dc2626;
+    }
+
+    .top3-rank.rank-2 {
+        background: #ef4444;
+    }
+
+    .top3-rank.rank-3 {
+        background: #f87171;
+    }
+
+    .top3-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .top3-name {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .top3-meta {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.1rem;
+    }
+
+    .top3-days {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 50px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .days-expired {
+        background: #dc2626;
+        color: white;
+    }
+
+    .days-urgent {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    /* VENCIDOS */
+    .vencidos-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+    }
+
+    /* MOVIMIENTOS */
+    .reporte-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.5rem;
+    }
+
+    .reporte-filter-bar {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.5rem;
+    }
+
+    .movement-stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    .movement-stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .movement-stat-label {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 0.2rem;
+    }
+
+    .movement-stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
 @section('contenido')
-    @php
-        $user = auth()->user();
-        $esAdmin = $user->rol === 'admin';
-        $esTapachula = $user->rol === 'tapachula';
-        $esDorado = $user->rol === 'bodega_dorado';
-    @endphp
-
-    <style>
-        :root {
-            --tacsa-red: #DC2626;
-            --tacsa-red-dark: #B91C1C;
-            --tacsa-red-light: rgba(220, 38, 38, 0.08);
-            --color-critical: #dc2626;
-            --color-attention: #ca8a04;
-            --color-ok: #16a34a;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .page-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-        }
-
-        .breadcrumb-custom {
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-
-        .breadcrumb-custom a {
-            color: var(--tacsa-red);
-            text-decoration: none;
-        }
-
-        .badge-critical-alert {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            animation: pulse-alert 2s infinite;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        @keyframes pulse-alert {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
-            }
-        }
-
-        .date-badge {
-            background: white;
-            border: 1px solid #e2e8f0;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            color: #475569;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .dot-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-
-        .dot-critical {
-            background-color: var(--color-critical);
-            animation: blink 1.5s infinite;
-        }
-
-        .dot-attention {
-            background-color: var(--color-attention);
-        }
-
-        .dot-ok {
-            background-color: var(--color-ok);
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.4;
-            }
-        }
-
-        /* Chart y Resumen */
-        .chart-card,
-        .resumen-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            height: 100%;
-        }
-
-        .chart-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 1.25rem;
-        }
-
-        .chart-container {
-            position: relative;
-            max-width: 260px;
-            margin: 0 auto;
-        }
-
-        .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 1.25rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #475569;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            flex-shrink: 0;
-        }
-
-        /* Mini Cards */
-        .semaforo-mini-card {
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid transparent;
-        }
-
-        .semaforo-mini-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .semaforo-mini-card:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .semaforo-mini-card.critical {
-            background: linear-gradient(135deg, #fef2f2, #fee2e2);
-            border-left: 4px solid var(--color-critical) !important;
-        }
-
-        .semaforo-mini-card.attention {
-            background: linear-gradient(135deg, #fefce8, #fef9c3);
-            border-left: 4px solid var(--color-attention) !important;
-        }
-
-        .semaforo-mini-card.ok {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            border-left: 4px solid var(--color-ok) !important;
-        }
-
-        .mini-card-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .mini-card-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-        }
-
-        .mini-card-value.critical {
-            color: var(--color-critical);
-        }
-
-        .mini-card-value.attention {
-            color: var(--color-attention);
-        }
-
-        .mini-card-value.ok {
-            color: var(--color-ok);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--tacsa-red);
-            display: inline-block;
-        }
-
-        /* Modales */
-        .modal-header.critical {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            border-left: 5px solid var(--color-critical);
-        }
-
-        .modal-header.attention {
-            background: linear-gradient(135deg, #fef9c3, #fef08a);
-            border-left: 5px solid var(--color-attention);
-        }
-
-        .modal-header.ok {
-            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-            border-left: 5px solid var(--color-ok);
-        }
-
-        .modal-title-critical {
-            color: var(--color-critical);
-        }
-
-        .modal-title-attention {
-            color: #a16207;
-        }
-
-        .modal-title-ok {
-            color: var(--color-ok);
-        }
-
-        .filter-section {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .table-semaforo {
-            font-size: 0.85rem;
-        }
-
-        .table-semaforo th {
-            background: #f1f5f9;
-            font-weight: 600;
-            color: #475569;
-            border-bottom: 2px solid #e2e8f0;
-            white-space: nowrap;
-        }
-
-        .table-semaforo td {
-            vertical-align: middle;
-        }
-
-        .no-data-message {
-            padding: 3rem;
-            text-align: center;
-            color: #94a3b8;
-        }
-
-        /* TABS */
-        .tabs-nav {
-            display: flex;
-            gap: 0;
-            background: white;
-            border-radius: 12px;
-            padding: 0.35rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 1.75rem;
-            width: fit-content;
-        }
-
-        .tab-btn {
-            padding: 0.55rem 1.25rem;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .tab-btn:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        .tab-btn.active {
-            background: var(--tacsa-red);
-            color: white;
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-        }
-
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        /* TOP 3 */
-        .top3-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            height: 100%;
-        }
-
-        .top3-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 0.6rem;
-            background: linear-gradient(135deg, #fef2f2, #fee2e2);
-            border-left: 4px solid var(--color-critical);
-            transition: transform 0.15s ease;
-        }
-
-        .top3-item:hover {
-            transform: translateX(3px);
-        }
-
-        .top3-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .top3-rank {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            color: white;
-            font-weight: 700;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .top3-rank.rank-1 {
-            background: #dc2626;
-        }
-
-        .top3-rank.rank-2 {
-            background: #ef4444;
-        }
-
-        .top3-rank.rank-3 {
-            background: #f87171;
-        }
-
-        .top3-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .top3-name {
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: #1e293b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .top3-meta {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.1rem;
-        }
-
-        .top3-days {
-            font-size: 0.8rem;
-            font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .days-expired {
-            background: #dc2626;
-            color: white;
-        }
-
-        .days-urgent {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-
-        /* VENCIDOS */
-        .vencidos-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-        }
-
-        /* MOVIMIENTOS */
-        .reporte-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 1.5rem;
-        }
-
-        .reporte-filter-bar {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 1.25rem;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 1.5rem;
-        }
-
-        .movement-stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-        }
-
-        .movement-stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .movement-stat-label {
-            font-size: 0.78rem;
-            color: #64748b;
-            margin-top: 0.2rem;
-        }
-
-        .movement-stat-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-    </style>
-
     <main id="main" class="main bg-light py-4">
         <div class="container-fluid">
 
             {{-- HEADER --}}
             <div class="page-header">
+                <meta name="csrf-token" content="{{ csrf_token() }}">
+
                 <div>
                     <h1 class="page-title">
                         <i class="bi bi-bar-chart-fill me-2" style="color: var(--tacsa-red);"></i>
@@ -811,7 +814,7 @@
                     <div class="col-6 col-md-3">
                         <div class="movement-stat-card">
                             <div class="movement-stat-icon text-danger"><i class="bi bi-arrows-move"></i></div>
-                            <div class="movement-stat-value text-danger" id="statSalidas">-</div>
+                            <div class="movement-stat-value text-danger" id="statRelocation">-</div>
                             <div class="movement-stat-label">Reubicación</div>
                         </div>
                     </div>
@@ -819,7 +822,7 @@
                     <div class="col-6 col-md-3">
                         <div class="movement-stat-card">
                             <div class="movement-stat-icon text-danger"><i class="bi bi-cart-check-fill"></i></div>
-                            <div class="movement-stat-value text-danger" id="statSalidas">-</div>
+                            <div class="movement-stat-value text-danger" id="statSale">-</div>
                             <div class="movement-stat-label">Venta</div>
                         </div>
                     </div>
@@ -1296,7 +1299,7 @@
                 <td class="text-center"><strong>${item.level || '-'}</strong></td>
                 <td><small>${item.lotNumber || '-'}</small></td>
                 <td class="text-center fw-bold">${formatNumber(item.quantity)}</td>
-                <td class="text-center">${formatDate(item.expirationDate)}</td>
+                <td class="text-center">${item.expirationDate}</td>
                 <td class="text-center">
                     <span class="badge ${getBadgeClass(item.remainingDays)}">
                         ${item.remainingDays < 0 ? 'Vencido' : item.remainingDays + ' días'}
@@ -1391,12 +1394,14 @@
                 badge: 'bg-warning text-dark',
                 icon: 'bi-sliders'
             },
+            
+
             out: {
                 label: 'Salida',
                 badge: 'bg-danger',
                 icon: 'bi-arrow-up-circle-fill'
             },
-            sale: {
+            ventas: {
                 label: 'Venta',
                 badge: 'bg-danger',
                 icon: 'bi-cart-fill'
@@ -1411,7 +1416,7 @@
                 badge: 'bg-primary',
                 icon: 'bi-arrow-left-right'
             },
-            relocation: {
+            reubicacion: {
                 label: 'Reubicación',
                 badge: 'bg-info text-dark',
                 icon: 'bi-arrows-move'
@@ -1426,7 +1431,7 @@
             const tipo = document.getElementById('movTipo').value;
             let result;
             let movementsRecords, statics;
-            alert("Entered at this section as win!!");
+
 
             result = await getWarehouseMovements({
                 startDate: inicio,
@@ -1440,38 +1445,9 @@
                 statics = result.data.statistics;
             }
 
-            alert(
-                "The lenght from array is: " +
-                movementsRecords.length
-            );
 
-            const data = [];
-            if (inicio) data = data.filter(m => m.createdAt >= inicio);
-            if (fin) data = data.filter(m => m.createdAt <= fin);
-            // if (almacen) data = data.filter(m =>
-            //     String(m.warehouseOriginId) === almacen ||
-            //     String(m.warehouseDestinationId) === almacen
-            // );
+            const data = movementsRecords;
 
-
-            alert(
-                "The lenght from array is: " +
-                data.length
-            );
-            if (tipo) data = data.filter(m => {
-                const t = (m.type || '').toLowerCase();
-                if (tipo === 'entrada') return t === 'in' || t === 'entrada';
-                if (tipo === 'salida') return t === 'out' || t === 'sale' || t === 'salida';
-                if (tipo === 'traslado') return t === 'transfer' || t === 'traslado';
-                if (tipo === 'ajuste') return t === 'adjustment' || t === 'ajuste';
-                return false;
-            });
-
-
-            alert(
-                "The lenght from array is: " +
-                data.length
-            );
             // Stats
             const counts = {
                 entrada: 0,
@@ -1480,18 +1456,14 @@
                 ajuste: 0
             };
 
-            data.forEach(m => {
-                const t = (m.type || '').toLowerCase();
-                if (t === 'in' || t === 'entrada') counts.entrada++;
-                else if (t === 'out' || t === 'sale' || t === 'salida') counts.salida++;
-                else if (t === 'transfer' || t === 'traslado') counts.traslado++;
-                else if (t === 'adjustment' || t === 'ajuste') counts.ajuste++;
-            });
 
-            document.getElementById('statEntradas').textContent = counts.entrada;
-            document.getElementById('statSalidas').textContent = counts.salida;
-            document.getElementById('statTraslados').textContent = counts.traslado;
-            document.getElementById('statAjustes').textContent = counts.ajuste;
+
+            document.getElementById('statEntradas').textContent = statics["IN"];
+            document.getElementById('statSalidas').textContent = statics["OUT"];
+            document.getElementById('statTraslados').textContent = statics["TRANSFER"];
+            document.getElementById('statAjustes').textContent = statics["ADJUSTMENT"];
+            document.getElementById('statRelocation').textContent = statics["RELOCATION"];
+            document.getElementById('statSale').textContent = statics["SALE"];
 
             const rangoEl = document.getElementById('movRangoLabel');
             if (rangoEl && inicio && fin) rangoEl.textContent = `Del ${formatDate(inicio)} al ${formatDate(fin)}`;
@@ -1504,7 +1476,7 @@
             const API_ROUTES = {
                 filterMovements: "{{ route('reports.filter.by.range') }}"
             };
-            alert("The params are: " + JSON.stringify(filters));
+
             try {
                 // Construir los parámetros de la URL
                 const params = new URLSearchParams({
@@ -1537,12 +1509,12 @@
                     }
                 });
 
-                alert("Entered here!");
+
                 const data = await response.json();
 
                 if (!response.ok) {
-                    alert("Entered here");
-                    throw new Error(data.message || 'Error al obtener los movimientos');
+                    throw new Error(data.message ||
+                        'Error al obtener los movimientos');
                 }
 
                 return data;
@@ -1558,12 +1530,7 @@
         function renderMovimientos(data) {
             const tbody = document.getElementById('tableMovimientosBody');
             const countEl = document.getElementById('countMovimientos');
-            alert("Entered here!");
-
-            alert(
-                "The record movements is: " +
-                JSON.stringify(data)
-            );
+            
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
@@ -1586,8 +1553,8 @@
                 <td>${formatDate(mov.createdAt)}</td>
                 <td><span class="badge ${cfg.badge}"><i class="bi ${cfg.icon} me-1"></i>${cfg.label}</span></td>
                 <td class="fw-medium">${mov.productName || 'N/A'}</td>
-                <td><span class="badge bg-secondary">${mov.warehouseOriginName || '-'}</span></td>
-                <td><span class="badge bg-secondary">${mov.warehouseDestinationName || '-'}</span></td>
+                <td><span class="badge bg-secondary">${mov.warehousesName || '-'}</span></td>
+                <td><span class="badge bg-secondary">${mov.destinationWarehouseName || '-'}</span></td>
                 <td><small>${mov.lotNumber || '-'}</small></td>
                 <td class="text-center fw-bold">${formatNumber(mov.quantity || 0)}</td>
                 <td><small class="text-muted">${mov.userName || '-'}</small></td>
@@ -1607,7 +1574,7 @@
                 <i class="bi bi-search me-2"></i>Aplica los filtros para consultar movimientos
             </td></tr>`;
             document.getElementById('countMovimientos').textContent = '';
-            ['statEntradas', 'statSalidas', 'statTraslados', 'statAjustes'].forEach(id => {
+            ['statEntradas', 'statSalidas', 'statTraslados', 'statAjustes', 'statRelocation', 'statSale'].forEach(id => {
                 document.getElementById(id).textContent = '-';
             });
             const rangoEl = document.getElementById('movRangoLabel');
