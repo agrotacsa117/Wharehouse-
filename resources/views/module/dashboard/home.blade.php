@@ -19,6 +19,7 @@
                 $esAdmin = $user->rol === 'admin';
                 $esTapachula = $user->rol === 'tapachula';
                 $esDorado = $user->rol === 'bodega_dorado';
+                
             @endphp
 
             {{-- ============================================================= --}}

@@ -34,7 +34,7 @@
 
 
 
-        @if (auth()->user()->rol === 'admin')
+        @if (auth()->user()->rol === 'admin' || auth()->user()->rol === 'Operador')
             <li class="nav-item mb-2">
                 <a class="nav-link {{ request()->routeIs('warehouse-managment.get') ? '' : 'collapsed' }}"
                     href="{{ route('warehouse-managment.get') }}">
@@ -48,7 +48,7 @@
 
 
 
-        @if (auth()->user()->rol === 'admin')
+        @if (auth()->user()->rol === 'admin' || auth()->user()->rol === 'Operador')
             <li class="nav-item mb-2">
                 <a class="nav-link {{ request()->routeIs('warehouse-movements.get') ? '' : 'collapsed' }}"
                     href="{{ route('warehouse-movements.get') }}">
@@ -58,7 +58,7 @@
             </li>
         @endif
 
-        @if (auth()->user()->rol === 'admin')
+        @if (auth()->user()->rol === 'admin' || auth()->user()->rol === 'Operador')
             <li class="nav-item mb-2">
                 <a class="nav-link {{ request()->routeIs('reports.get') ? '' : 'collapsed' }}"
                     href="{{ route('reports.get') }}">

@@ -529,6 +529,10 @@
                 <button class="tab-btn" onclick="switchTab('movimientos', this)">
                     <i class="bi bi-arrow-left-right"></i> Movimientos
                 </button>
+
+                <button class="tab-btn" onclick="switchTab('sales', this)">
+                    <i class="bi bi-cart3"></i> Ventas
+                </button>
             </div>
 
             {{-- =========================================== --}}

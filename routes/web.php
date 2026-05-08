@@ -33,20 +33,14 @@ use App\Http\Controllers\ReportController;
 */
 // usuario admin solo una vez
 Route::get('/crear-admin', [AuthController::class, 'crearAdmin']);
-Route::get(
-    '/register-warehouse',
-    [WarehouseRegistrationController::class, 'index']
-)->name('warehouses.create');
+
 
 Route::post(
     '/register-warehouse',
     [WarehouseRegistrationController::class, 'registerWarehouse']
 )->name('warehouses.store');
 
-Route::get(
-    '/register-location',
-    [LocationRegistrationController::class, 'getView']
-)->name('location.store');
+
 
 Route::post(
     '/register-location',
@@ -54,10 +48,7 @@ Route::post(
 )->name('locations.store');
 
 
-Route::get(
-    '/warehouse-type',
-    [WarehouseTypeController::class, 'getView']
-)->name('warehouse-type.get');
+
 
 Route::get(
     '/operation',
@@ -188,6 +179,30 @@ Route::prefix('proveedores')->middleware(['auth', 'role:admin'])->group(function
     Route::put('/update/{id}', [Proveedores::class, 'update'])->name('proveedores.update');
     Route::get('/show/{id}', [Proveedores::class, 'show'])->name('proveedores.show');
     Route::delete('/destroy/{id}', [Proveedores::class, 'destroy'])->name('proveedores.destroy');
+});
+
+Route::prefix('managment')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get(
+        '/register-warehouse',
+        [WarehouseRegistrationController::class, 'index']
+    )->name('warehouses.create');
+
+    Route::get(
+        '/warehouse-type',
+        [WarehouseTypeController::class, 'getView']
+    )->name('warehouse-type.get');
+
+    Route::get(
+        '/inventory-management',
+        [
+            InventoryManagementController::class,
+             'index']
+    )->name('inventory.management');
+
+    Route::get(
+        '/register-location',
+        [LocationRegistrationController::class, 'getView']
+    )->name('location.store');
 });
 
 Route::prefix('usuarios')->middleware(['auth', 'role:admin'])->group(function () {

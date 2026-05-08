@@ -86,15 +86,17 @@ class InternalRelocationService extends BaseOutputService
         || $this->warehouseInventoryOutDetailDTO->getRack()
         !== $removeWarehouseInventoryStockDTO->getRack();
 
-        $this->reduceStock(
-            $this->warehouseInventoryOutDetailDTO
-        );
-        if (
+        $successfulReduction =  $this->reduceStock(
+            $this->warehouseInventoryOutDetailDTO->getQuantity(),
             $removeWarehouseInventoryStockDTO
-            ->getWarehouseId()
-        ) {
+        );
 
+        if ($successfulReduction->isFailure()) {
+            return  $successfulReduction;
         }
+
+
+
 
         if (!$hasChange) {
             return ResultPattern::success(
@@ -103,6 +105,18 @@ class InternalRelocationService extends BaseOutputService
         }
 
         try {
+
+            if (
+                $removeWarehouseInventoryStockDTO
+                ->getWarehouseId()
+            ) {
+                $this->warehouseInventoryQueryService
+                ->updateOrCreateInventory(
+                    $removeWarehouseInventoryStockDTO,
+                    $this->warehouseInventoryOutDetailDTO
+                );
+            }
+            
             $this->warehouseInventoryQueryService
              ->relocateInventory(
                  $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),

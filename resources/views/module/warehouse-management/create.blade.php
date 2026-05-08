@@ -909,11 +909,13 @@
     <main id="main" class="main bg-light py-4">
         <div class="container-fluid">
             <nav class="topbar">
-                <div class="topbar-nav">
-                    <a href="{{ route('warehouse-type.get') }}" class="active">Categorías</a>
-                    <a href="{{ route('inventory.management') }}">Inventario</a>
-                    <a href="{{ route('location.store') }}">Ubicaciones</a>
-                </div>
+                @if (auth()->user()->rol === 'admin')
+                    <div class="topbar-nav">
+                        <a href="{{ route('warehouse-type.get') }}" class="active">Categorías</a>
+                        <a href="{{ route('inventory.management') }}">Inventario</a>
+                        <a href="{{ route('location.store') }}">Ubicaciones</a>
+                    </div>
+                @endif
             </nav>
 
             <!-- ══════════ PAGE CONTENT ══════════ -->
@@ -921,15 +923,19 @@
 
                 <!-- Page Header -->
                 <div class="page-header">
+                    <meta name="csrf-token" content="{{ csrf_token() }}">
+
                     <div class="page-header-text">
                         <h1>Gestión de Bodegas</h1>
                         <p>Gestión de bodegas,racks,ubicaciónes y categorías.</p>
                     </div>
-                    <a href="{{ route('warehouses.create') }}" class="btn-new-warehouse"
-                        title="Ir al formulario de registro">
-                        <i class="bi bi-plus-lg"></i>
-                        Nueva Bodega
-                    </a>
+                    @if (auth()->user()->rol === 'admin')
+                        <a href="{{ route('warehouses.create') }}" class="btn-new-warehouse"
+                            title="Ir al formulario de registro">
+                            <i class="bi bi-plus-lg"></i>
+                            Nueva Bodega
+                        </a>
+                    @endif
                 </div>
 
                 <!-- Stat Cards -->
@@ -1054,8 +1060,8 @@
             </div>
 
             <!-- ══════════════════════════════════
-                     MODAL: Detalle
-                ══════════════════════════════════ -->
+                             MODAL: Detalle
+                        ══════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
@@ -1079,8 +1085,8 @@
             </div>
 
             <!-- ══════════════════════════════════
-                     MODAL: Editar
-                ══════════════════════════════════ -->
+                             MODAL: Editar
+                        ══════════════════════════════════ -->
             <div class="modal fade" id="editModal" tabindex="-1">
                 <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
@@ -1202,8 +1208,8 @@
             </div>
 
             <!-- ══════════════════════════════════
-                     MODAL: Eliminar
-                ══════════════════════════════════ -->
+                             MODAL: Eliminar
+                        ══════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -1246,7 +1252,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         let deleteTargetId = null;
 
