@@ -6,6 +6,7 @@ use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
+use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
@@ -84,8 +85,37 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         );
 
         if (!$warehouseInventoryEntity) {
-            
-        }
+            $timeZone = new \DateTimeZone('America/Mexico_City');
+            $now = new \DateTime('now', $timeZone);
+            $date = new \DateTime(
+                $warehouseInventoryOutDetailDTO->getExpirationDate()
+            );
+
+            $date->format('Y-m-d');
+
+            $warehouseInventory = new WarehouseInventory(
+                $removeWarehouseInventoryStockDTO->getWarehouseId(),
+                $warehouseInventoryOutDetailDTO->getProductCode(),
+                $removeWarehouseInventoryStockDTO->getRack(),
+                $removeWarehouseInventoryStockDTO->getLevel(),
+                $now,
+                $now,
+                $warehouseInventoryOutDetailDTO->getProductName(),
+                $removeWarehouseInventoryStockDTO->getQuantity(),
+                $warehouseInventoryOutDetailDTO->getLotNumber(),
+                $removeWarehouseInventoryStockDTO->getReason(),
+                $date
+            );
+
+            $warehouseInventory = $this->warehouseInventoryRepository
+            ->save($warehouseInventory);
+
+            return ResultPattern::success(
+                $warehouseInventory
+            );
+        } 
+
+        
         return ResultPattern::success(true);
     }
 }

@@ -85,6 +85,10 @@ use App\Contracts\WarehouseSalesRepositoryI;
 use App\Application_Layer\Repository_Implementation\WarehouseSalesRepository;
 use App\Contracts\WarehouseSalesEntityToModelMapperI;
 use App\Mappers\WarehouseSalesEntityToModelMapper;
+use App\Contracts\RoleRepositoryI;
+use App\Contracts\RoleServiceI;
+use App\Application_Layer\Repository_Implementation\RoleRepository;
+use App\Application_Layer\Services_Implementation\RoleService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -95,6 +99,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+
+        $this->app->bind(
+            RoleRepositoryI::class,
+            RoleRepository::class
+        );
+
+        $this->app->bind(
+            RoleServiceI::class,
+            RoleService::class
+        );
+
         $this->app->bind(
             LocationServiceInterface::class,
             LocationServiceImplementation::class

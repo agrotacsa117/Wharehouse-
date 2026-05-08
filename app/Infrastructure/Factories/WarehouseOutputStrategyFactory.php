@@ -38,7 +38,8 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
             case 'RELOCATION':
                 return new InternalRelocationService(
                     $this->warehouseInventoryQueryService,
-                    $this->warehouseMovementsService
+                    $this->warehouseMovementsService,
+                    $this->inventoryRepository
                 );
                 break;
 

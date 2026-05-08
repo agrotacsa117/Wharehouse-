@@ -14,26 +14,39 @@ use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Application_Layer\Services_Implementation\BaseOutputService;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 
-class InternalRelocationService implements WarehouseOutputStrategy
+class InternalRelocationService extends BaseOutputService
 {
     private ResultPattern $result;
     private WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO;
-    private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseMovementsDTO $warehouseMovementsDTO;
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 
     public function __construct(
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
-        WarehouseMovementsServiceI $warehouseMovementsService
+        WarehouseMovementsServiceI $warehouseMovementsService,
+        WarehouseInventoryRepositoryInterface $warehouseInventoryRepository
     ) {
         $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
+        parent::__construct(
+            $warehouseInventoryRepository,
+            $warehouseMovementsService
+        );
     }
 
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
+
+        $this->result =  $this->validateStockAvailability(
+            $removeWarehouseInventoryStockDTO
+        );
+
+        if ($this->result->isFailure()) {
+            return $this->result;
+        }
+
 
         $this->result = $this->warehouseInventoryQueryService
         ->getInventoryById(
@@ -73,11 +86,14 @@ class InternalRelocationService implements WarehouseOutputStrategy
         || $this->warehouseInventoryOutDetailDTO->getRack()
         !== $removeWarehouseInventoryStockDTO->getRack();
 
+        $this->reduceStock(
+            $this->warehouseInventoryOutDetailDTO
+        );
         if (
             $removeWarehouseInventoryStockDTO
             ->getWarehouseId()
         ) {
-            
+
         }
 
         if (!$hasChange) {
