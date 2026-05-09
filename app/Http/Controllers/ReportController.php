@@ -12,23 +12,27 @@ use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use Illuminate\Http\JsonResponse;
+use App\Contracts\WarehouseSalesServiceI;
 
 class ReportController extends Controller
 {
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
     private WarehouseMovementsServiceI $warehouseMovementsService;
+    private WarehouseSalesServiceI $warehouseSalesService;
 
     public function __construct(
         WarehouseInventoryServiceInterface $warehouseInventoryService,
-        WarehouseMovementsServiceI $warehouseMovementsService
+        WarehouseMovementsServiceI $warehouseMovementsService,
+        WarehouseSalesServiceI $warehouseSalesService
     ) {
         $this->warehouseInventoryService = $warehouseInventoryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
+        $this->warehouseSalesService = $warehouseSalesService;
     }
 
     public function index()
     {
-    
+        $this->warehouseSalesService->getSalesReport();
         $titulo = "Reportes";
         $hoy = Carbon::now();
         $sieteDiasDespues = $hoy->copy()->addDays(7);
@@ -168,7 +172,7 @@ class ReportController extends Controller
         );
 
         $movimientos =  $movimientosResult->getValue();
-      
+
         $movementsTotalIN = $this->warehouseMovementsService
                ->countByMovementType(
                    "IN"

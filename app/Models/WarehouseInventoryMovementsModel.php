@@ -52,7 +52,8 @@ class WarehouseInventoryMovementsModel extends Model
     {
         return $this->hasOne(
             WarehouseSalesModel::class,
-            'movement_id'
+            'movement_id',
+            'folio'
         );
     }
 }

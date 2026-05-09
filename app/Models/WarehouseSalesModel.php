@@ -19,7 +19,8 @@ class WarehouseSalesModel extends Model
     {
         return  $this->belongsTo(
             WarehouseInventoryMovementsModel::class,
-            "movement_id"
+            "movement_id",
+            'folio'
         );
     }
 }

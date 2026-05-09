@@ -1,4 +1,3 @@
-
 @section('contenido')
 
     <!DOCTYPE html>
@@ -431,8 +430,13 @@
                         <label for="reason" class="field-label">
                             Motivo <span class="required">*</span>
                         </label>
-                        <input type="text" class="form-control tacsa-input" id="reason" name="reason"
-                            placeholder="Ej: Entrada de mercancia, Ajuste de inventario" required>
+                        <select class="form-control tacsa-input" id="reason" name="reason" required>
+                            <option value="" disabled selected>Seleccione un motivo...</option>
+                            <option value="Inventario Inicial">Inventario Inicial</option>
+                            <option value="Ajuste de inventario">Recepción de traslado</option>
+                            <option value="Reubicación">Reubicación</option>
+                            <option value="Ajuste">Ajuste</option>
+                        </select>
                     </div>
                 </div>
 
@@ -440,7 +444,8 @@
 
                 <!-- ===== Action buttons ===== -->
                 <div class="form-actions">
-                    <button type="button" class="btn-tacsa-cancel" id="btnCancel"  onclick="window.location='{{ route('warehouse-movements.get') }}'">
+                    <button type="button" class="btn-tacsa-cancel" id="btnCancel"
+                        onclick="window.location='{{ route('warehouse-movements.get') }}'">
                         <i class="bi bi-x-lg"></i>
                         Cancelar
                     </button>

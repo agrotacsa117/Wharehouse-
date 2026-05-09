@@ -28,6 +28,37 @@
         margin-bottom: 1.5rem;
     }
 
+    .table-footer {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+    }
+
+    .pagination-btns {
+        display: flex;
+        gap: 0.375rem;
+    }
+
+    .page-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
     .page-title {
         font-size: 1.75rem;
         font-weight: 700;
@@ -847,6 +878,7 @@
                                     <th>Fecha</th>
                                     <th>Tipo</th>
                                     <th>Producto</th>
+                                    <th>Motivo</th>
                                     <th>Almacén Origen</th>
                                     <th>Almacén Destino</th>
                                     <th>Lote</th>
@@ -867,6 +899,91 @@
                 </div>
 
             </div>{{-- /tab-movimientos --}}
+
+            {{-- =========================================== --}}
+            {{--         TAB 4: SALES                  --}}
+            {{-- =========================================== --}}
+            <div id="tab-sales" class="tab-panel">
+
+                <div class="reporte-filter-bar">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-medium">Fecha Inicio</label>
+                            <input type="date" class="form-control form-control-sm" id="movFechaInicio"
+                                value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-medium">Fecha Fin</label>
+                            <input type="date" class="form-control form-control-sm" id="movFechaFin"
+                                value="{{ now()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-medium">Almacén</label>
+                            <select class="form-select form-select-sm" id="movAlmacen">
+                                <option value="">Todos los almacenes</option>
+                                @foreach ($almacenes as $almacen)
+                                    <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-sm btn-danger" onclick="filtrarMovimientos()">
+                                <i class="bi bi-search me-1"></i> Buscar
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="limpiarFiltrosMovimientos()">
+                                <i class="bi bi-x-circle me-1"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                {{-- Tabla movimientos --}}
+                <div class="reporte-card">
+                    <h3 class="chart-title">
+                        <i class="bi bi-table me-2" style="color: var(--tacsa-red);"></i>
+                        Detalle de ventas
+                        <span class="text-muted fw-normal small ms-2" id="movRangoLabel"></span>
+                    </h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-semaforo mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Folio</th>
+                                    <th>Fecha</th>
+                                    <th>Id. Cliente</th>
+                                    <th>Folio Factura</th>
+                                    <th>Almacén Origen</th>
+                                    <th>Lote</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableMovimientosBody">
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <i class="bi bi-search me-2"></i>Aplica los filtros para consultar movimientos
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="table-footer" id="historialFooter">
+                            <span>Mostrando <strong id="showingFrom">1</strong>-<strong id="showingTo">15</strong> de
+                                <strong id="showingTotal">0</strong> movimientos</span>
+                            <div class="pagination-btns" id="paginationBtns">
+                                <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled><i
+                                        class="bi bi-chevron-left"></i></button>
+                                <span id="pageNumbers"></span>
+                                <button class="page-btn" id="nextPageBtn" onclick="changePage(1)"><i
+                                        class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-muted small" id="countMovimientos"></div>
+                </div>
+
+            </div>{{-- /tab-sales --}}
 
         </div>{{-- /container-fluid --}}
     </main>
@@ -1398,7 +1515,7 @@
                 badge: 'bg-warning text-dark',
                 icon: 'bi-sliders'
             },
-            
+
 
             out: {
                 label: 'Salida',
@@ -1534,7 +1651,7 @@
         function renderMovimientos(data) {
             const tbody = document.getElementById('tableMovimientosBody');
             const countEl = document.getElementById('countMovimientos');
-            
+
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
@@ -1557,6 +1674,7 @@
                 <td>${formatDate(mov.createdAt)}</td>
                 <td><span class="badge ${cfg.badge}"><i class="bi ${cfg.icon} me-1"></i>${cfg.label}</span></td>
                 <td class="fw-medium">${mov.productName || 'N/A'}</td>
+                <td class="fw-medium">${mov.reason || 'N/A'}</td>
                 <td><span class="badge bg-secondary">${mov.warehousesName || '-'}</span></td>
                 <td><span class="badge bg-secondary">${mov.destinationWarehouseName || '-'}</span></td>
                 <td><small>${mov.lotNumber || '-'}</small></td>

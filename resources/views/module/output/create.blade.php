@@ -462,6 +462,12 @@
                                                 <input type="number" name="transfer_level" id="input-transfer-level"
                                                     class="form-control" min="1" placeholder="Ej: 1">
                                             </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Folio Traslado *</label>
+                                                <input type="number" name="folio_transfer" id="input-folio-transfer"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
                                         </div>
                                     </div>
 
@@ -495,9 +501,15 @@
                                     </div>
 
                                     <div class="col-12">
-                                        <label class="form-label small fw-bold">Motivo / Observaciones</label>
-                                        <input type="text" name="reason" id="input-reason" class="form-control"
-                                            placeholder="Descripción del movimiento">
+                                        <label class="form-label small fw-bold" for="input-reason">Motivo /
+                                            Observaciones</label>
+                                        <select name="reason" id="input-reason" class="form-control">
+                                            <option value="" disabled selected>Descripción del movimiento...
+                                            </option>
+                                            <option value="Venta">Venta</option>
+                                            <option value="Envío de Traslado">Envío de Traslado</option>
+                                            <option value="Ajuste">Ajuste</option>
+                                        </select>
                                     </div>
 
                                     <div class="col-12 d-flex gap-2 justify-content-end mt-4">
@@ -618,7 +630,7 @@
                 return;
             }
 
-            
+
             fetch('/warehouses/by-location/' + state.warehouseLocationId)
                 .then(response => response.json())
                 .then(warehouses => {

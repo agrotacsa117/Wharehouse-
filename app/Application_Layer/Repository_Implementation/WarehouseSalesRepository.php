@@ -5,6 +5,7 @@ namespace App\Application_Layer\Repository_Implementation;
 use App\Contracts\WarehouseSalesRepositoryI;
 use App\Enterprise_Layer\WarehouseSalesEntity;
 use App\Contracts\WarehouseSalesEntityToModelMapperI;
+use App\Models\WarehouseSalesModel;
 
 class WarehouseSalesRepository implements WarehouseSalesRepositoryI
 {
@@ -25,7 +26,7 @@ class WarehouseSalesRepository implements WarehouseSalesRepositoryI
             $warehouseSalesEntity
         );
 
-        
+
         $result = $warehouseSalesModel->save();
 
         if (!$result) {
@@ -37,7 +38,17 @@ class WarehouseSalesRepository implements WarehouseSalesRepositoryI
 
     public function findAll(): array
     {
-        return [];
+        $sales = WarehouseSalesModel::has(
+            'movement'
+        )->with([
+                'movement.inventory' // <--- Aquí está la magia (notación de punto)
+            ])->get();
+
+        var_dump(
+            $sales->toArray()
+        );
+        exit;
+        return $sales->toArray();
     }
 
     public function dateRangeFilter(

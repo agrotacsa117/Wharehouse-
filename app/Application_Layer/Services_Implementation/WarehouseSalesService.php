@@ -46,6 +46,10 @@ class WarehouseSalesService implements WarehouseSalesServiceI
 
     public function getSalesReport(): array
     {
+        $salesReport = $this
+        ->warehouseSalesRepository
+        ->findAll();
+        
         return [];
     }
 
