@@ -23,4 +23,6 @@ class WarehouseSalesModel extends Model
             'folio'
         );
     }
+
+     
 }

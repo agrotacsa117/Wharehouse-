@@ -32,7 +32,9 @@ class ReportController extends Controller
 
     public function index()
     {
-        $this->warehouseSalesService->getSalesReport();
+        $reportDTO = $this->warehouseSalesService
+        ->getSalesReport();
+       
         $titulo = "Reportes";
         $hoy = Carbon::now();
         $sieteDiasDespues = $hoy->copy()->addDays(7);

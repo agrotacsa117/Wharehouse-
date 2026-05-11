@@ -41,13 +41,11 @@ class WarehouseSalesRepository implements WarehouseSalesRepositoryI
         $sales = WarehouseSalesModel::has(
             'movement'
         )->with([
-                'movement.inventory' // <--- Aquí está la magia (notación de punto)
+                'movement.inventory.warehouse',
+                'movement.user'
             ])->get();
 
-        var_dump(
-            $sales->toArray()
-        );
-        exit;
+     
         return $sales->toArray();
     }
 

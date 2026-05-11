@@ -23,12 +23,7 @@ class StoreWarehouseRequest extends FormRequest
                 'regex:/^[A-Za-zÁÉÍÓÚÑáéíóúñ0-9\s._\-&,()\/#]+$/u'
             ],
 
-            'warehouses_key' => [
-                'required',
-                'string',
-                'max:6',
-                'regex:/^[A-Z0-9]{6}$/'
-            ],
+            
 
             'warehouse_manager' => [
                 'required',

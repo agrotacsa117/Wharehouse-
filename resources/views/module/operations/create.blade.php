@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TACSA - Registro de Inventario de Almacen</title>
+        <title>TACSA - Registro de Inventario de las Bodegas</title>
         <!-- Bootstrap 5 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Bootstrap Icons -->
@@ -311,7 +311,7 @@
                     </div>
                 </div>
                 <h1 class="form-title">Registro de Inventario</h1>
-                <p class="form-subtitle">Complete el formulario con la informacion del inventario del almacen</p>
+                <p class="form-subtitle">Complete el formulario con la informacion del inventario de las bodegas</p>
             </div>
 
             <!-- ===== Form ===== -->
@@ -321,7 +321,7 @@
                 <!-- ── Seccion 1: Producto y Almacen ── -->
                 <div class="section-title">
                     <div class="bar"></div>
-                    <h2>Producto y Almacen</h2>
+                    <h2>Producto y Bodega</h2>
                 </div>
 
                 <div class="row g-3">
@@ -345,7 +345,7 @@
                     <!-- warehouseId (select) -->
                     <div class="col-md-6">
                         <label for="warehouseId" class="field-label">
-                            Almacen <span class="required">*</span>
+                            Bodega <span class="required">*</span>
                         </label>
                         <select class="form-select tacsa-select" id="warehouseId" name="warehouseId" required>
                             <option value="" disabled selected>Seleccione un almacen</option>

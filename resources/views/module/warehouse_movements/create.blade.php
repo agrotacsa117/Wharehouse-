@@ -1537,7 +1537,7 @@
                                         <th>Fecha</th>
                                         <th>Tipo</th>
                                         <th>Producto</th>
-                                        <th>Almacen</th>
+                                        <th>Bodega</th>
                                         <th>Cantidad</th>
                                         <th>Lote</th>
                                     </tr>

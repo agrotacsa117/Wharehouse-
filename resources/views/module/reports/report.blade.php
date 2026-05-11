@@ -575,7 +575,7 @@
                 <div class="mb-3">
                     <span class="section-title">
                         <i class="bi bi-trophy-fill me-1" style="color: var(--tacsa-red);"></i>
-                        Top 3 Productos Vencidos por Almacén
+                        Top 3 Productos Vencidos por Bodega
                     </span>
                 </div>
 
@@ -620,7 +620,7 @@
                         <div class="col-12">
                             <div class="no-data-message">
                                 <i class="bi bi-check-circle-fill fs-1 mb-3 d-block" style="color: var(--color-ok);"></i>
-                                <p>¡Sin productos vencidos en ningún almacén!</p>
+                                <p>¡Sin productos vencidos en ningúna bodega!</p>
                             </div>
                         </div>
                     @endforelse
@@ -649,7 +649,7 @@
                                 placeholder="Buscar producto o lote..." style="width: 220px;" onkeyup="filterVencidos()">
                             <select class="form-select form-select-sm" id="filterVencidosAlmacen" style="width: 170px;"
                                 onchange="filterVencidos()">
-                                <option value="">Todos los almacenes</option>
+                                <option value="">Todos las bodegas</option>
                                 @foreach ($almacenes as $almacen)
                                     <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                 @endforeach
@@ -663,7 +663,7 @@
                                 <tr>
                                     <th class="text-center">#</th>
                                     <th>Producto</th>
-                                    <th>Almacén</th>
+                                    <th>Bodega</th>
                                     <th>Rack / Nivel</th>
                                     <th>Lote</th>
                                     <th class="text-center">Cantidad</th>
@@ -783,9 +783,9 @@
                                 value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-medium">Almacén</label>
+                            <label class="form-label small fw-medium">Bodegas</label>
                             <select class="form-select form-select-sm" id="movAlmacen">
-                                <option value="">Todos los almacenes</option>
+                                <option value="">Todos las bodegas</option>
                                 @foreach ($almacenes as $almacen)
                                     <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                 @endforeach
@@ -879,8 +879,8 @@
                                     <th>Tipo</th>
                                     <th>Producto</th>
                                     <th>Motivo</th>
-                                    <th>Almacén Origen</th>
-                                    <th>Almacén Destino</th>
+                                    <th>Bodega Origen</th>
+                                    <th>Bodega Destino</th>
                                     <th>Lote</th>
                                     <th class="text-center">Cantidad</th>
                                     <th>Usuario</th>
@@ -918,9 +918,9 @@
                                 value="{{ now()->format('Y-m-d') }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-medium">Almacén</label>
+                            <label class="form-label small fw-medium">Bodega</label>
                             <select class="form-select form-select-sm" id="movAlmacen">
-                                <option value="">Todos los almacenes</option>
+                                <option value="">Todos las bodegas</option>
                                 @foreach ($almacenes as $almacen)
                                     <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                 @endforeach
@@ -954,7 +954,9 @@
                                     <th>Fecha</th>
                                     <th>Id. Cliente</th>
                                     <th>Folio Factura</th>
-                                    <th>Almacén Origen</th>
+                                    <th>Cód. de Producto</th>
+                                    <th>Producto</th>
+                                    <th>Bodega Origen</th>
                                     <th>Lote</th>
                                     <th class="text-center">Cantidad</th>
                                     <th>Usuario</th>
@@ -1007,10 +1009,10 @@
                     <div class="filter-section">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label small fw-medium">Almacén</label>
+                                <label class="form-label small fw-medium">Bodega</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseCritical"
                                     onchange="filterSemaforoTable('critical')">
-                                    <option value="">Todos los almacenes</option>
+                                    <option value="">Todos las bodegas</option>
                                     @foreach ($almacenes as $almacen)
                                         <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                     @endforeach
@@ -1035,7 +1037,7 @@
                                     <th class="text-center">#</th>
                                     <th>Código</th>
                                     <th>Producto</th>
-                                    <th>Almacén</th>
+                                    <th>Bodega</th>
                                     <th>Rack</th>
                                     <th class="text-center">Nivel</th>
                                     <th>Lote</th>
@@ -1078,10 +1080,10 @@
                     <div class="filter-section">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label small fw-medium">Almacén</label>
+                                <label class="form-label small fw-medium">Bodega</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseAttention"
                                     onchange="filterSemaforoTable('attention')">
-                                    <option value="">Todos los almacenes</option>
+                                    <option value="">Todos las bodegas</option>
                                     @foreach ($almacenes as $almacen)
                                         <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                     @endforeach
@@ -1106,7 +1108,7 @@
                                     <th class="text-center">#</th>
                                     <th>Código</th>
                                     <th>Producto</th>
-                                    <th>Almacén</th>
+                                    <th>Bodega</th>
                                     <th>Rack</th>
                                     <th class="text-center">Nivel</th>
                                     <th>Lote</th>
@@ -1149,10 +1151,10 @@
                     <div class="filter-section">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label small fw-medium">Almacén</label>
+                                <label class="form-label small fw-medium">Bodega</label>
                                 <select class="form-select form-select-sm" id="filterWarehouseOk"
                                     onchange="filterSemaforoTable('ok')">
-                                    <option value="">Todos los almacenes</option>
+                                    <option value="">Todos las bodegas</option>
                                     @foreach ($almacenes as $almacen)
                                         <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                     @endforeach
@@ -1177,7 +1179,7 @@
                                     <th class="text-center">#</th>
                                     <th>Código</th>
                                     <th>Producto</th>
-                                    <th>Almacén</th>
+                                    <th>Bodega</th>
                                     <th>Rack</th>
                                     <th class="text-center">Nivel</th>
                                     <th>Lote</th>

@@ -7,7 +7,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Registro de Almacenes - TACSA</title>
+        <title>Registro de Bodegas - TACSA</title>
         <style>
             * {
                 margin: 0;
@@ -536,8 +536,8 @@
             <div class="header" id="header-warehouse">
                 <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-3pBfz8jhasVBCCRAl1NOQFuUdXmn8i.png"
                     alt="TACSA Logo" class="logo">
-                <h1>Registro de Almacenes</h1>
-                <p>Complete el formulario con la información del almacén</p>
+                <h1>Registro de Bodegas</h1>
+                <p>Complete el formulario con la información de las bodegas</p>
             </div>
 
             <div class="form-container">
@@ -566,7 +566,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="clave">
-                                    Clave del Almacén <span class="required">*</span>
+                                    Clave de la Bodega <span class="required">*</span>
                                 </label>
                                 <input type="text" id="clave" name="warehouses_key" placeholder="Ej: ALM001" required
                                     pattern="[A-Z0-9-]+" maxlength="20">
@@ -576,7 +576,7 @@
 
                             <div class="form-group">
                                 <label for="nombre">
-                                    Nombre del Almacén <span class="required">*</span>
+                                    Nombre de la Bodega <span class="required">*</span>
                                 </label>
                                 <input type="text" id="nombre" name="warehouses_name"
                                     placeholder="Ej: Almacén Central" required minlength="3" maxlength="100">
@@ -642,11 +642,11 @@
 
                     <!-- Configuración del Almacén -->
                     <div class="form-section">
-                        <h2 class="section-title">Configuración del Almacén</h2>
+                        <h2 class="section-title">Configuración de la Bodega</h2>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="tipo_almacen">
-                                    Tipo de Almacén <span class="required">*</span>
+                                    Tipo de Bodega <span class="required">*</span>
                                 </label>
                                 <select id="warehouse-types" name="warehouse_type_id" required>
                                     <option value="">Seleccione el tipo de almacén</option>

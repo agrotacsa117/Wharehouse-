@@ -12,6 +12,7 @@ use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Application_Layer\Services_Implementation\SimpleOutputService;
 use App\Application_Layer\Services_Implementation\SaleOutputService;
 use App\Contracts\WarehouseSalesServiceI;
+use App\Contracts\WarehouseStorageServiceInterface;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
 {
@@ -19,17 +20,20 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
     private WarehouseInventoryRepositoryInterface $inventoryRepository;
     private WarehouseSalesServiceI $warehouseSalesService;
+    private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
         WarehouseInventoryRepositoryInterface $inventoryRepository,
-        WarehouseSalesServiceI $warehouseSalesService
+        WarehouseSalesServiceI $warehouseSalesService,
+        WarehouseStorageServiceInterface $warehouseStorageService
     ) {
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->inventoryRepository = $inventoryRepository;
         $this->warehouseSalesService = $warehouseSalesService;
+        $this->warehouseStorageService = $warehouseStorageService;
     }
 
     public function make(string $type): WarehouseOutputStrategy
@@ -39,7 +43,8 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                 return new InternalRelocationService(
                     $this->warehouseInventoryQueryService,
                     $this->warehouseMovementsService,
-                    $this->inventoryRepository
+                    $this->inventoryRepository,
+                    $this->warehouseStorageService
                 );
                 break;
 
@@ -56,7 +61,7 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                     $this->warehouseSalesService
                 );
 
-            
+
 
             default:
                 throw new \InvalidArgumentException(

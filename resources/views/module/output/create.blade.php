@@ -275,7 +275,7 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                <h1 class="h3 fw-bold mb-1">Salida de Almacenes</h1>
+                <h1 class="h3 fw-bold mb-1">Salida de las Bodegas</h1>
                 <p class="text-secondary small">Gestione el retiro de materiales sin ventanas emergentes.</p>
             </div>
         </div>
@@ -283,7 +283,7 @@
         <div class="step-wizard">
             <div class="step-item active" id="step1-indicator">
                 <div class="step-num">1</div>
-                <div><span class="d-block small">Origen</span><strong>Almacén</strong></div>
+                <div><span class="d-block small">Origen</span><strong>Bodega</strong></div>
             </div>
             <div class="step-item" id="step2-indicator">
                 <div class="step-num">2</div>
@@ -297,7 +297,7 @@
 
         <div id="panel-step1" class="tacsa-card">
             <div class="section-header">
-                <h2 class="h5 m-0">Seleccione el almacén de origen</h2>
+                <h2 class="h5 m-0">Seleccione la bodega de origen</h2>
             </div>
 
             <div class="warehouse-grid">
@@ -329,7 +329,7 @@
                     <h2 class="h5 m-0">Productos en <span id="current-wh-name" class="text-danger"></span></h2>
                 </div>
                 <button class="btn-outline btn-sm" onclick="showStep(1)"><i class="bi bi-arrow-left"></i> Cambiar
-                    Almacén</button>
+                    Bodega</button>
             </div>
 
             <div class="table-responsive">
@@ -626,7 +626,7 @@
             select.innerHTML = '<option value="">Cargando...</option>';
 
             if (!state.warehouseLocationId) {
-                select.innerHTML = '<option value="">Seleccione un almacén primero</option>';
+                select.innerHTML = '<option value="">Seleccione una bodega primero</option>';
                 return;
             }
 
