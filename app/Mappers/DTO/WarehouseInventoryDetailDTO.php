@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Mappers\DTO;
+
 use Carbon\Carbon;
 
 class WarehouseInventoryDetailDTO implements \JsonSerializable
@@ -10,8 +11,11 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private string $productCode;
     private int $warehouseId;
     private string $warehouseName;
-    private int $level;
-    private string $rack;
+    private ?int $level;
+    private ?int $rack;
+    private int $module;
+    private int $bay;
+    private int $platform;
     private int $stock;
     private string $expirationDate;
     private ?string $lotNumber;
@@ -24,13 +28,16 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         string $productCode,
         int $warehouseId,
         string $warehouseName,
-        int $level,
-        string $rack,
+        ?int $level,
+        ?int $rack,
         int $stock,
         string $expirationDate,
         ?string $lotNumber = null,
         ?int $remainingDays = null,
-        ?float $obsolescence = null
+        ?float $obsolescence = null,
+        int $module,
+        int $bay,
+        int $platform
     ) {
         $this->inventoryId =  $inventoryId;
         $this->productName = $productName;
@@ -44,6 +51,9 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->lotNumber = $lotNumber;
         $this->remainingDays = $remainingDays;
         $this->obsolescence = $obsolescence;
+        $this->module =  $module;
+        $this->bay =  $bay;
+        $this->platform =  $platform;
     }
 
 
@@ -125,7 +135,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->warehouseName = $warehouseName;
     }
 
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }
@@ -135,7 +145,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->level = $level;
     }
 
-    public function getRack(): string
+    public function getRack(): ?int
     {
         return $this->rack;
     }
@@ -169,7 +179,10 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
            'expirationDate' => Carbon::parse($this->expirationDate)->format('Y-m-d'),
            'lotNumber' => $this->lotNumber,
            'remainingDays' => $this->remainingDays,
-           'obsolescence' => $this->obsolescence
+           'obsolescence' => $this->obsolescence,
+           'module' =>$this->module,
+           'bay' => $this->bay,
+           'platform' => $this->platform
         ];
     }
 

@@ -946,7 +946,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>{{ $totalWarehouses }}</h3>
-                            <span>Total Almacenes</span>
+                            <span>Total de Bodegas</span>
                         </div>
                     </div>
 
@@ -968,7 +968,7 @@
                     <div class="table-toolbar">
                         <div class="section-title">
                             <div class="indicator"></div>
-                            <h2>Listado de Almacenes</h2>
+                            <h2>Listado de Bodegas</h2>
                         </div>
                         <div class="toolbar-actions">
                             <select class="filter-select" id="filterType">
@@ -1042,13 +1042,13 @@
                     <!-- Empty State -->
                     <div id="emptyState" class="empty-state d-none">
                         <i class="bi bi-inbox"></i>
-                        <p>No se encontraron almacenes con ese criterio.</p>
+                        <p>No se encontraron bodegas con ese criterio.</p>
                     </div>
 
                     <!-- Footer -->
                     <div class="table-footer">
                         <span>Mostrando <strong id="showCount">0</strong> de <strong id="totalCount">0</strong>
-                            almacenes</span>
+                            bodegas</span>
                         <div class="pagination-btns">
                             <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
                             <button class="page-btn active">1</button>
@@ -1093,7 +1093,7 @@
                         <div class="modal-header">
                             <div class="section-title">
                                 <div class="indicator"></div>
-                                <h5>Editar Almacen</h5>
+                                <h5>Editar Bodega</h5>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Cerrar"></button>
@@ -1108,13 +1108,13 @@
                                 </div>
                                 <div class="row g-3 mb-0">
                                     <div class="col-md-6">
-                                        <label for="editKey" class="field-label">Clave del Almacen <span
+                                        <label for="editKey" class="field-label">Clave de la Bodega <span
                                                 class="required">*</span></label>
                                         <input type="text" class="tacsa-input" id="editKey" required readonly
                                             style="background:#f9fafb; cursor:not-allowed;">
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="editName" class="field-label">Nombre del Almacen <span
+                                        <label for="editName" class="field-label">Nombre de la Bodega <span
                                                 class="required">*</span></label>
                                         <input type="text" class="tacsa-input" id="editName"
                                             placeholder="Nombre del almacen" required>
@@ -1176,11 +1176,11 @@
                                 <!-- Seccion: Configuracion -->
                                 <div class="modal-section-title">
                                     <div class="indicator"></div>
-                                    <span>Configuracion del Almacen</span>
+                                    <span>Configuracion de la Bodega</span>
                                 </div>
                                 <div class="row g-3 mb-0">
                                     <div class="col-12">
-                                        <label for="editType" class="field-label">Tipo de Almacen <span
+                                        <label for="editType" class="field-label">Tipo de Bodega <span
                                                 class="required">*</span></label>
                                         <select class="tacsa-select" id="editType" required>
                                             <option value="">Seleccione el tipo</option>
@@ -1199,7 +1199,7 @@
                                     <i class="bi bi-x-lg"></i> Cancelar
                                 </button>
                                 <button type="submit" class="btn-tacsa-save">
-                                    <i class="bi bi-check-lg"></i> Actualizar Almacen
+                                    <i class="bi bi-check-lg"></i> Actualizar Bodega
                                 </button>
                             </div>
                         </form>
@@ -1219,7 +1219,7 @@
                             </div>
                             <div class="delete-text">
                                 <h5>Eliminar Almacen</h5>
-                                <p>Esta a punto de eliminar el almacen <span class="item-name" id="deleteName"></span>.
+                                <p>Esta a punto de eliminar la bodega <span class="item-name" id="deleteName"></span>.
                                     Esta
                                     accion no se puede deshacer.</p>
                             </div>
@@ -1448,7 +1448,7 @@
                     if (data.success) {
                         editModal.hide();
                         renderTable();
-                        showToast('Almacen "' + w.name + '" actualizado correctamente.', 'success');
+                        showToast('Bodega "' + w.name + '" actualizado correctamente.', 'success');
                     } else {
                         showToast('Error: ' + (data.message || 'Error desconocido'), 'error');
                     }
@@ -1461,7 +1461,7 @@
 
         // ── Open delete modal ──
         function openDelete(id) {
-            alert("The id is: " + id);
+            //alert("The id is: " + id);
             deleteModal.show();
         }
 

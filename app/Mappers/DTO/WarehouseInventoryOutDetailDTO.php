@@ -6,8 +6,8 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
 
     private int $inventoryId;
     private int $warehouseId;
-    private string $rack;
-    private int $level;
+    private ?int $rack;
+    private ?int $level;
     private string $productCode;
     private string $productName;
     private int $quantity;
@@ -18,8 +18,8 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
     public function __construct(
         int $inventoryId,
         int $warehouseId,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
         string $productCode,
         string $productName,
         int $quantity,
@@ -57,12 +57,12 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
         $this->warehouseId = $warehouseId;
     }
 
-    public function getRack(): string
+    public function getRack(): ?int
     {
         return $this->rack;
     }
 
-    public function setRack(string $rack): void
+    public function setRack(?int $rack): void
     {
         $this->rack = $rack;
     }
@@ -127,7 +127,7 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
         $this->expirationDate = $expirationDate;
     }
 
-      public function jsonSerialize()
+      public function jsonSerialize() : array
     {
         return [
             'inventoryId' => $this->inventoryId,

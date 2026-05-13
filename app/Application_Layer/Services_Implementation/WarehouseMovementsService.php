@@ -39,7 +39,6 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     public function listAllMovementsPaginated(int $page = 1, int $perPage = 15): array
     {
         $result = $this->warehouseMovementsRepository->findAllPaginated($perPage);
-
         $movements = [];
         foreach ($result['data'] as $movement) {
             $movements[] = WarehouseMovementsListDetailDTO::fromModel($movement);

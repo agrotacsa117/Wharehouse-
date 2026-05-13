@@ -18,7 +18,10 @@ class WarehouseInventoryModel extends Model
         'quantity',
         'lot_number',
         'reason',
-        'expiration_date'
+        'expiration_date',
+        'module',
+        'bay',
+        'platform'
     ];
 
 

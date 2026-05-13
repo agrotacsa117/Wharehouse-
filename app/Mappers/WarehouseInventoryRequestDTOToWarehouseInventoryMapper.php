@@ -15,8 +15,7 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
     ): WarehouseInventory {
 
         $now = new \DateTime();
-
-        return new WarehouseInventory(
+        $warehouseInventory = new WarehouseInventory(
             $warehouseInventoryRequestDTO->getWarehouseId(),
             $warehouseInventoryRequestDTO->getProductId(),
             $warehouseInventoryRequestDTO->getRack(),
@@ -29,5 +28,23 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
             $warehouseInventoryRequestDTO->getReason(),
             $warehouseInventoryRequestDTO->getExpirationDate()
         );
+
+        $warehouseInventory->setModule(
+            $warehouseInventoryRequestDTO
+            ->getModule()
+        );
+
+        $warehouseInventory
+        ->setBay(
+            $warehouseInventoryRequestDTO
+            ->getBay()
+        );
+
+        $warehouseInventory
+        ->setPlatform(
+            $warehouseInventoryRequestDTO
+            ->getPlatform()
+        );
+        return $warehouseInventory;
     }
 }

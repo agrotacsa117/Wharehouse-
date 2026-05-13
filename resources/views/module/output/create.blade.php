@@ -725,7 +725,7 @@
                 <tr>
                     <td><span class="badge-info">${item.productCode}</span></td>
                     <td><strong>${item.productName}</strong></td>
-                    <td>${item.rack}/${item.level}</td>
+                    <td>${item.rack ?? "Sin rack"}/${item.level ?? "Sin nivel"}</td>
                     <td class="fw-bold">${item.quantity}</td>
                     <td class="fw-bold">${item.expirationDate.split(' ')[0]}</td>
                     <td>

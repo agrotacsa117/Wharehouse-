@@ -11,8 +11,8 @@ class WarehouseInventory
     private int $id;
     private int $warehouseId;
     private string $productId;
-    private string $rack;
-    private int $level;
+    private ?int $rack;
+    private ?int $level;
     private DateTime $createdAt;
     private DateTime $updatedAt;
     private $warehouseName;
@@ -20,12 +20,15 @@ class WarehouseInventory
     private string $lotNumber;
     private string $reason;
     private \DateTime $expirationDate;
+    private int $module;
+    private int $bay;
+    private int $platform;
 
     public function __construct(
         int $warehouseId,
         string $productId,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
         DateTime $createdAt,
         DateTime $updatedAt,
         $warehouseName,
@@ -45,6 +48,54 @@ class WarehouseInventory
         $this->lotNumber =  $lotNumber;
         $this->reason = $reason;
         $this->expirationDate = $expirationDate;
+    }
+
+    /**
+     * Get the value of module
+     */
+    public function getModule(): int
+    {
+        return $this->module;
+    }
+
+    /**
+     * Set the value of module
+     */
+    public function setModule(int $module): void
+    {
+        $this->module = $module;
+    }
+
+    /**
+     * Get the value of bay
+     */
+    public function getBay(): int
+    {
+        return $this->bay;
+    }
+
+    /**
+     * Set the value of bay
+     */
+    public function setBay(int $bay): void
+    {
+        $this->bay = $bay;
+    }
+
+    /**
+     * Get the value of platform
+     */
+    public function getPlatform(): int
+    {
+        return $this->platform;
+    }
+
+    /**
+     * Set the value of platform
+     */
+    public function setPlatform(int $platform): void
+    {
+        $this->platform = $platform;
     }
 
     public function getExpirationDate(): \DateTime
@@ -90,19 +141,20 @@ class WarehouseInventory
         $this->productId = $productId;
     }
 
+
     // Rack
-    public function getRack(): string
+    public function getRack(): ?int
     {
         return $this->rack;
     }
 
-    public function setRack(string $rack): void
+    public function setRack(int $rack): void
     {
         $this->rack = $rack;
     }
 
     // Level
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }

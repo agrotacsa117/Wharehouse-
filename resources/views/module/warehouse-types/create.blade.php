@@ -9,7 +9,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TACSA - Registro de Tipo de Almacen</title>
+        <title>TACSA - Registro de Tipo de Bodega</title>
         <!-- Bootstrap 5 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Bootstrap Icons -->
@@ -276,8 +276,8 @@
                         alt="">
 
                 </div>
-                <h1 class="form-title">Registro de Tipo de Almacen</h1>
-                <p class="form-subtitle">Complete el formulario con la categoria del tipo de almacen</p>
+                <h1 class="form-title">Registro de Tipo de Bodega</h1>
+                <p class="form-subtitle">Complete el formulario con la categoria del tipo de bodega</p>
             </div>
 
             @if ($errors->any())
@@ -303,18 +303,18 @@
                 <!-- Seccion: Categoria del Almacen -->
                 <div class="section-title">
                     <div class="bar"></div>
-                    <h2>Categoria del Almacen</h2>
+                    <h2>Categoria de la Bodega</h2>
                 </div>
 
                 <div class="row g-3">
                     <div class="col-12">
                         <label for="categoryWarehouse" class="field-label">
-                            Categoria del Almacen <span class="required">*</span>
+                            Categoria de la Bodega <span class="required">*</span>
                         </label>
                         <input type="text" class="form-control tacsa-input" id="categoryWarehouse"
                             name="categoryWarehouse" placeholder="Ej: Materia Prima, Producto Terminado, Refacciones"
                             required>
-                        <p class="field-helper">Ingrese el nombre de la categoria que clasifica el tipo de almacen.</p>
+                        <p class="field-helper">Ingrese el nombre de la categoria que clasifica el tipo de bodega.</p>
                     </div>
                 </div>
 

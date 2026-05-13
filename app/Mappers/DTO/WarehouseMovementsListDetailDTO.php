@@ -11,8 +11,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     private string $warehousesName;
     private string $productId;
     private string $productName;
-    private string $rack;
-    private int $level;
+    private ?int $rack;
+    private ?int $level;
     private string $lotNumber;
     private string $movementType;
     private int $quantity;
@@ -32,8 +32,8 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         string $warehousesName,
         string $productId,
         string $productName,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
         string $lotNumber,
         string $movementType,
         int $quantity,
@@ -98,11 +98,11 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     {
         return $this->productName;
     }
-    public function getRack(): string
+    public function getRack(): ?int
     {
         return $this->rack;
     }
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }
@@ -165,7 +165,7 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     {
         $this->productName = $productName;
     }
-    public function setRack(string $rack): void
+    public function setRack(int $rack): void
     {
         $this->rack = $rack;
     }

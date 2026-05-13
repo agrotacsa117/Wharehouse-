@@ -6,8 +6,11 @@ class WarehouseInventoryRequestDTO
 {
     private string $productId;
     private int $warehouseId;
-    private string $rack;
-    private int $level;
+    private ?int $rack;
+    private ?int $level;
+    private int $module;
+    private int $bay;
+    private int $platform;
     private int $quantity;
     private \DateTime $expirationDate;
     private string $reason;
@@ -16,8 +19,8 @@ class WarehouseInventoryRequestDTO
     public function __construct(
         string $productId,
         int $warehouseId,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
         int $quantity,
         \DateTime $expirationDate,
         string $reason,
@@ -31,6 +34,54 @@ class WarehouseInventoryRequestDTO
         $this->expirationDate = $expirationDate;
         $this->reason = $reason;
         $this->loteNumber = $loteNumber;
+    }
+
+    /**
+     * Get the value of module
+     */
+    public function getModule(): int
+    {
+        return $this->module;
+    }
+
+    /**
+     * Set the value of module
+     */
+    public function setModule(int $module): void
+    {
+        $this->module = $module;
+    }
+
+    /**
+     * Get the value of bay
+     */
+    public function getBay(): int
+    {
+        return $this->bay;
+    }
+
+    /**
+     * Set the value of bay
+     */
+    public function setBay(int $bay): void
+    {
+        $this->bay = $bay;
+    }
+
+    /**
+     * Get the value of platform
+     */
+    public function getPlatform(): int
+    {
+        return $this->platform;
+    }
+
+    /**
+     * Set the value of platform
+     */
+    public function setPlatform(int $platform): void
+    {
+        $this->platform = $platform;
     }
 
     public function getProductId(): string
@@ -53,7 +104,7 @@ class WarehouseInventoryRequestDTO
         $this->warehouseId = $warehouseId;
     }
 
-    public function getRack(): string
+    public function getRack(): ?int
     {
         return $this->rack;
     }
@@ -63,7 +114,7 @@ class WarehouseInventoryRequestDTO
         $this->rack = $rack;
     }
 
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }

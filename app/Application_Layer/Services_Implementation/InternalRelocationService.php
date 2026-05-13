@@ -125,13 +125,6 @@ class InternalRelocationService extends BaseOutputService
                 );
             }
 
-            // $this->warehouseInventoryQueryService
-            //  ->relocateInventory(
-            //      $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
-            //      $removeWarehouseInventoryStockDTO->getRack(),
-            //      $removeWarehouseInventoryStockDTO->getLevel()
-            //  );
-
 
             $folio = $this->warehouseMovementsService
             ->generateMovementFolio();
@@ -140,7 +133,7 @@ class InternalRelocationService extends BaseOutputService
                 $folio,
                 $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
                 $this->getType(),
-                0, // Cantidad 0 porque solo es cambio de ubicación
+                $removeWarehouseInventoryStockDTO->getQuantity(), // Cantidad 0 porque solo es cambio de ubicación
                 sprintf(
                     "Reubicación: %s | Rack: %s→%s, Nivel: %d→%d | Destino: %s",
                     $removeWarehouseInventoryStockDTO->getReason(),

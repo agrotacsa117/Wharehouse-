@@ -46,25 +46,38 @@ class WareouseInventoryController extends Controller
         $request->validate([
         'productId'      => 'required|string',
         'warehouseId'    => 'required|integer',
-        'rack'           => 'required|string',
-        'level'          => 'required|integer|min:1',
+        'rack'           => 'nullable|string',
+        'level'          => 'nullable|integer|min:1',
         'quantity'       => 'required|integer|min:1',
         'expirationDate' => 'required|date',
         'reason'         => 'required|string',
         'loteNumber'     => 'required|string',
+        'module' => 'required|integer|min:1',
+        'bay' => 'required|integer|min:1',
+        'platform' => 'required|integer|min:1'
         ]);
 
+        
         $dto = new WarehouseInventoryRequestDTO(
             $request->productId,
             (int) $request->warehouseId,
-            $request->rack,
-            (int) $request->level,
+            $request->rack !== null ? (int) $request->rack : null,
+            $request->level !== null ? (int) $request->level : null,
             (int) $request->quantity,
             new \DateTime($request->expirationDate),
             $request->reason,
             $request->loteNumber
         );
 
+        $dto->setModule(
+            $request->module
+        );
+
+        $dto->setBay($request->bay);
+        $dto->setPlatform(
+            $request->platform
+        );
+        
         $result = $this->warehouseInventoryService->create($dto);
 
         if ($result->isFailure()) {

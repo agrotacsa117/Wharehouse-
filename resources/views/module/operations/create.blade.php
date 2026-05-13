@@ -366,7 +366,7 @@
                 <!-- ── Seccion 2: Ubicacion en Rack ── -->
                 <div class="section-title">
                     <div class="bar"></div>
-                    <h2>Ubicacion en Rack</h2>
+                    <h2>Ubicacion</h2>
                 </div>
 
                 <div class="row g-3">
@@ -375,8 +375,8 @@
                         <label for="rack" class="field-label">
                             Rack <span class="required">*</span>
                         </label>
-                        <input type="text" class="form-control tacsa-input" id="rack" name="rack"
-                            placeholder="Ej: R-01, R-02" required>
+                        <input type="number" class="form-control tacsa-input" id="rack" name="rack"
+                            placeholder="Ej: 01, 02" required>
                     </div>
 
                     <!-- level -->
@@ -386,6 +386,30 @@
                         </label>
                         <input type="number" class="form-control tacsa-input" id="level" name="level"
                             placeholder="Ej: 1, 2, 3" min="1" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="module" class="field-label">
+                            Modulo <span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-control tacsa-input" id="module" name="module"
+                            placeholder="Ej: 1, 2, 3" min="1" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="bay" class="field-label">
+                            Bahía<span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-control tacsa-input" id="bay" name="bay"
+                            placeholder="Ej: 1, 2, 3" min="1" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="platform" class="field-label">
+                            Tarima<span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-control tacsa-input" id="platform" name="platform"
+                            placeholder="1" min="1" required>
                     </div>
                 </div>
 

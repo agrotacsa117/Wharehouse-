@@ -21,9 +21,9 @@
                 <div class="card-header bg-white">
                     <div class="row align-items-center">
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold text-muted">Almacén</label>
+                            <label class="form-label small fw-semibold text-muted">Bodega</label>
                             <select class="form-select form-select-sm" id="filterWarehouse">
-                                <option value="">Todos los almacenes</option>
+                                <option value="">Todos las bodegas</option>
                                 @foreach ($almacenes as $almacen)
                                     <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
                                 @endforeach
@@ -58,7 +58,7 @@
                                     <th class="text-center" style="width: 50px;">#</th>
                                     <th style="min-width: 120px;">Código</th>
                                     <th style="min-width: 120px;">Producto</th>
-                                    <th style="min-width: 120px;">Almacén</th>
+                                    <th style="min-width: 120px;">Bodega</th>
                                     <th style="min-width: 80px;">Rack</th>
                                     <th class="text-center" style="width: 60px;">Nivel</th>
                                     <th style="min-width: 100px;">Lote</th>

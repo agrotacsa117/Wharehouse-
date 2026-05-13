@@ -85,10 +85,12 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
         }
 
+
         $this->warehouseInventory = $this->warehouseInventoryRequestDTOToWarehouseInventory
         ->convertWarehouseInventoryRequestDTOToWarehouseInventory(
             $warehouseInventoryDTO
         );
+
 
         $productName =  $this->productService
         ->getProductNameById(
@@ -96,12 +98,13 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         )->getValue();
 
         $this->warehouseInventory->setWarehouseName($productName);
-
+        $ok = "";
         try {
+            $ok .= "Passed here!";
             $this->warehouseInventory = $this->warehouseInventoryRepository->save(
                 $this->warehouseInventory
             );
-
+           
             return ResultPattern::success(
                 $this->warehouseInventory
             );
@@ -460,7 +463,10 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['expiration_date'],
                 $inventory[$i]['lot_number'],
                 $inventory[$i]['days_remaining'] ?? null,
-                $inventory[$i]['obsolescence'] ?? null
+                $inventory[$i]['obsolescence'] ?? null,
+                $inventory[$i]['module'],
+                $inventory[$i]['bay'],
+                $inventory[$i]['platform']
             );
         }
 
@@ -470,7 +476,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getExpiredInventory(): array
     {
         $expiratedProducts = $this->warehouseInventoryRepository->findExpired();
-        
+
         for ($i = 0; $i < count($expiratedProducts); $i++) {
             $inventory = $expiratedProducts[$i];
 

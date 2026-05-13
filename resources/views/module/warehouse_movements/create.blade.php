@@ -2122,12 +2122,12 @@
                         `<option value="${item.warehouseName}">${item.warehouseName}</option>`;
                 }
 
-                if (!racks.has(item.rack)) {
+                if (item.rack && !racks.has(item.rack)) {
                     racks.add(item.rack);
                     rackSelect.innerHTML += `<option value="${item.rack}">${item.rack}</option>`;
                 }
 
-                if (!levels.has(item.level)) {
+                if (item.level && !levels.has(item.level)) {
                     levels.add(item.level);
                     levelSelect.innerHTML += `<option value="${item.level}">${item.level}</option>`;
                 }
@@ -2375,6 +2375,7 @@
                 <div class="detail-row"><span class="detail-label">Cantidad</span><span class="detail-value cell-qty ${m.quantity > 0 ? 'positive' : 'negative'}">${m.quantity > 0 ? '+' : ''}${m.quantity}</span></div>
                 <div class="detail-row"><span class="detail-label">Lote</span><span class="detail-value"><span class="badge-product">${m.lotNumber}</span></span></div>
                 <div class="detail-row"><span class="detail-label">Rack / nivel</span><span class="detail-value">${m.rack} / ${m.level}</span></div>
+                <div class="detail-row"><span class="detail-label">Modulo  / Bahía</span><span class="detail-value">${m.rack} / ${m.level}</span></div>
                 <div class="detail-row"><span class="detail-label">Motivo</span><span class="detail-value">${m.reason || '-'}</span></div>
                 <div class="detail-row"><span class="detail-label">Usuario</span><span class="detail-value">${m.userName || '-'}</span></div>
             `;
