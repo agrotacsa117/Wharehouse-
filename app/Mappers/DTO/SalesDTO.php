@@ -5,7 +5,6 @@ namespace App\Mappers\DTO;
 class SalesDTO implements \JsonSerializable
 {
     private string $movementId;
-    private int $clientId;
     private int $invoiceSap;
     private string $createdAt;
     private string $updatedAt;
@@ -18,7 +17,6 @@ class SalesDTO implements \JsonSerializable
 
     public function __construct(
         string $movementId,
-        int $clientId,
         int $invoiceSap,
         string $createdAt,
         string $updatedAt,
@@ -30,7 +28,6 @@ class SalesDTO implements \JsonSerializable
         string $user
     ) {
         $this->movementId = $movementId;
-        $this->clientId   = $clientId;
         $this->invoiceSap = $invoiceSap;
         $this->createdAt  = $createdAt;
         $this->updatedAt  = $updatedAt;
@@ -48,11 +45,6 @@ class SalesDTO implements \JsonSerializable
     public function getMovementId(): string
     {
         return $this->movementId;
-    }
-
-    public function getClientId(): int
-    {
-        return $this->clientId;
     }
 
     public function getInvoiceSap(): int
@@ -101,7 +93,6 @@ class SalesDTO implements \JsonSerializable
     {
         return [
             'movementId' => $this->movementId,
-            'clientId'   => $this->clientId,
             'invoiceSap' => $this->invoiceSap,
             'createdAt'  => $this->createdAt,
             'updatedAt'  => $this->updatedAt,

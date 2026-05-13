@@ -11,7 +11,6 @@ class WarehouseSalesModel extends Model
 
     protected $fillable = [
         "movement_id",
-        "client_id",
         "invoice_sap",
     ];
 

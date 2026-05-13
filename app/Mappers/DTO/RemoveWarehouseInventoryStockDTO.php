@@ -12,9 +12,13 @@ class RemoveWarehouseInventoryStockDTO
     private int $warehouseId;
     private string $rack;
     private int $level;
-    private int $clientId;
     private int $invoiceId;
     private int $userId;
+    private int $module;
+    private int $bay;
+    private int $platform;
+
+
     
 
 
@@ -28,6 +32,39 @@ class RemoveWarehouseInventoryStockDTO
         $this->reason = $reason;
     }
 
+    
+    // Getter y Setter para $module
+    public function getModule(): int 
+    {
+        return $this->module;
+    }
+
+    public function setModule(int $module): void 
+    {
+        $this->module = $module;
+    }
+
+    // Getter y Setter para $bay
+    public function getBay(): int 
+    {
+        return $this->bay;
+    }
+
+    public function setBay(int $bay): void 
+    {
+        $this->bay = $bay;
+    }
+
+    // Getter y Setter para $platform
+    public function getPlatform(): int 
+    {
+        return $this->platform;
+    }
+
+    public function setPlatform(int $platform): void 
+    {
+        $this->platform = $platform;
+    }
     
     public function getUserId(): int
     {
@@ -119,16 +156,7 @@ class RemoveWarehouseInventoryStockDTO
         $this->level = $level;
     }
 
-    public function getClientId(): int
-    {
-        return $this->clientId;
-    }
-
-    public function setClientId(int $clientId): void
-    {
-        $this->clientId = $clientId;
-    }
-
+   
     public function getInvoiceId(): int
     {
         return $this->invoiceId;

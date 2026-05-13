@@ -37,6 +37,7 @@ class MovementsController extends Controller
         $inventories  =  $this->warehouseInventoryService
          ->getAllWarehouseInventories();
 
+       
         $movementsTotal = $this->warehouseMovementsService
         ->getTotalOfMovements();
 

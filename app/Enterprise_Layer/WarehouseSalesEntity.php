@@ -6,18 +6,15 @@ class WarehouseSalesEntity
 {
     private ?int $id;
     private string $movementId;
-    private int $clientId;
     private int $invoiceSap;
     private \DateTime $createdAt;
     private \DateTime $updatedAt;
 
     public function __construct(
         string $movementId,
-        int $clientId,
         int $invoiceSap
     ) {
         $this->movementId = $movementId;
-        $this->clientId = $clientId;
         $this->invoiceSap = $invoiceSap;
         $this->id = null;
     }
@@ -33,10 +30,7 @@ class WarehouseSalesEntity
         return $this->movementId;
     }
 
-    public function getClientId(): int
-    {
-        return $this->clientId;
-    }
+    
 
     public function getInvoiceSap(): int
     {
@@ -65,10 +59,6 @@ class WarehouseSalesEntity
         $this->movementId = $movementId;
     }
 
-    public function setClientId(int $clientId): void
-    {
-        $this->clientId = $clientId;
-    }
 
     public function setInvoiceSap(int $invoiceSap): void
     {

@@ -1644,6 +1644,16 @@
                                     <span class="value">{{ $item->getRack() }} / Nivel
                                         {{ $item->getLevel() }}</span>
                                 </div>
+
+                                <div class="inventory-item-row">
+                                    <span class="label">Bahía / Modulo</span>
+                                    <span class="value">{{ $item->getBay() }} / Modulo
+                                        {{ $item->getModule() }}</span>
+                                </div>
+                                <div class="inventory-item-row">
+                                    <span class="label">Tarima</span>
+                                    <span class="value" style="color:var(--tacsa-green);">{{ $item->getPlatform() }}</span>
+                                </div>
                                 <div class="inventory-item-row">
                                     <span class="label">Stock Actual</span>
                                     <span class="value" style="color:var(--tacsa-green);">{{ $item->getStock() }}

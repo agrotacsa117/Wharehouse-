@@ -64,7 +64,6 @@ class WarehouseSalesService implements WarehouseSalesServiceI
 
             $salesReport[$i] = new SalesDTO(
                 $sale["movement_id"],
-                $sale["client_id"],
                 $sale["invoice_sap"],
                 $createdDate->format('Y-m-d'),
                 $updatedDate->format('Y-m-d'),

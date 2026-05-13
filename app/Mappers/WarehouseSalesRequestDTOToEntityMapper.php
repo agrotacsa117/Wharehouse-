@@ -14,7 +14,6 @@ class WarehouseSalesRequestDTOToEntityMapper implements WarehouseSalesRequestDTO
 
         return new WarehouseSalesEntity(
             $warehouseSalesRequestDTO->getMovementId(),
-            $warehouseSalesRequestDTO->getClientId(),
             $warehouseSalesRequestDTO->getInvoiceSap()
         );
 

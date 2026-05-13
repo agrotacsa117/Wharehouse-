@@ -23,9 +23,6 @@ class WarehouseSalesEntityToModelMapper implements WarehouseSalesEntityToModelMa
         ->movement_id = $warehouseSalesEntity
         ->getMovementId();
         $warehouseSalesModel
-        ->client_id   = $warehouseSalesEntity
-        ->getClientId();
-        $warehouseSalesModel
         ->invoice_sap = $warehouseSalesEntity
         ->getInvoiceSap();
         

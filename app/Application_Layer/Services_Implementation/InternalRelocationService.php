@@ -135,12 +135,15 @@ class InternalRelocationService extends BaseOutputService
                 $this->getType(),
                 $removeWarehouseInventoryStockDTO->getQuantity(), // Cantidad 0 porque solo es cambio de ubicación
                 sprintf(
-                    "Reubicación: %s | Rack: %s→%s, Nivel: %d→%d | Destino: %s",
+                    "Reubicación: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s",
                     $removeWarehouseInventoryStockDTO->getReason(),
                     $inventoryDTO->getRack(),
                     $removeWarehouseInventoryStockDTO->getRack(),
                     $inventoryDTO->getLevel(),
                     $removeWarehouseInventoryStockDTO->getLevel(),
+                    $removeWarehouseInventoryStockDTO->getModule(),
+                    $removeWarehouseInventoryStockDTO->getBay(),
+                    $removeWarehouseInventoryStockDTO->getPlatform(),
                     $warehouseDestination 
                 ),
                 $removeWarehouseInventoryStockDTO->getUserId()

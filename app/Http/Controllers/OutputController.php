@@ -122,7 +122,11 @@ class OutputController extends Controller
         $request->validate([
                     'new_rack' => 'required|string|max:50',
                     'new_level' => 'required|integer|min:1',
-                    'quantity' => 'required|integer|min:1'
+                    'quantity' => 'required|integer|min:1',
+                    'module' => 'required|integer|min:1',
+                    'bay' => 'required|integer|min:1',
+                    'platform' => 'required|integer|min:1'
+
                 ]);
 
         $this->removeWarehouseInventoryStockDTO =
@@ -157,10 +161,25 @@ class OutputController extends Controller
             $request->destination_warehouse_id
         );
 
+        $this->removeWarehouseInventoryStockDTO
+        ->setBay(
+            $request->bay
+        );
+
+$this->removeWarehouseInventoryStockDTO
+->setModule(
+    $request->module
+);
+
+$this->removeWarehouseInventoryStockDTO
+->setPlatform(
+ $request->platform
+);
         $this->warehouseInventoryService
         ->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
         );
+
     }
 
     private function buildRemoveWarehouseInventoryStockDTO(
@@ -191,7 +210,6 @@ class OutputController extends Controller
         $request->validate([
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
-            'client_id' => 'required|integer',
             'invoice_sap' => 'nullable|integer',
             'reason' => 'required|string|max:255'
         ]);
@@ -203,8 +221,6 @@ class OutputController extends Controller
         );
 
         // Llenar datos específicos de venta
-        $this->removeWarehouseInventoryStockDTO->setClientId((int) $request->client_id);
-
         if ($request->invoice_sap) {
             $this->removeWarehouseInventoryStockDTO->setInvoiceId((int) $request->invoice_sap);
         }
@@ -273,8 +289,6 @@ class OutputController extends Controller
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'destination_warehouse_id' => 'required|integer',
-            'transfer_rack' => 'required|string|max:50',
-            'transfer_level' => 'required|integer|min:1',
             'reason' => 'required|string|max:255'
         ]);
 
@@ -299,8 +313,8 @@ class OutputController extends Controller
             (int) $request->warehouseInventoryId,
             $inventory->getWarehouseId(), // Bodega origen
             (int) $request->destination_warehouse_id, // Bodega destino
-            $request->transfer_rack,
-            (int) $request->transfer_level,
+            '',
+            0,
             $inventory->getLotNumber(),
             (int) $request->quantity,
             $request->reason

@@ -78,7 +78,6 @@ class SaleOutputService extends BaseOutputService
 
             $warehouseSalesDTO = new WarehouseSalesRequestDTO(
                 $movementDTO->getFolio(),
-                $removeWarehouseInventoryStockDTO->getClientId(),
                 $removeWarehouseInventoryStockDTO->getInvoiceId()
             );
 
@@ -95,7 +94,6 @@ class SaleOutputService extends BaseOutputService
             'message' => 'Venta registrada exitosamente',
             'sold_quantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
             'remaining_stock' => $newQuantity,
-            'client_id' => $removeWarehouseInventoryStockDTO->getClientId(),
             'invoice_sap' => $removeWarehouseInventoryStockDTO->getInvoiceId()
         ]);
     }

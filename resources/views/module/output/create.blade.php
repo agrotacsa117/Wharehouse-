@@ -396,7 +396,7 @@
                                         <select name="movement_type" id="movementType" class="form-select">
                                             <option value="OUT">Salida Simple</option>
                                             <option value="SALE">Venta</option>
-                                            <option value="TRANSFER">Traslado entre Sucursales</option>
+                                            <option value="TRANSFER">Traslado</option>
                                             <option value="RELOCATION">Reubicación Interna</option>
                                         </select>
                                     </div>
@@ -419,11 +419,7 @@
                                             <i class="bi bi-info-circle"></i> Datos de Venta
                                         </div>
                                         <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">ID Cliente *</label>
-                                                <input type="number" name="client_id" id="input-client-id"
-                                                    class="form-control" min="1">
-                                            </div>
+                                            
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Factura SAP</label>
                                                 <input type="text" name="invoice_sap" id="input-invoice-sap"
@@ -439,35 +435,26 @@
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-12">
-                                                <label class="form-label small fw-bold">Sucursal Destino *</label>
+                                                <label class="form-label small fw-bold">Sucursal *</label>
                                                 <select name="destination_warehouse_id"
                                                     id="input-destination-warehouse" class="form-select">
                                                     <option value="">Seleccione sucursal destino...</option>
-                                                    @isset($allWarehouses)
-                                                        @foreach ($allWarehouses as $wh)
-                                                            <option value="{{ $wh->getId() }}">
-                                                                {{ $wh->getWarehouseName() }}</option>
-                                                        @endforeach
-                                                    @endisset
+                                                    <option value="mapastepec">Mapastepec</option>
+                                                    <option value="tuxtla">Tuxtla</option>
+                                                    <option value="cardenas">Cárdenas</option>
+                                                    <option value="zapata">Zapata</option>
+                                                    <option value="campeche">Campeche</option>
                                                 </select>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Nuevo Rack *</label>
-                                                <input type="text" name="transfer_rack" id="input-transfer-rack"
-                                                    class="form-control" placeholder="Ej: A-01">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Nuevo Nivel *</label>
-                                                <input type="number" name="transfer_level" id="input-transfer-level"
-                                                    class="form-control" min="1" placeholder="Ej: 1">
-                                            </div>
 
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Folio Traslado *</label>
                                                 <input type="number" name="folio_transfer" id="input-folio-transfer"
                                                     class="form-control" min="1" placeholder="Ej: 1">
                                             </div>
+
+                                            
                                         </div>
                                     </div>
 
@@ -495,6 +482,24 @@
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Nuevo Nivel *</label>
                                                 <input type="number" name="new_level" id="input-new-level"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Modulo *</label>
+                                                <input type="number" name="module" id="module"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Bahía *</label>
+                                                <input type="number" name="bay" id="bay"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Taríma *</label>
+                                                <input type="number" name="platform" id="platform"
                                                     class="form-control" min="1" placeholder="Ej: 1">
                                             </div>
                                         </div>
@@ -584,10 +589,8 @@
             fieldsRelocation.classList.add('d-none');
 
             // Reset required attributes
-            document.getElementById('input-client-id').required = false;
+
             document.getElementById('input-destination-warehouse').required = false;
-            document.getElementById('input-new-rack').required = false;
-            document.getElementById('input-new-level').required = false;
 
             // Show relevant fields and update button text
 
@@ -595,16 +598,13 @@
                 case 'SALE':
                     fieldsSale.classList.remove('d-none');
                     document.getElementById('input-quantity').disabled = false;
-                    document.getElementById('input-client-id').required = true;
                     btnSubmit.textContent = 'Registrar Venta';
                     break;
                 case 'TRANSFER':
                     fieldsTransfer.style.display = 'block';
                     document.getElementById('input-quantity').disabled = false;
                     fieldsTransfer.classList.remove('d-none');
-                    document.getElementById('input-destination-warehouse').required = true;
-                    document.getElementById('input-transfer-rack').required = true; // ✅ AGREGAR
-                    document.getElementById('input-transfer-level').required = true;
+                    //document.getElementById('input-destination-warehouse').required = true;
                     btnSubmit.textContent = 'Crear Traslado';
                     break;
                 case 'RELOCATION':
@@ -613,6 +613,10 @@
                     document.getElementById('input-relocation-destination').required = true;
                     document.getElementById('input-new-rack').required = true;
                     document.getElementById('input-new-level').required = true;
+                    document.getElementById('module').required = true;
+                    document.getElementById('bay').required = true;
+                    document.getElementById('platform').required = true;
+
                     btnSubmit.textContent = 'Registrar Reubicación';
                     loadRelocationWarehouses();
                     break;

@@ -58,6 +58,30 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
 
 
     /**
+     * @return int
+     */
+    public function getModule(): int
+    {
+        return $this->module;
+    }
+
+    /**
+     * @return int
+     */
+    public function getBay(): int
+    {
+        return $this->bay;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPlatform(): int
+    {
+        return $this->platform;
+    }
+    
+    /**
  * Obtiene el valor de obsolescence
  */
     public function getObsolescence(): ?float
@@ -206,4 +230,5 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->remainingDays = $remainingDays;
     }
 
+    
 }
