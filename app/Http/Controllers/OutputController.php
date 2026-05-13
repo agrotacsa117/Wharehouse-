@@ -288,8 +288,8 @@ $this->removeWarehouseInventoryStockDTO
         $request->validate([
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
-            'destination_warehouse_id' => 'required|integer',
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
+            'destination_warehouse' =>'required|string|max:255'
         ]);
 
         // Obtener inventario actual
@@ -312,7 +312,7 @@ $this->removeWarehouseInventoryStockDTO
         $transferDTO = new TransferInventoryDTO(
             (int) $request->warehouseInventoryId,
             $inventory->getWarehouseId(), // Bodega origen
-            (int) $request->destination_warehouse_id, // Bodega destino
+            $request->destination_warehouse, // Bodega destino
             '',
             0,
             $inventory->getLotNumber(),

@@ -44,10 +44,7 @@ interface WarehouseInventoryRepositoryInterface
 
     public function transferInventory(
         int $inventoryId,
-        int $fromWarehouseId,
-        int $toWarehouseId,
-        string $rack,
-        int $level,
+        string $fromWarehouseId,
         string $lotNumber,
         int $quantity
     ): array;

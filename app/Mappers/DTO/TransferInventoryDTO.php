@@ -6,7 +6,7 @@ class TransferInventoryDTO
 {
     private int $inventoryId;
     private int $fromWarehouseId;
-    private int $toWarehouseId;
+    private string $toWarehouseId;
     private string $rack;
     private int $level;
     private string $lotNumber;
@@ -16,7 +16,7 @@ class TransferInventoryDTO
     public function __construct(
         int $inventoryId,
         int $fromWarehouseId,
-        int $toWarehouseId,
+        string $toWarehouseId,
         string $rack,
         int $level,
         string $lotNumber,
@@ -43,7 +43,7 @@ class TransferInventoryDTO
         return $this->fromWarehouseId;
     }
 
-    public function getToWarehouseId(): int
+    public function getToWarehouseId(): string
     {
         return $this->toWarehouseId;
     }

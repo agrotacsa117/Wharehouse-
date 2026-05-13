@@ -436,7 +436,7 @@
                                         <div class="row g-3">
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold">Sucursal *</label>
-                                                <select name="destination_warehouse_id"
+                                                <select name="destination_warehouse"
                                                     id="input-destination-warehouse" class="form-select">
                                                     <option value="">Seleccione sucursal destino...</option>
                                                     <option value="mapastepec">Mapastepec</option>

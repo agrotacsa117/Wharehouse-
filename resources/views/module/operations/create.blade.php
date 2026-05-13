@@ -462,6 +462,14 @@
                             <option value="Ajuste">Ajuste</option>
                         </select>
                     </div>
+
+                    <div class="col-md-6" id="container-folio" style="display: none;">
+                        <label for="transfer_folio" class="field-label">
+                            Folio de Traslado <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control tacsa-input" id="transfer_folio" name="transfer_folio"
+                            placeholder="Ej: TR-10023">
+                    </div>
                 </div>
 
                 <hr class="section-separator">
@@ -484,7 +492,25 @@
 
         <!-- Bootstrap 5 JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const reasonSelect = document.getElementById('reason');
+                const folioContainer = document.getElementById('container-folio');
+                const folioInput = document.getElementById('transfer_folio');
 
+                reasonSelect.addEventListener('change', function() {
+                    // Validamos contra el VALUE del option seleccionado
+                    if (this.value === 'Ajuste de inventario') {
+                        folioContainer.style.display = 'block';
+                        folioInput.setAttribute('required', 'required');
+                    } else {
+                        folioContainer.style.display = 'none';
+                        folioInput.removeAttribute('required');
+                        folioInput.value = ''; // Limpiar el campo si se oculta
+                    }
+                });
+            });
+        </script>
     </body>
 
     </html>

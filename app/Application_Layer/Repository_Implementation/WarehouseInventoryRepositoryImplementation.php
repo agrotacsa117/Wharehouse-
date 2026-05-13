@@ -247,10 +247,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
     public function transferInventory(
         int $inventoryId,
-        int $fromWarehouseId,
-        int $toWarehouseId,
-        string $rack,
-        int $level,
+        string $fromWarehouseId,
         string $lotNumber,
         int $quantity
     ): array {
@@ -262,11 +259,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 'error' => 'Inventario no encontrado'];
         }
 
-        if ($inventory->warehouse_id !== $fromWarehouseId) {
-            return [
-                'success' => false,
-                'error' => 'El inventario no pertenece al almacén de origen'];
-        }
+       
 
         if ($inventory->quantity < $quantity) {
             return ['success' => false, 'error' => 'Cantidad insuficiente en el inventario'];
@@ -279,21 +272,17 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             $inventory->save();
         }
 
-        $newInventory = new WarehouseInventoryModel();
-        $newInventory->warehouse_id = $toWarehouseId;
-        $newInventory->product_id = $inventory->product_id;
-        $newInventory->rack = $rack;
-        $newInventory->_level = $level;
-        $newInventory->warehouse_name = $inventory->warehouse_name;
-        $newInventory->quantity = $quantity;
-        $newInventory->lot_number = $lotNumber;
-        $newInventory->reason = "Transferencia";
-        $newInventory->expiration_date = $inventory->expiration_date;
-        $newInventory->save();
+        // $newInventory = new WarehouseInventoryModel();
+        // $newInventory->product_id = $inventory->product_id;
+        // $newInventory->warehouse_name = $inventory->warehouse_name;
+        // $newInventory->quantity = $quantity;
+        // $newInventory->lot_number = $lotNumber;
+        // $newInventory->reason = "Transferencia";
+        // $newInventory->expiration_date = $inventory->expiration_date;
+        // $newInventory->save();
 
         return [
             'success' => true,
-            'newInventoryId' => $newInventory->id,
             'remainingQuantity' => $inventory->quantity ?? 0
         ];
     }

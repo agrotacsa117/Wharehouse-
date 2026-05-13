@@ -75,15 +75,15 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $warehouseInventoryDTO->getWarehouseId()
         );
 
-        if ($this->existProductInInventory(
-            $warehouseInventoryDTO->getWarehouseId(),
-            $warehouseInventoryDTO->getProductId()
-        )) {
-            return ResultPattern::failure(
-                "Error: producto ".$warehouseInventoryDTO->getProductId()
-                ." ya existe en el inventario de  ".$warehouseName
-            );
-        }
+        // if ($this->existProductInInventory(
+        //     $warehouseInventoryDTO->getWarehouseId(),
+        //     $warehouseInventoryDTO->getProductId()
+        // )) {
+        //     return ResultPattern::failure(
+        //         "Error: producto ".$warehouseInventoryDTO->getProductId()
+        //         ." ya existe en el inventario de  ".$warehouseName
+        //     );
+        // }
 
 
         $this->warehouseInventory = $this->warehouseInventoryRequestDTOToWarehouseInventory
@@ -371,19 +371,13 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $transferInventoryDTO->getFromWarehouseId()
         );
 
-        $toWarehouseName = $this->warehouseStorageService
-        ->getWarehouseNameById(
-            $transferInventoryDTO->getToWarehouseId()
-        );
+        $toWarehouseName =  $transferInventoryDTO->getToWarehouseId();
 
 
         try {
             $result = $this->warehouseInventoryRepository->transferInventory(
                 $transferInventoryDTO->getInventoryId(),
-                $transferInventoryDTO->getFromWarehouseId(),
                 $transferInventoryDTO->getToWarehouseId(),
-                $transferInventoryDTO->getRack(),
-                $transferInventoryDTO->getLevel(),
                 $transferInventoryDTO->getLotNumber(),
                 $transferInventoryDTO->getQuantity()
             );
@@ -393,7 +387,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             }
 
             $folio = $this->warehouseMovementsService->generateMovementFolio();
-
+            die($folio);
+            
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
                 $transferInventoryDTO->getInventoryId(),
@@ -404,7 +399,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
 
             $this->warehouseMovementsDTO->setSourceWarehouseId(
-                $transferInventoryDTO->getToWarehouseId()
+                0
             );
 
 
@@ -420,7 +415,6 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return ResultPattern::success([
-            'newInventoryId' => $result['newInventoryId'],
             'remainingQuantity' => $result['remainingQuantity'] ?? 0
         ]);
 
