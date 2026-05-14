@@ -26,7 +26,8 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
             $warehouseInventoryRequestDTO->getQuantity(),
             $warehouseInventoryRequestDTO->getLoteNumber(),
             $warehouseInventoryRequestDTO->getReason(),
-            $warehouseInventoryRequestDTO->getExpirationDate()
+            $warehouseInventoryRequestDTO->getExpirationDate(),
+            $warehouseInventoryRequestDTO->getTransferFolio()
         );
 
         $warehouseInventory->setModule(

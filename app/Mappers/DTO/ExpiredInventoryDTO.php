@@ -14,8 +14,8 @@ class ExpiredInventoryDTO implements \JsonSerializable
     private int $quantity;
     private string $lotNumber;
     private string $expirationDate;
-    private string $rack;
-    private int $level;
+    private ?int $rack;
+    private ?int $level;
     private int $expiredDays;
 
     public function __construct(
@@ -26,8 +26,8 @@ class ExpiredInventoryDTO implements \JsonSerializable
         int $quantity,
         string $lotNumber,
         string $expirationDate,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
         int $expiredDays
     ) {
         $this->productCode = $productCode;

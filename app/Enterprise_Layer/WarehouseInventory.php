@@ -23,6 +23,7 @@ class WarehouseInventory
     private int $module;
     private int $bay;
     private int $platform;
+    private ?int $transferFolio;
 
     public function __construct(
         int $warehouseId,
@@ -35,7 +36,8 @@ class WarehouseInventory
         int $quantity,
         string $lotNumber,
         string $reason,
-        \DateTime $expirationDate
+        \DateTime $expirationDate,
+        ?int $transferFolio
     ) {
         $this->warehouseId = $warehouseId;
         $this->productId = $productId;
@@ -48,8 +50,13 @@ class WarehouseInventory
         $this->lotNumber =  $lotNumber;
         $this->reason = $reason;
         $this->expirationDate = $expirationDate;
+        $this->transferFolio = $transferFolio;
     }
 
+    public function getTransferFolio(): ?int
+    {
+        return $this->transferFolio;
+    }
     /**
      * Get the value of module
      */

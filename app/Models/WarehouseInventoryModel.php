@@ -21,7 +21,8 @@ class WarehouseInventoryModel extends Model
         'expiration_date',
         'module',
         'bay',
-        'platform'
+        'platform',
+        'transfer_folio'
     ];
 
 

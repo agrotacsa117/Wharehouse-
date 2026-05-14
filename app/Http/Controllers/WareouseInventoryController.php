@@ -54,7 +54,8 @@ class WareouseInventoryController extends Controller
         'loteNumber'     => 'required|string',
         'module' => 'required|integer|min:1',
         'bay' => 'required|integer|min:1',
-        'platform' => 'required|integer|min:1'
+        'platform' => 'required|integer|min:1',
+        'transfer_folio' => 'integer|min:1'
         ]);
 
         
@@ -66,7 +67,8 @@ class WareouseInventoryController extends Controller
             (int) $request->quantity,
             new \DateTime($request->expirationDate),
             $request->reason,
-            $request->loteNumber
+            $request->loteNumber,
+            $request->transfer_folio
         );
 
         $dto->setModule(

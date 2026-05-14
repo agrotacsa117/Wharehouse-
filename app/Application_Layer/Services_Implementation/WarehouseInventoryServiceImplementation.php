@@ -485,7 +485,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory["quantity"],
                 $inventory["lot_number"],
                 $inventory["expiration_date"],
-                $inventory["rack"],
+                $inventory["rack"] ,
                 $inventory["_level"],
                 $inventory["expired_days"]
             );

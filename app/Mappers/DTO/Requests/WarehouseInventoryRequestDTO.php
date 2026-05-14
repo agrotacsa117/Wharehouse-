@@ -15,6 +15,7 @@ class WarehouseInventoryRequestDTO
     private \DateTime $expirationDate;
     private string $reason;
     private string $loteNumber;
+    private ?int $transferFolio;
 
     public function __construct(
         string $productId,
@@ -24,7 +25,8 @@ class WarehouseInventoryRequestDTO
         int $quantity,
         \DateTime $expirationDate,
         string $reason,
-        string $loteNumber
+        string $loteNumber,
+        ?int $transferFolio
     ) {
         $this->productId = $productId;
         $this->warehouseId = $warehouseId;
@@ -34,8 +36,13 @@ class WarehouseInventoryRequestDTO
         $this->expirationDate = $expirationDate;
         $this->reason = $reason;
         $this->loteNumber = $loteNumber;
+        $this->transferFolio = $transferFolio;
     }
 
+    public function getTransferFolio(): ?int
+    {
+        return $this->transferFolio;
+    }
     /**
      * Get the value of module
      */
