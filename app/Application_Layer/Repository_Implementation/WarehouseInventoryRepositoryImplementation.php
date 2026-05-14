@@ -46,6 +46,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             $warehouseInventoryModel->save();
             $warehouseInventory->setId($warehouseInventoryModel->id);
         } catch (\Throwable $th) {
+            die($th->getMessage());
             throw new CouldNotPersistLocationException(
                 'Error saving inventory',
                 0,

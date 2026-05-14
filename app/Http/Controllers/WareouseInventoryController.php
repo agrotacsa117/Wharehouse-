@@ -50,15 +50,16 @@ class WareouseInventoryController extends Controller
         'level'          => 'nullable|integer|min:1',
         'quantity'       => 'required|integer|min:1',
         'expirationDate' => 'required|date',
+        'manufacturingDate' => 'required|date',
         'reason'         => 'required|string',
         'loteNumber'     => 'required|string',
-        'module' => 'required|integer|min:0',
-        'bay' => 'required|integer|min:0',
-        'platform' => 'required|integer|min:0',
+        'module' => 'nullable|integer|min:0',
+        'bay' => 'nullable|integer|min:0',
+        'platform' => 'nullable|integer|min:0',
         'transfer_folio' => 'nullable|integer|min:1'
         ]);
 
-        
+
         $dto = new WarehouseInventoryRequestDTO(
             $request->productId,
             (int) $request->warehouseId,
@@ -75,11 +76,15 @@ class WareouseInventoryController extends Controller
             $request->module
         );
 
+        $dto->setManufacturingDate(
+            new \DateTime($request->manufacturing_date)
+        );
+
         $dto->setBay($request->bay);
         $dto->setPlatform(
             $request->platform
         );
-        
+
         $result = $this->warehouseInventoryService->create($dto);
 
         if ($result->isFailure()) {

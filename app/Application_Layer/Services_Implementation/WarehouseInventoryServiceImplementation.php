@@ -110,6 +110,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
 
         } catch (\Throwable $th) {
+            
             return ResultPattern::failure(
                 $th->getMessage()
             );

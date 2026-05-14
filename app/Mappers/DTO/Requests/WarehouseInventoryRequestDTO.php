@@ -8,17 +8,17 @@ class WarehouseInventoryRequestDTO
     private int $warehouseId;
     private ?int $rack;
     private ?int $level;
-    private int $module;
-    private int $bay;
-    private int $platform;
+    private ?int $module;
+    private ?int $bay;
+    private ?int $platform;
     private int $quantity;
     private \DateTime $expirationDate;
     private string $reason;
     private string $loteNumber;
     private ?int $transferFolio;
     //manufacturing_date
-    private ?\DateTime $manufacturingDate;
-    
+    private \DateTime $manufacturingDate;
+
     public function __construct(
         string $productId,
         int $warehouseId,
@@ -41,6 +41,23 @@ class WarehouseInventoryRequestDTO
         $this->transferFolio = $transferFolio;
     }
 
+    public function getManufacturingDate(): \DateTime
+    {
+        return $this->manufacturingDate;
+    }
+
+    /**
+     * Establece la fecha de fabricación.
+     * * @param \DateTime $manufacturingDate
+     * @return self
+     */
+    public function setManufacturingDate(\DateTime $manufacturingDate): self
+    {
+        $this->manufacturingDate = $manufacturingDate;
+
+        return $this;
+    }
+    
     public function getTransferFolio(): ?int
     {
         return $this->transferFolio;
@@ -48,7 +65,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Get the value of module
      */
-    public function getModule(): int
+    public function getModule(): ?int
     {
         return $this->module;
     }
@@ -56,7 +73,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Set the value of module
      */
-    public function setModule(int $module): void
+    public function setModule(?int $module): void
     {
         $this->module = $module;
     }
@@ -64,7 +81,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Get the value of bay
      */
-    public function getBay(): int
+    public function getBay(): ?int
     {
         return $this->bay;
     }
@@ -72,7 +89,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Set the value of bay
      */
-    public function setBay(int $bay): void
+    public function setBay(?int $bay): void
     {
         $this->bay = $bay;
     }
@@ -80,7 +97,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Get the value of platform
      */
-    public function getPlatform(): int
+    public function getPlatform(): ?int
     {
         return $this->platform;
     }
@@ -88,7 +105,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Set the value of platform
      */
-    public function setPlatform(int $platform): void
+    public function setPlatform(?int $platform): void
     {
         $this->platform = $platform;
     }

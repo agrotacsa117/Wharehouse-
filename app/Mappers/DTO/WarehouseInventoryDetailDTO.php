@@ -13,9 +13,9 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private string $warehouseName;
     private ?int $level;
     private ?int $rack;
-    private int $module;
-    private int $bay;
-    private int $platform;
+    private ?int $module;
+    private ?int $bay;
+    private ?int $platform;
     private int $stock;
     private string $expirationDate;
     private ?string $lotNumber;
@@ -35,9 +35,9 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         ?string $lotNumber = null,
         ?int $remainingDays = null,
         ?float $obsolescence = null,
-        int $module,
-        int $bay,
-        int $platform
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ) {
         $this->inventoryId =  $inventoryId;
         $this->productName = $productName;
@@ -60,7 +60,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     /**
      * @return int
      */
-    public function getModule(): int
+    public function getModule(): ?int
     {
         return $this->module;
     }
@@ -68,7 +68,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     /**
      * @return int
      */
-    public function getBay(): int
+    public function getBay(): ?int
     {
         return $this->bay;
     }
@@ -76,7 +76,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     /**
      * @return int
      */
-    public function getPlatform(): int
+    public function getPlatform(): ?int
     {
         return $this->platform;
     }

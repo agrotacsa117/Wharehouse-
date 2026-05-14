@@ -36,6 +36,11 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
         );
 
         $warehouseInventory
+        ->setManufacturingDate(
+            $warehouseInventoryRequestDTO->getManufacturingDate()
+        );
+
+        $warehouseInventory
         ->setBay(
             $warehouseInventoryRequestDTO
             ->getBay()

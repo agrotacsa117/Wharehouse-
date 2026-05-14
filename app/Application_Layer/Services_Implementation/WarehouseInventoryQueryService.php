@@ -104,7 +104,8 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $removeWarehouseInventoryStockDTO->getQuantity(),
                 $warehouseInventoryOutDetailDTO->getLotNumber(),
                 $removeWarehouseInventoryStockDTO->getReason(),
-                $date
+                $date,
+                null
             );
 
             $warehouseInventory = $this->warehouseInventoryRepository
