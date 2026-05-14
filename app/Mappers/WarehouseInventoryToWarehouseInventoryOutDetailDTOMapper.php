@@ -19,7 +19,10 @@ class WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper implements Wareho
             $warehouseInventory->getWarehouseName(),
             $warehouseInventory->getQuantity(),
             $warehouseInventory->getLotNumber(),
-            $warehouseInventory->getExpirationDate()->format('Y-m-d')
+            $warehouseInventory->getExpirationDate()->format('Y-m-d'),
+            $warehouseInventory->getModule(),
+            $warehouseInventory->getBay(),
+            $warehouseInventory->getPlatform()
         );
     }
 

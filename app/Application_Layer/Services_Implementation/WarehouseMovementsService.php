@@ -153,7 +153,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             $index++;
         }
 
-       
+
 
 
         $filteredReport = new DetailsOfMovements(
@@ -167,7 +167,9 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     public function generateMovementFolio(): string
     {
         return 'MOV-' . str_pad(
-            $this->getTotalOfMovements() + 1,
+            $this
+            ->warehouseMovementsRepository
+            ->countFolio() + 1,
             6,
             '0',
             STR_PAD_LEFT

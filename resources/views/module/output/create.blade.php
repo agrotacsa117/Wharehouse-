@@ -338,7 +338,7 @@
                         <tr>
                             <th>Código</th>
                             <th>Descripción</th>
-                            <th>Ubicación(Rack/Level)</th>
+                            <th>Ubicación</th>
                             <th>Stock</th>
                             <th>Fecha de caducidad</th>
                             <th>Acción</th>
@@ -419,7 +419,7 @@
                                             <i class="bi bi-info-circle"></i> Datos de Venta
                                         </div>
                                         <div class="row g-3">
-                                            
+
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Factura SAP</label>
                                                 <input type="text" name="invoice_sap" id="input-invoice-sap"
@@ -436,14 +436,16 @@
                                         <div class="row g-3">
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold">Sucursal *</label>
-                                                <select name="destination_warehouse"
-                                                    id="input-destination-warehouse" class="form-select">
+                                                <select name="destination_warehouse" id="input-destination-warehouse"
+                                                    class="form-select">
                                                     <option value="">Seleccione sucursal destino...</option>
                                                     <option value="mapastepec">Mapastepec</option>
                                                     <option value="tuxtla">Tuxtla</option>
                                                     <option value="cardenas">Cárdenas</option>
                                                     <option value="zapata">Zapata</option>
                                                     <option value="campeche">Campeche</option>
+                                                    <option value="Mostrador Matriz">Mostrador Matriz</option>
+                                                    <option value="Agrotacsa Tapachula">Agrotacsa Tapachula</option>
                                                 </select>
                                             </div>
 
@@ -454,7 +456,7 @@
                                                     class="form-control" min="1" placeholder="Ej: 1">
                                             </div>
 
-                                            
+
                                         </div>
                                     </div>
 
@@ -729,7 +731,11 @@
                 <tr>
                     <td><span class="badge-info">${item.productCode}</span></td>
                     <td><strong>${item.productName}</strong></td>
-                    <td>${item.rack ?? "Sin rack"}/${item.level ?? "Sin nivel"}</td>
+                    <td>
+                        ${item.rack !== null && item.level !== null 
+            ? `R:${item.rack} / N:${item.level}` 
+            : `M:${item.module} / B:${item.bay} / T:${item.platform}`
+        }</td>
                     <td class="fw-bold">${item.quantity}</td>
                     <td class="fw-bold">${item.expirationDate.split(' ')[0]}</td>
                     <td>

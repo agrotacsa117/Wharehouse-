@@ -16,6 +16,8 @@ interface WarehouseMovementsRepositoryI
 
     public function count(): int;
 
+    public function countFolio(): int;
+
 
     public function countByMovementType(string $movementType): int;
 

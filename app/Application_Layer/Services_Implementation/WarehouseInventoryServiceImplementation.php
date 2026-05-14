@@ -131,7 +131,6 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
             $folio = $this->warehouseMovementsService
             ->generateMovementFolio();
-
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
                 $this->warehouseInventory->getId(),
@@ -192,6 +191,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $warehouseId
         );
 
+        
         for ($i = 0; $i < count($inventory) ; $i++) {
             $inventory[$i] = new WarehouseInventoryOutDetailDTO(
                 $inventory[$i]['id'],
@@ -202,7 +202,10 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['warehouse_name'],
                 $inventory[$i]['quantity'],
                 $inventory[$i]['lot_number'],
-                $inventory[$i]['expiration_date']
+                $inventory[$i]['expiration_date'],
+                $inventory[$i]['module'],
+                $inventory[$i]['bay'],
+                $inventory[$i]['platform']
             );
         }
 
@@ -387,8 +390,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             }
 
             $folio = $this->warehouseMovementsService->generateMovementFolio();
-            die($folio);
-            
+            //die($folio);
+
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
                 $transferInventoryDTO->getInventoryId(),

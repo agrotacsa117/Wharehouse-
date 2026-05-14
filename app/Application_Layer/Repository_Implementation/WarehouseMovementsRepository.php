@@ -8,7 +8,7 @@ use App\Enterprise_Layer\WarehouseInventoryMovements;
 use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Contracts\WarehouseInventoryMovementModelMapperI;
-
+use Illuminate\Support\Facades\DB;
 class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 {
     private WarehouseInventoryMovementsEntityToModelMapperI $warehouseInventoryMovementsEntityToModelMapperI;
@@ -82,6 +82,15 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     public function count(): int
     {
         return WarehouseInventoryMovementsModel::count();
+    }
+
+    public function countFolio(): int
+    {
+        $maxFolio = WarehouseInventoryMovementsModel::max(
+            DB::raw("CAST(REGEXP_REPLACE(folio, '[^0-9]', '') AS UNSIGNED)")
+        );
+        
+        return (int)$maxFolio;
     }
 
     public function countByMovementType(string $movementType): int

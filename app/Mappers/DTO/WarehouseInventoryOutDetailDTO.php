@@ -2,8 +2,8 @@
 
 namespace App\Mappers\DTO;
 
-class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
-
+class WarehouseInventoryOutDetailDTO implements \JsonSerializable
+{
     private int $inventoryId;
     private int $warehouseId;
     private ?int $rack;
@@ -13,6 +13,9 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
     private int $quantity;
     private string $lotNumber;
     private string $expirationDate;
+    private int $module;
+    private int $bay;
+    private int $platform;
 
 
     public function __construct(
@@ -24,7 +27,10 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
         string $productName,
         int $quantity,
         string $lotNumber,
-        string $expirationDate
+        string $expirationDate,
+        int $module,
+        int $bay,
+        int $platform
     ) {
         $this->inventoryId = $inventoryId;
         $this->warehouseId = $warehouseId;
@@ -35,6 +41,9 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
         $this->quantity = $quantity;
         $this->lotNumber = $lotNumber;
         $this->expirationDate = $expirationDate;
+        $this->module = $module;
+        $this->bay = $bay;
+        $this->platform = $platform;
     }
 
     public function getInventoryId(): int
@@ -127,7 +136,7 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
         $this->expirationDate = $expirationDate;
     }
 
-      public function jsonSerialize() : array
+    public function jsonSerialize(): array
     {
         return [
             'inventoryId' => $this->inventoryId,
@@ -139,6 +148,9 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable{
             'quantity' => $this->quantity,
             'lotNumber' => $this->lotNumber,
             'expirationDate' => $this->expirationDate,
+            'module' => $this->module,
+            'bay' => $this->bay,
+            'platform' => $this->platform
         ];
     }
 }

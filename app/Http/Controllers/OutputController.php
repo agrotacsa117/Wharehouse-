@@ -101,7 +101,7 @@ class OutputController extends Controller
         ->getWarehouseInventoryByWarehouseId(
             $id
         );
-
+        
         return response()->json($inventory);
     }
 
@@ -291,7 +291,7 @@ $this->removeWarehouseInventoryStockDTO
             'reason' => 'required|string|max:255',
             'destination_warehouse' =>'required|string|max:255'
         ]);
-
+        
         // Obtener inventario actual
         $inventoryResult = $this->warehouseInventoryService->getInventoryById(
             (int) $request->warehouseInventoryId

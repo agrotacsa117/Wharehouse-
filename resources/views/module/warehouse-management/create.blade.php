@@ -1023,14 +1023,17 @@
                                                     onclick='viewWarehouse(@json($warehouse->toArray()))'>
                                                     <i class="bi bi-eye"></i>
                                                 </button>
+                                                @if (auth()->user()->rol === 'admin')
                                                 <button class="action-btn edit" title="Editar"
                                                     onclick='openEdit(@json($warehouse->toArray()))'>
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
+                                                @endif
                                                 <button class="action-btn delete" title="Eliminar"
                                                     onclick='openDelete({{ $warehouse->getId() }})'>
                                                     <i class="bi bi-trash3"></i>
                                                 </button>
+                                                
                                             </div>
                                         </td>
                                     </tr>
@@ -1254,6 +1257,7 @@
 @push('scripts')
     
     <script>
+        const userRole = "{{ auth()->user()->rol }}";
         let deleteTargetId = null;
 
         const tableBody = document.getElementById('tableBody');
@@ -1334,12 +1338,14 @@
                         <button class="action-btn view" title="Ver detalle" onclick="viewWarehouse(${w.id})">
                             <i class="bi bi-eye"></i>
                         </button>
+                        ${userRole === 'admin' ? `
                         <button class="action-btn edit" title="Editar" onclick="openEdit(${w.id})">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <button class="action-btn delete" title="Eliminar" onclick="openDelete(${w.id})">
                             <i class="bi bi-trash3"></i>
                         </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>

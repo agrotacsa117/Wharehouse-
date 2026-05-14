@@ -26,7 +26,9 @@ class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInve
         );
 
         $entity->setId($model->id);
-
+        $entity->setModule($model->module);
+        $entity->setBay($model->bay);
+        $entity->setPlatform($model->platform);
         return $entity;
     }
 } 

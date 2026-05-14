@@ -389,6 +389,14 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label for="bay" class="field-label">
+                            Bahía<span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-control tacsa-input" id="bay" name="bay"
+                            placeholder="Ej: 1, 2, 3" min="1" required>
+                    </div>
+
+                    <div class="col-md-6">
                         <label for="module" class="field-label">
                             Modulo <span class="required">*</span>
                         </label>
@@ -396,13 +404,7 @@
                             placeholder="Ej: 1, 2, 3" min="1" required>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="bay" class="field-label">
-                            Bahía<span class="required">*</span>
-                        </label>
-                        <input type="number" class="form-control tacsa-input" id="bay" name="bay"
-                            placeholder="Ej: 1, 2, 3" min="1" required>
-                    </div>
+
 
                     <div class="col-md-6">
                         <label for="platform" class="field-label">
@@ -458,8 +460,8 @@
                             <option value="" disabled selected>Seleccione un motivo...</option>
                             <option value="Inventario Inicial">Inventario Inicial</option>
                             <option value="Ajuste de inventario">Recepción de traslado</option>
-                            <option value="Reubicación">Reubicación</option>
                             <option value="Ajuste">Ajuste</option>
+                            <option value="Ajuste">Producción</option>
                         </select>
                     </div>
 
@@ -493,6 +495,29 @@
         <!-- Bootstrap 5 JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            const expirationInput = document.getElementById('expirationDate');
+
+            expirationInput.addEventListener('input', function() {
+                // Obtenemos el valor actual del input (YYYY-MM-DD)
+                const dateValue = this.value;
+
+                if (dateValue) {
+                    // Dividimos la fecha por el guion
+                    const parts = dateValue.split('-');
+                    const year = parts[0];
+
+                    // Si el año tiene más de 4 dígitos
+                    if (year.length > 4) {
+                        // Recortamos el año a solo 4 dígitos y reconstruimos la fecha
+                        const fixedYear = year.slice(0, 4);
+                        const month = parts[1] || '';
+                        const day = parts[2] || '';
+
+                        // Volvemos a asignar el valor corregido al input
+                        this.value = `${fixedYear}-${month}-${day}`;
+                    }
+                }
+            });
             document.addEventListener('DOMContentLoaded', function() {
                 const reasonSelect = document.getElementById('reason');
                 const folioContainer = document.getElementById('container-folio');

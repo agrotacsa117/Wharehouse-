@@ -113,7 +113,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $inventory = WarehouseInventoryModel::where(
             'warehouse_id',
             $warehouseId
-        )->get();
+        )->where('quantity', '>', 0)->get();
 
         $inventory = $inventory->toArray();
 
@@ -259,18 +259,16 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 'error' => 'Inventario no encontrado'];
         }
 
-       
+
 
         if ($inventory->quantity < $quantity) {
             return ['success' => false, 'error' => 'Cantidad insuficiente en el inventario'];
         }
 
-        if ($inventory->quantity == $quantity) {
-            $inventory->delete();
-        } else {
-            $inventory->quantity = $inventory->quantity - $quantity;
-            $inventory->save();
-        }
+
+        $inventory->quantity = $inventory->quantity - $quantity;
+        $inventory->save();
+
 
         // $newInventory = new WarehouseInventoryModel();
         // $newInventory->product_id = $inventory->product_id;
