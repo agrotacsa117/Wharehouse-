@@ -1664,6 +1664,18 @@
                                     <span class="value"
                                         style="color:red;">{{ substr($item->getExpirationDate(), 0, 10) }}</span>
                                 </div>
+
+                                <div class="inventory-item-row">
+                                    <span class="label">No. de lote</span>
+                                    <span class="value"
+                                        style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                </div>
+
+                                <div class="inventory-item-row">
+                                    <span class="label">Fecha de fabricación</span>
+                                    <span class="value"
+                                        style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                </div>
                             </div>
                         @endforeach
                     </div>

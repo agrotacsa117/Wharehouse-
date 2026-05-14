@@ -451,6 +451,13 @@
                             required>
                     </div>
 
+                       <div class="col-md-6">
+                        <label for="expirationDate" class="field-label">
+                            Fecha de Fabricación <span class="required">*</span>
+                        </label>
+                        <input type="date" class="form-control tacsa-input" id="manufacturingDate" name="manufacturingDate"
+                            required>
+                    </div>
                     <!-- reason -->
                     <div class="col-md-6">
                         <label for="reason" class="field-label">
