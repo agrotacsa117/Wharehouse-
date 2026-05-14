@@ -16,7 +16,9 @@ class WarehouseInventoryRequestDTO
     private string $reason;
     private string $loteNumber;
     private ?int $transferFolio;
-
+    //manufacturing_date
+    private ?\DateTime $manufacturingDate;
+    
     public function __construct(
         string $productId,
         int $warehouseId,

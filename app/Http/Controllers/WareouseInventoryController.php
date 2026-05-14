@@ -52,10 +52,10 @@ class WareouseInventoryController extends Controller
         'expirationDate' => 'required|date',
         'reason'         => 'required|string',
         'loteNumber'     => 'required|string',
-        'module' => 'required|integer|min:1',
-        'bay' => 'required|integer|min:1',
-        'platform' => 'required|integer|min:1',
-        'transfer_folio' => 'integer|min:1'
+        'module' => 'required|integer|min:0',
+        'bay' => 'required|integer|min:0',
+        'platform' => 'required|integer|min:0',
+        'transfer_folio' => 'nullable|integer|min:1'
         ]);
 
         
