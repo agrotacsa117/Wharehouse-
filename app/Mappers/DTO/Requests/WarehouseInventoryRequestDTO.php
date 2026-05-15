@@ -16,8 +16,8 @@ class WarehouseInventoryRequestDTO
     private string $reason;
     private string $loteNumber;
     private ?int $transferFolio;
-    //manufacturing_date
     private \DateTime $manufacturingDate;
+    private ?int $productionFolio;
 
     public function __construct(
         string $productId,
@@ -41,6 +41,29 @@ class WarehouseInventoryRequestDTO
         $this->transferFolio = $transferFolio;
     }
 
+
+    /**
+ * Obtiene el valor de productionFolio
+ *
+ * @return int
+ */
+    public function getProductionFolio(): ?int
+    {
+        return $this->productionFolio;
+    }
+
+    /**
+     * Establece el valor de productionFolio
+     *
+     * @param string $productionFolio
+     * @return self
+     */
+    public function setProductionFolio(?int $productionFolio): self
+    {
+        $this->productionFolio = $productionFolio;
+        return $this;
+    }
+
     public function getManufacturingDate(): \DateTime
     {
         return $this->manufacturingDate;
@@ -57,7 +80,7 @@ class WarehouseInventoryRequestDTO
 
         return $this;
     }
-    
+
     public function getTransferFolio(): ?int
     {
         return $this->transferFolio;

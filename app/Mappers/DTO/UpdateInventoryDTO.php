@@ -5,6 +5,8 @@ namespace App\Mappers\DTO;
 class UpdateInventoryDTO
 {
     private int $id;
+    private string $productCode;
+    private string $productName;
     private string $rack;
     private int $level;
     private string $lotNumber;

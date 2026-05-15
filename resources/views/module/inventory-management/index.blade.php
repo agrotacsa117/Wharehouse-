@@ -93,17 +93,33 @@
                         <input type="hidden" id="editId" name="id">
 
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Código</label>
-                                <input type="text" class="form-control" id="editProductId" readonly>
-                            </div>
+                            
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Producto</label>
-                                <input type="text" class="form-control" id="editProductName" readonly>
+                                <select class="form-select tacsa-select" id="editProductId" name="editProductId" required>
+                            <option value="" disabled selected>Seleccione un producto</option>
+
+                            @foreach ($products as $product)
+                                <option value="{{ $product->getId() }}">
+                                    {{ $product->getProductName() }}
+                                </option>
+                            @endforeach
+                        </select>
+                                
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Almacén</label>
-                                <input type="text" class="form-control" id="editWarehouse" readonly>
+                                <select class="form-select tacsa-select" id="editWarehouse" name="warehouse" required>
+                            <option value="" disabled selected>Seleccione un almacen</option>
+                            @foreach ($warehouses as $warehouse)
+                                <option value="{{ $warehouse->getId() }}"
+                                    {{ old('warehouseId') == $warehouse->getId() ? 'selected' : '' }}>
+                                    {{ $warehouse->getWarehouseName() }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                                
                             </div>
                         </div>
 
@@ -376,8 +392,8 @@
 
                 document.getElementById('editId').value = item.id; //editProductName
                 document.getElementById('editProductId').value = item.productId || 'N/A';
-                document.getElementById('editProductName').value = item.productName || 'N/A';
-                document.getElementById('editWarehouse').value = item.warehouseName || item.warehouse?.warehouses_name ||
+                //document.getElementById('editProductName').value = item.productName || 'N/A';
+                document.getElementById('editWarehouse').value = item.warehouseId || item.warehouse?.warehouseId ||
                     'N/A';
                 document.getElementById('editRack').value = item.rack || '';
                 document.getElementById('editLevel').value = item.level || 1;
@@ -438,7 +454,7 @@
 
                 const formData = new FormData(this);
                 const data = Object.fromEntries(formData);
-                
+                alert(JSON.stringify(data));
                 fetch('{{ route('inventory.update') }}', {
                         method: 'POST',
                         headers: {

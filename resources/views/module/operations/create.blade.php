@@ -468,7 +468,7 @@
                             <option value="Inventario Inicial">Inventario Inicial</option>
                             <option value="Ajuste de inventario">Recepción de traslado</option>
                             <option value="Ajuste">Ajuste</option>
-                            <option value="Ajuste">Producción</option>
+                            <option value="Production">Producción</option>
                         </select>
                     </div>
 
@@ -477,7 +477,15 @@
                             Folio de Traslado <span class="required">*</span>
                         </label>
                         <input type="text" class="form-control tacsa-input" id="transfer_folio" name="transfer_folio"
-                            placeholder="Ej: TR-10023">
+                            placeholder="Ej: 10023">
+                    </div>
+
+                    <div class="col-md-6" id="production_container_folio" style="display: none;">
+                        <label for="production_folio" class="field-label">
+                            Folio de Produción <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control tacsa-input" id="production_folio" name="production_folio"
+                            placeholder="Ej: 10023">
                     </div>
                 </div>
 
@@ -502,36 +510,27 @@
         <!-- Bootstrap 5 JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            const expirationInput = document.getElementById('expirationDate');
 
-            expirationInput.addEventListener('input', function() {
-                // Obtenemos el valor actual del input (YYYY-MM-DD)
-                const dateValue = this.value;
-
-                if (dateValue) {
-                    // Dividimos la fecha por el guion
-                    const parts = dateValue.split('-');
-                    const year = parts[0];
-
-                    // Si el año tiene más de 4 dígitos
-                    if (year.length > 4) {
-                        // Recortamos el año a solo 4 dígitos y reconstruimos la fecha
-                        const fixedYear = year.slice(0, 4);
-                        const month = parts[1] || '';
-                        const day = parts[2] || '';
-
-                        // Volvemos a asignar el valor corregido al input
-                        this.value = `${fixedYear}-${month}-${day}`;
-                    }
-                }
-            });
+           
+            
             document.addEventListener('DOMContentLoaded', function() {
                 const reasonSelect = document.getElementById('reason');
                 const folioContainer = document.getElementById('container-folio');
                 const folioInput = document.getElementById('transfer_folio');
+                const productionFolioContainer = document.getElementById('production_container_folio');
+                const productionFolioInput = document.getElementById('production_folio');
 
                 reasonSelect.addEventListener('change', function() {
                     // Validamos contra el VALUE del option seleccionado
+                    if (this.value === 'Production') {
+                        productionFolioContainer.style.display = 'block';
+                        productionFolioInput.setAttribute('required', 'required');
+                    }else{
+                        productionFolioContainer.style.display = 'none';
+                        productionFolioInput.removeAttribute('required');
+                        productionFolioInput.value = '';
+                    }
+
                     if (this.value === 'Ajuste de inventario') {
                         folioContainer.style.display = 'block';
                         folioInput.setAttribute('required', 'required');

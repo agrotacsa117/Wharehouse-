@@ -22,7 +22,8 @@ class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInve
             $model->quantity,
             $model->lot_number,
             $model->reason,
-            new \DateTime($model->expiration_date)
+            new \DateTime($model->expiration_date),
+            $model->transfer_folio
         );
 
         $entity->setId($model->id);

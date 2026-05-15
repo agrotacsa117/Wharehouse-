@@ -30,6 +30,12 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
             $warehouseInventoryRequestDTO->getTransferFolio()
         );
 
+        $warehouseInventory
+        ->setProductionFolio(
+            $warehouseInventoryRequestDTO
+            ->getProductionFolio()
+        );
+
         $warehouseInventory->setModule(
             $warehouseInventoryRequestDTO
             ->getModule()

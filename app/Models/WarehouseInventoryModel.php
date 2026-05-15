@@ -23,7 +23,8 @@ class WarehouseInventoryModel extends Model
         'bay',
         'platform',
         'transfer_folio',
-        'manufacturing_date'
+        'manufacturing_date',
+        'production_folio'
     ];
 
 

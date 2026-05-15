@@ -8,15 +8,23 @@ use App\Mappers\DTO\TransferInventoryDTO;
 use App\Models\WarehouseModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Contracts\ProductServiceInterface;
+use App\Contracts\WarehouseStorageServiceInterface;
 
 class InventoryManagementController extends Controller
 {
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
+    private ProductServiceInterface $productService;
+    private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
-        WarehouseInventoryServiceInterface $warehouseInventoryService
+        WarehouseInventoryServiceInterface $warehouseInventoryService,
+        ProductServiceInterface $productService,
+        WarehouseStorageServiceInterface $warehouseStorageService
     ) {
         $this->warehouseInventoryService = $warehouseInventoryService;
+        $this->productService = $productService;
+        $this->warehouseStorageService = $warehouseStorageService;
     }
 
     public function index()
@@ -24,13 +32,17 @@ class InventoryManagementController extends Controller
         $titulo = "Gestión de Inventario";
         $almacenes = WarehouseModel::select('id', 'warehouses_name')->get();
         $inventory = $this->warehouseInventoryService->getAllWarehouseInventories();
-
+        $products = $this->productService->listAllProducts();
         //$inventory = $this->warehouseInventoryService->getAllInventoryForManagement();
+        $warehouses = $this->warehouseStorageService
+                ->getWarehouseIdAndName();
 
         return view('module.inventory-management.index', compact(
             'titulo',
             'almacenes',
-            'inventory'
+            'inventory',
+            'products',
+            'warehouses'
         ));
     }
 
@@ -49,14 +61,20 @@ class InventoryManagementController extends Controller
     {
         $request->validate([
             'id' => 'required|integer',
-            'rack' => 'required|string|max:50',
-            'level' => 'required|integer|min:1',
+            'editProductId' => 'required|integer',
+            'warehouse' => 'required|integer',
+            'rack' => 'nullable|string|max:50',
+            'level' => 'nullable|integer|min:1',
             'lot_number' => 'required|string|max:100',
             'quantity' => 'required|integer|min:0',
             'expiration_date' => 'required|date',
             'reason' => 'required|string|max:255'
         ]);
 
+        
+
+        
+        //die("The product id is: ".$request->editProductId);
         $dto = new UpdateInventoryDTO(
             (int)$request->id,
             $request->rack,
@@ -106,9 +124,9 @@ class InventoryManagementController extends Controller
             $request->reason
         );
 
-         return response()->json([
-            'success' => true,
-            'message' =>  $dto
+        return response()->json([
+           'success' => true,
+           'message' =>  $dto
         ]);
 
         $result = $this->warehouseInventoryService->transferInventory($dto);

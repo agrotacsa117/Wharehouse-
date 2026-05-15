@@ -25,6 +25,7 @@ class WarehouseInventory
     private ?int $platform;
     private ?int $transferFolio;
     private \DateTime $manufacturingDate;
+    private ?int $productionFolio;
 
     public function __construct(
         int $warehouseId,
@@ -54,6 +55,24 @@ class WarehouseInventory
         $this->transferFolio = $transferFolio;
     }
 
+
+    public function getProductionFolio(): ?int
+    {
+        return $this->productionFolio;
+    }
+
+    /**
+     * Establece el valor de productionFolio
+     *
+     * @param int $productionFolio
+     * @return self
+     */
+    public function setProductionFolio(?int $productionFolio): self
+    {
+        $this->productionFolio = $productionFolio;
+        return $this;
+    }
+
     public function getManufacturingDate(): \DateTime
     {
         return $this->manufacturingDate;
@@ -70,7 +89,7 @@ class WarehouseInventory
 
         return $this;
     }
-    
+
     public function getTransferFolio(): ?int
     {
         return $this->transferFolio;

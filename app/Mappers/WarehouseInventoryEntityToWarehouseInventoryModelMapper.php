@@ -32,6 +32,7 @@ class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements Warehou
         $warehouseInventoryModel->bay = $warehouseInventory->getBay();
         $warehouseInventoryModel->platform = $warehouseInventory->getPlatform();
         $warehouseInventoryModel->transfer_folio = $warehouseInventory->getTransferFolio();
+        $warehouseInventoryModel->production_folio = $warehouseInventory->getProductionFolio();
         return $warehouseInventoryModel;
     }
 }

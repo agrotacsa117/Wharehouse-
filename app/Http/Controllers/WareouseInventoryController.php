@@ -32,6 +32,7 @@ class WareouseInventoryController extends Controller
         $products = $this->productService->listAllProducts();
         $warehouses = $this->warehouseStorageService
         ->getWarehouseIdAndName();
+        
         return view(
             'module.operations.create',
             compact(
@@ -56,7 +57,8 @@ class WareouseInventoryController extends Controller
         'module' => 'nullable|integer|min:0',
         'bay' => 'nullable|integer|min:0',
         'platform' => 'nullable|integer|min:0',
-        'transfer_folio' => 'nullable|integer|min:1'
+        'transfer_folio' => 'nullable|integer|min:1',
+        'production_folio' => 'nullable|integer|min:1'
         ]);
 
 
@@ -72,10 +74,15 @@ class WareouseInventoryController extends Controller
             $request->transfer_folio
         );
 
+        
+
+
         $dto->setModule(
             $request->module
         );
 
+        //production_folio
+        $dto->setProductionFolio($request->production_folio);
         $dto->setManufacturingDate(
             new \DateTime($request->manufacturing_date)
         );
