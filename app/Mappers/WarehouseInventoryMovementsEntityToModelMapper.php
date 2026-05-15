@@ -21,6 +21,9 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         $model->reason = $warehouseInventoryMovements->getReason();
         $model->user_id = $warehouseInventoryMovements->getUserId();
 
+        if ($warehouseInventoryMovements->getTransferFolio() !== null) {
+            $model->transfer_folio = $warehouseInventoryMovements->getTransferFolio();
+        }
         // Si la entidad ya trae ID (caso update)
         if ($warehouseInventoryMovements->getId() !== null) {
             $model->id = $warehouseInventoryMovements->getId();

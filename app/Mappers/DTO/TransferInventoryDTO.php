@@ -12,6 +12,7 @@ class TransferInventoryDTO
     private string $lotNumber;
     private int $quantity;
     private string $reason;
+    private int $transferFolio;
 
     public function __construct(
         int $inventoryId,
@@ -21,7 +22,8 @@ class TransferInventoryDTO
         int $level,
         string $lotNumber,
         int $quantity,
-        string $reason
+        string $reason,
+        int $transferFolio
     ) {
         $this->inventoryId = $inventoryId;
         $this->fromWarehouseId = $fromWarehouseId;
@@ -31,6 +33,17 @@ class TransferInventoryDTO
         $this->lotNumber = $lotNumber;
         $this->quantity = $quantity;
         $this->reason = $reason;
+        $this->transferFolio = $transferFolio ;
+    }
+
+    public function getTransferFolio(): int
+    {
+        return $this->transferFolio;
+    }
+
+    public function setTransferFolio(int $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 
     public function getInventoryId(): int

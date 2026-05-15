@@ -12,6 +12,7 @@ class WarehouseMovementsDTO
     private int $userId;
     private ?\DateTime $operationDate;
     private ?int $sourceWarehouseId;
+    private int $transferFolio;
 
     public function __construct(
         string $folio,
@@ -29,6 +30,16 @@ class WarehouseMovementsDTO
         $this->userId = $userId;
         $this->operationDate = null;
         $this->sourceWarehouseId = null;
+    }
+
+    public function getTransferFolio(): ?int
+    {
+        return $this->transferFolio;
+    }
+
+    public function setTransferFolio(?int $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 
     public function getOperationDate(): ?\DateTime

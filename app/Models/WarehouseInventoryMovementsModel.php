@@ -19,7 +19,8 @@ class WarehouseInventoryMovementsModel extends Model
         'operation_date',
         'source_warehouse_id',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'transfer_folio'
     ];
 
     public function inventory()

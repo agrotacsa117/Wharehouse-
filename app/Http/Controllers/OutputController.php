@@ -289,7 +289,8 @@ $this->removeWarehouseInventoryStockDTO
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'reason' => 'required|string|max:255',
-            'destination_warehouse' =>'required|string|max:255'
+            'destination_warehouse' =>'required|string|max:255',
+            'folio_transfer' => 'required|integer|min:1'
         ]);
         
         // Obtener inventario actual
@@ -317,7 +318,8 @@ $this->removeWarehouseInventoryStockDTO
             0,
             $inventory->getLotNumber(),
             (int) $request->quantity,
-            $request->reason
+            $request->reason,
+            (int)$request->folio_transfer
         );
 
         $this->removeWarehouseInventoryStockDTO

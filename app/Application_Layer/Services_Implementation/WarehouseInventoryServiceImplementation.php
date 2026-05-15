@@ -402,6 +402,11 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 auth()->id()
             );
 
+            $this->warehouseMovementsDTO
+            ->setTransferFolio(
+                $transferInventoryDTO->getTransferFolio()
+            );
+            
             $this->warehouseMovementsDTO->setSourceWarehouseId(
                 0
             );

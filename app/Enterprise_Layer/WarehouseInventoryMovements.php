@@ -6,7 +6,7 @@ namespace App\Enterprise_Layer;
 
 use DateTime;
 
-class WarehouseInventoryMovements 
+class WarehouseInventoryMovements
 {
     public const TYPE_IN = 'IN';
     public const TYPE_OUT = 'OUT';
@@ -27,6 +27,7 @@ class WarehouseInventoryMovements
     private $updatedAt;
     private ?int $sourceWarehouseId = null;
     private ?\DateTime $operationDate = null;
+    private int $transferFolio;
 
     public function __construct(
         string $folio,
@@ -48,6 +49,16 @@ class WarehouseInventoryMovements
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
+    }
+
+    public function getTransferFolio(): ?int
+    {
+        return $this->transferFolio;
+    }
+
+    public function setTransferFolio(?int $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 
     // =========================
@@ -90,7 +101,7 @@ class WarehouseInventoryMovements
         return $this;
     }
 
-   
+
     public function setOperationDate(\DateTime $operationDate): self
     {
         $this->operationDate = $operationDate;
@@ -170,5 +181,5 @@ class WarehouseInventoryMovements
         $this->updatedAt = $updatedAt;
     }
 
-   
+
 }

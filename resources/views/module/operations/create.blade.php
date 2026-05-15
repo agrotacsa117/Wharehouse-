@@ -451,12 +451,12 @@
                             required>
                     </div>
 
-                       <div class="col-md-6">
+                    <div class="col-md-6">
                         <label for="expirationDate" class="field-label">
                             Fecha de Fabricación <span class="required">*</span>
                         </label>
-                        <input type="date" class="form-control tacsa-input" id="manufacturingDate" name="manufacturingDate"
-                            required>
+                        <input type="date" class="form-control tacsa-input" id="manufacturingDate"
+                            name="manufacturingDate" required>
                     </div>
                     <!-- reason -->
                     <div class="col-md-6">
@@ -502,29 +502,22 @@
         <!-- Bootstrap 5 JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            const expirationInput = document.getElementById('expirationDate');
+            document.addEventListener('input', function(event) {
+                // Verificamos si el elemento que disparó el evento es un input tipo date
+                if (event.target.matches('input[type="date"]')) {
+                    const input = event.target;
+                    const dateValue = input.value;
 
-            expirationInput.addEventListener('input', function() {
-                // Obtenemos el valor actual del input (YYYY-MM-DD)
-                const dateValue = this.value;
-
-                if (dateValue) {
-                    // Dividimos la fecha por el guion
-                    const parts = dateValue.split('-');
-                    const year = parts[0];
-
-                    // Si el año tiene más de 4 dígitos
-                    if (year.length > 4) {
-                        // Recortamos el año a solo 4 dígitos y reconstruimos la fecha
-                        const fixedYear = year.slice(0, 4);
-                        const month = parts[1] || '';
-                        const day = parts[2] || '';
-
-                        // Volvemos a asignar el valor corregido al input
-                        this.value = `${fixedYear}-${month}-${day}`;
+                    if (dateValue) {
+                        const parts = dateValue.split('-');
+                        if (parts[0].length > 4) {
+                            const fixedYear = parts[0].slice(0, 4);
+                            input.value = `${fixedYear}-${parts[1] || ''}-${parts[2] || ''}`;
+                        }
                     }
                 }
-            });
+            });+
+
             document.addEventListener('DOMContentLoaded', function() {
                 const reasonSelect = document.getElementById('reason');
                 const folioContainer = document.getElementById('container-folio');

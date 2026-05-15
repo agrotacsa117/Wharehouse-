@@ -22,15 +22,20 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
             $warehouseMovementsDTO->getReason(),
             $warehouseMovementsDTO->getUserId()
         );
-        
-        
+
+        if ($warehouseMovementsDTO->getTransferFolio()) {
+            $warehouseInventoryMovements
+            ->setTransferFolio(
+                $warehouseMovementsDTO->getTransferFolio()
+            );
+        }
         if ($warehouseMovementsDTO->getSourceWarehouseId() !== null) {
             $warehouseInventoryMovements->setSourceWarehouseId(
                 $warehouseMovementsDTO->getSourceWarehouseId()
             );
         }
 
-        
+
 
 
         if ($warehouseMovementsDTO->getOperationDate() !== null) {
