@@ -12,7 +12,7 @@ class WarehouseMovementsDTO
     private int $userId;
     private ?\DateTime $operationDate;
     private ?int $sourceWarehouseId;
-    private int $transferFolio;
+    private ?int $transferFolio = null;
 
     public function __construct(
         string $folio,

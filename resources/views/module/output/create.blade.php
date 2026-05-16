@@ -725,7 +725,10 @@
             const container = document.getElementById('inventory-body');
 
             fetch(`/output/${whId}/inventory`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
                 .then(items => {
                     container.innerHTML = items.map(item => `
                 <tr>
@@ -745,6 +748,12 @@
                     </td>
                 </tr>
             `).join('');
+                })
+                .catch(error => {
+                    console.error('Error cargando inventario:', error);
+                    alert(`Error cargando inventario:\n\nMensaje: ${error.message}\n\nDetalles:\n${error.stack}`);
+                    container.innerHTML =
+                        '<tr><td colspan="6" class="text-center text-danger">Error al cargar inventario</td></tr>';
                 });
 
 

@@ -104,13 +104,13 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $this->warehouseInventory = $this->warehouseInventoryRepository->save(
                 $this->warehouseInventory
             );
-           
+
             return ResultPattern::success(
                 $this->warehouseInventory
             );
 
         } catch (\Throwable $th) {
-            
+
             return ResultPattern::failure(
                 $th->getMessage()
             );
@@ -120,37 +120,35 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function create(
         WarehouseInventoryRequestDTO $warehouseInventoryDTO
     ): ResultPattern {
+        return $this->runInTransaction(
+            function () use ($warehouseInventoryDTO) {
+                $result = $this->saveInventory($warehouseInventoryDTO);
 
-        try {
-            $result = $this->saveInventory($warehouseInventoryDTO);
+                if ($result->isFailure()) {
+                    return $result;
+                }
 
-            if ($result->isFailure()) {
-                return $result;
+                $this->warehouseInventory = $result->getValue();
+
+                $folio = $this->warehouseMovementsService
+                ->generateMovementFolio();
+                $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
+                    $folio,
+                    $this->warehouseInventory->getId(),
+                    "IN",
+                    $warehouseInventoryDTO->getQuantity(),
+                    $warehouseInventoryDTO->getReason(),
+                    auth()->id()
+                );
+
+                $resultMovement =  $this->warehouseMovementsService->saveWarehouseMovement(
+                    $this->warehouseMovementsDTO
+                );
+
+                return ResultPattern::success($warehouseInventoryDTO);
             }
+        );
 
-            $this->warehouseInventory = $result->getValue();
-
-            $folio = $this->warehouseMovementsService
-            ->generateMovementFolio();
-            $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
-                $folio,
-                $this->warehouseInventory->getId(),
-                "IN",
-                $warehouseInventoryDTO->getQuantity(),
-                $warehouseInventoryDTO->getReason(),
-                auth()->id()
-            );
-
-
-            $this->warehouseMovementsService->saveWarehouseMovement(
-                $this->warehouseMovementsDTO
-            );
-
-        } catch (\Throwable $th) {
-            return ResultPattern::failure($th->getMessage());
-        }
-
-        return ResultPattern::success($warehouseInventoryDTO);
     }
 
     public function update(
@@ -192,7 +190,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $warehouseId
         );
 
-        
+
         for ($i = 0; $i < count($inventory) ; $i++) {
             $inventory[$i] = new WarehouseInventoryOutDetailDTO(
                 $inventory[$i]['id'],
@@ -406,7 +404,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             ->setTransferFolio(
                 $transferInventoryDTO->getTransferFolio()
             );
-            
+
             $this->warehouseMovementsDTO->setSourceWarehouseId(
                 0
             );
@@ -491,7 +489,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory["quantity"],
                 $inventory["lot_number"],
                 $inventory["expiration_date"],
-                $inventory["rack"] ,
+                $inventory["rack"],
                 $inventory["_level"],
                 $inventory["expired_days"]
             );
@@ -591,5 +589,30 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
         return $result;
+    }
+
+
+    private function runInTransaction(callable $operation): ResultPattern
+    {
+        try {
+            return DB::transaction(function () use ($operation) {
+                $result = $operation();
+
+                // Si el resultado es failure, forzamos rollback lanzando excepción
+                if ($result instanceof ResultPattern && $result->isFailure()) {
+                    DB::rollBack();
+                    return $result;
+                }
+
+                DB::commit();
+                return $result;
+            });
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return ResultPattern::failure(
+                "Error inesperado: "
+                . $e->getMessage()
+            );
+        }
     }
 }

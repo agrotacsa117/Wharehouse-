@@ -441,7 +441,13 @@
                         <input type="text" class="form-control tacsa-input" id="loteNumber" name="loteNumber"
                             placeholder="Ej: LOTE-2025-001" required>
                     </div>
-
+                    <div class="col-md-6">
+                        <label for="expirationDate" class="field-label">
+                            Fecha de Fabricación <span class="required">*</span>
+                        </label>
+                        <input type="date" class="form-control tacsa-input" id="manufacturingDate"
+                            name="manufacturingDate" required>
+                    </div>
                     <!-- expirationDate -->
                     <div class="col-md-6">
                         <label for="expirationDate" class="field-label">
@@ -451,13 +457,7 @@
                             required>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="expirationDate" class="field-label">
-                            Fecha de Fabricación <span class="required">*</span>
-                        </label>
-                        <input type="date" class="form-control tacsa-input" id="manufacturingDate"
-                            name="manufacturingDate" required>
-                    </div>
+
                     <!-- reason -->
                     <div class="col-md-6">
                         <label for="reason" class="field-label">
@@ -516,7 +516,7 @@
                         }
                     }
                 }
-            });+
+            });
 
             document.addEventListener('DOMContentLoaded', function() {
                 const reasonSelect = document.getElementById('reason');

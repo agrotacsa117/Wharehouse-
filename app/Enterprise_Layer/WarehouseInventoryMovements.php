@@ -27,7 +27,7 @@ class WarehouseInventoryMovements
     private $updatedAt;
     private ?int $sourceWarehouseId = null;
     private ?\DateTime $operationDate = null;
-    private int $transferFolio;
+    private ?int $transferFolio = null;
 
     public function __construct(
         string $folio,

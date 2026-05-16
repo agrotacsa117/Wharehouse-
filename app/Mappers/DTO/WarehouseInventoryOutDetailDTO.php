@@ -13,9 +13,9 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
     private int $quantity;
     private string $lotNumber;
     private string $expirationDate;
-    private int $module;
-    private int $bay;
-    private int $platform;
+    private ?int $module;
+    private ?int $bay;
+    private ?int $platform;
 
 
     public function __construct(
@@ -28,9 +28,9 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         int $quantity,
         string $lotNumber,
         string $expirationDate,
-        int $module,
-        int $bay,
-        int $platform
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ) {
         $this->inventoryId = $inventoryId;
         $this->warehouseId = $warehouseId;

@@ -7,6 +7,7 @@ use App\Contracts\WarehouseStorageServiceInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
+use Illuminate\Support\Facades\DB;
 
 class OutputController extends Controller
 {
@@ -76,7 +77,7 @@ class OutputController extends Controller
 
     public function getView()
     {
-
+        //DB::enableQueryLog();
         $warehousesId = $this->warehouseInventoryService
         ->getWarehouseIdsWithInventory();
 
@@ -88,7 +89,7 @@ class OutputController extends Controller
 
         // ✅ AGREGAR LISTA DE TODOS LOS ALMACENES PARA EL SELECT DE TRANSFER
         $allWarehouses = $this->warehouseStorageService->listAllWarehouses();
-
+        //dd(DB::getQueryLog());
         return view(
             'module.output.create',
             compact('warehousesWithLocationsDTO', 'allWarehouses')
@@ -97,6 +98,7 @@ class OutputController extends Controller
 
     public function getInventory(int $id)
     {
+
         $inventory = $this->warehouseInventoryService
         ->getWarehouseInventoryByWarehouseId(
             $id
@@ -140,7 +142,7 @@ class OutputController extends Controller
         ->setQuantity(
             $request->quantity
         );
-        
+
         $this->removeWarehouseInventoryStockDTO
         ->setRack(
             $request->new_rack
@@ -166,15 +168,15 @@ class OutputController extends Controller
             $request->bay
         );
 
-$this->removeWarehouseInventoryStockDTO
-->setModule(
-    $request->module
-);
+        $this->removeWarehouseInventoryStockDTO
+        ->setModule(
+            $request->module
+        );
 
-$this->removeWarehouseInventoryStockDTO
-->setPlatform(
- $request->platform
-);
+        $this->removeWarehouseInventoryStockDTO
+        ->setPlatform(
+            $request->platform
+        );
         $this->warehouseInventoryService
         ->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
@@ -289,10 +291,10 @@ $this->removeWarehouseInventoryStockDTO
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'reason' => 'required|string|max:255',
-            'destination_warehouse' =>'required|string|max:255',
+            'destination_warehouse' => 'required|string|max:255',
             'folio_transfer' => 'required|integer|min:1'
         ]);
-        
+
         // Obtener inventario actual
         $inventoryResult = $this->warehouseInventoryService->getInventoryById(
             (int) $request->warehouseInventoryId

@@ -77,7 +77,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
                 $warehouseMovementsDTO
             );
 
-
+            
             $this->warehouseMovementsRepository->save(
                 $warehouseInventoryMovements
             );
