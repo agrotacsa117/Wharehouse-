@@ -467,7 +467,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['obsolescence'] ?? null,
                 $inventory[$i]['module'],
                 $inventory[$i]['bay'],
-                $inventory[$i]['platform']
+                $inventory[$i]['platform'],
+                $inventory[$i]['manufacturing_date']
             );
         }
 

@@ -1636,7 +1636,7 @@
                                     <span class="badge-product">{{ $item->getProductCode() }}</span>
                                 </div>
                                 <div class="inventory-item-row">
-                                    <span class="label">Almacen</span>
+                                    <span class="label">Bodega</span>
                                     <span class="value">{{ $item->getWarehouseName() }}</span>
                                 </div>
                                 <div class="inventory-item-row">
@@ -1674,7 +1674,7 @@
                                 <div class="inventory-item-row">
                                     <span class="label">Fecha de fabricación</span>
                                     <span class="value"
-                                        style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                        style="color:rgb(7, 7, 7);">{{ $item->getManufacturingDate() }}</span>
                                 </div>
                             </div>
                         @endforeach

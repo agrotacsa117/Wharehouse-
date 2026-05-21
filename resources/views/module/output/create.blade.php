@@ -446,6 +446,30 @@
                                                     <option value="campeche">Campeche</option>
                                                     <option value="Mostrador Matriz">Mostrador Matriz</option>
                                                     <option value="Agrotacsa Tapachula">Agrotacsa Tapachula</option>
+                                                    <!-- Nuevas sucursales añadidas -->
+                                                    <option value="huehuetan">AgroTACSA Huehuetán</option>
+                                                    <option value="el_dorado">AgroTACSA El Dorado</option>
+                                                    <option value="huixtla">AgroTACSA Huixtla</option>
+                                                    <option value="escuintla">AgroTACSA Escuintla</option>
+                                                    <option value="tonala">AgroTACSA Tonalá</option>
+                                                    <option value="chahuites">AgroTACSA Chahuites</option>
+                                                    <option value="coita">AgroTACSA Coita</option>
+                                                    <option value="villaflores">AgroTACSA Villaflores</option>
+                                                    <option value="jaltenango">AgroTACSA Jaltenango</option>
+                                                    <option value="comitan">AgroTACSA Comitán</option>
+                                                    <option value="huimanguillo">AgroTACSA Huimanguillo</option>
+                                                    <option value="villahermosa_pino_suarez">AgroTACSA Villahermosa
+                                                        (Pino Suárez)</option>
+                                                    <option value="villahermosa_ruiz_cortinez">AgroTACSA Villahermosa
+                                                        (Ruíz Cortínez)</option>
+                                                    <option value="cunduacan">AgroTACSA Cunduacán</option>
+                                                    <option value="macuspana">AgroTACSA Macuspana</option>
+                                                    <option value="palenque">AgroTACSA Palenque</option>
+                                                    <option value="jonuta">AgroTACSA Jonuta</option>
+                                                    <option value="balancan">AgroTACSA Balancán</option>
+                                                    <option value="tenosique">AgroTACSA Tenosique</option>
+                                                    <option value="oxkutzcab">AgroTACSA Oxkutzcab</option>
+                                                    <option value="hopelchen">AgroTACSA Hopelchén</option>
                                                 </select>
                                             </div>
 
@@ -735,9 +759,7 @@
                     <td><span class="badge-info">${item.productCode}</span></td>
                     <td><strong>${item.productName}</strong></td>
                     <td>
-                        ${item.rack !== null && item.level !== null 
-            ? `R:${item.rack} / N:${item.level}` 
-            : `M:${item.module} / B:${item.bay} / T:${item.platform}`
+                        ${`R:${item.rack ?? 'SR'} / N:${item.level ?? 'SN'} / M:${item.module ?? 'SM'} / B:${item.bay ?? 'SB'} / T:${item.platform ?? 'ST'}` 
         }</td>
                     <td class="fw-bold">${item.quantity}</td>
                     <td class="fw-bold">${item.expirationDate.split(' ')[0]}</td>
