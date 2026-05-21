@@ -13,25 +13,41 @@ use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use Illuminate\Http\JsonResponse;
 use App\Contracts\WarehouseSalesServiceI;
+use App\Contracts\WarehouseStorageServiceInterface;
 
 class ReportController extends Controller
 {
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
     private WarehouseMovementsServiceI $warehouseMovementsService;
     private WarehouseSalesServiceI $warehouseSalesService;
+    private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
         WarehouseInventoryServiceInterface $warehouseInventoryService,
         WarehouseMovementsServiceI $warehouseMovementsService,
-        WarehouseSalesServiceI $warehouseSalesService
+        WarehouseSalesServiceI $warehouseSalesService,
+        WarehouseStorageServiceInterface $warehouseStorageService
     ) {
         $this->warehouseInventoryService = $warehouseInventoryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseSalesService = $warehouseSalesService;
+        $this->warehouseStorageService = $warehouseStorageService;
     }
 
     public function index()
     {
+        $this->warehouseInventoryService
+        ->getStockByWarehouse(25);
+        $stockSummary =  $this->warehouseInventoryService
+        ->getStockSummaryPerWarehouse();
+        
+        $warehousesId = $this->warehouseInventoryService
+        ->getWarehouseIdsWithInventory();
+
+        $warehousesWithLocationsDTO =  $this->warehouseStorageService->getListAllWarehousesWithLocation(
+            $warehousesId
+        );
+
         $reportDTO = $this->warehouseSalesService
         ->getSalesReport();
        
@@ -273,8 +289,24 @@ class ReportController extends Controller
             'movementsTotalADJUSTMENT',
             'movementsTotalRELOCATION',
             'movementsTotalSALE',
-            'movementsTotalTRANSFER'
+            'movementsTotalTRANSFER',
+            'warehousesWithLocationsDTO',
+            'stockSummary'
         ));
+    }
+
+    public function getProductosByWarehouse(int $warehouseId) : JsonResponse {
+        
+        $reportStock = $this
+        ->warehouseInventoryService
+        ->getStockByWarehouse(
+            $warehouseId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reporte obtenido exitosamente',
+            'products' => $reportStock
+        ], 200);
     }
 
     public function getTransactionsByDateRange(

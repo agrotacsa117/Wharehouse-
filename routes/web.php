@@ -131,6 +131,8 @@ Route::post('/output/process', [
     OutputController::class,
     'processOutput'])->name('output.inventory.process');
 
+Route::get('/reports/products/warehouse/{id}', [ReportController::class, 'getProductosByWarehouse'])
+    ->name('reports.products.warehouse');
 Route::get(
     '/reports/filter',
     [ReportController::class,

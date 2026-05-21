@@ -11,36 +11,34 @@ use App\Infrastructure\Exception\CouldNotDeleteLocationException;
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 use App\Models\ProductModel;
 use App\Infrastructure\Exception\InventoryNotFoundException;
+use Illuminate\Support\Facades\DB;
 
-class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
-{
+class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface {
+
     private WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper;
     private WarehouseInventoryModelToWarehouseInventoryMapperI $warehouseInventoryModelToWarehouseInventory;
 
     public function __construct(
-        WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper,
-        WarehouseInventoryModelToWarehouseInventoryMapperI $warehouseInventoryModelToWarehouseInventory
+            WarehouseInventoryEntityToWarehouseInventoryModelMapperI $warehouseInventoryMapper,
+            WarehouseInventoryModelToWarehouseInventoryMapperI $warehouseInventoryModelToWarehouseInventory
     ) {
         $this->warehouseInventoryMapper = $warehouseInventoryMapper;
         $this->warehouseInventoryModelToWarehouseInventory = $warehouseInventoryModelToWarehouseInventory;
     }
 
-    public function findAll(): array
-    {
+    public function findAll(): array {
         $warehouseInventory = WarehouseInventoryModel::with(
-            'warehouse'
-        )->get()->toArray();
+                        'warehouse'
+                )->get()->toArray();
 
         return $warehouseInventory;
     }
 
-    public function save(WarehouseInventory $warehouseInventory): WarehouseInventory
-    {
+    public function save(WarehouseInventory $warehouseInventory): WarehouseInventory {
         $warehouseInventoryModel = $this->warehouseInventoryMapper
-        ->warehouseInventoryEntityToWarehouseInventoryModel(
-            $warehouseInventory
-        );
-
+                ->warehouseInventoryEntityToWarehouseInventoryModel(
+                        $warehouseInventory
+                );
 
         try {
             $warehouseInventoryModel->save();
@@ -48,73 +46,67 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         } catch (\Throwable $th) {
             die($th->getMessage());
             throw new CouldNotPersistLocationException(
-                'Error saving inventory',
-                0,
-                $th
-            );
+                            'Error saving inventory',
+                            0,
+                            $th
+                    );
         }
 
-        return  $warehouseInventory;
+        return $warehouseInventory;
     }
 
-    public function update(WarehouseInventory $warehouseInventory): void
-    {
+    public function update(WarehouseInventory $warehouseInventory): void {
         try {
             $this->save($warehouseInventory);
         } catch (\Throwable $th) {
             throw new CouldNotPersistLocationException(
-                'Error updating inventory',
-                0,
-                $th
-            );
+                            'Error updating inventory',
+                            0,
+                            $th
+                    );
         }
     }
 
-
-    public function delete(int $id): void
-    {
+    public function delete(int $id): void {
         $locationModel = WarehouseInventoryModel::find(
-            $id
+                $id
         );
 
         try {
             $locationModel->delete();
         } catch (\Throwable $th) {
             throw new CouldNotDeleteLocationException(
-                'Error deleting location',
-                0,
-                $th
-            );
+                            'Error deleting location',
+                            0,
+                            $th
+                    );
         }
     }
 
-    public function existById(int $warehouseId, string $productId): bool
-    {
+    public function existById(int $warehouseId, string $productId): bool {
         return WarehouseInventoryModel::where(
-            'product_id',
-            $productId
-        )->where(
-            'warehouse_id',
-            $warehouseId
-        )->exists();
+                        'product_id',
+                        $productId
+                )->where(
+                        'warehouse_id',
+                        $warehouseId
+                )->exists();
     }
 
-    public function countDistinctByWarehouseId(): array
-    {
+    public function countDistinctByWarehouseId(): array {
         $warehouseIds = WarehouseInventoryModel::select(
-            'warehouse_id'
-        )->distinct()->get();
+                        'warehouse_id'
+                )->distinct()->get();
 
         $warehouseIds = $warehouseIds->toArray();
         return $warehouseIds;
     }
 
-    public function findInventoryByWarehouseId(int $warehouseId): array
-    {
+    public function findInventoryByWarehouseId(int $warehouseId): array {
         $inventory = WarehouseInventoryModel::where(
-            'warehouse_id',
-            $warehouseId
-        )->where('quantity', '>', 0)->get();
+                        'warehouse_id',
+                        $warehouseId
+                )->where('quantity', '>', 0)->get();
 
         $inventory = $inventory->toArray();
 
@@ -122,78 +114,74 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     }
 
     public function updateQuantity(
-        int $warehouseInventoryId,
-        int $quantity
+            int $warehouseInventoryId,
+            int $quantity
     ): bool {
 
         return WarehouseInventoryModel::where(
-            'id',
-            $warehouseInventoryId
-        )->update(
-            ['quantity' => $quantity]
-        ) > 0;
+                        'id',
+                        $warehouseInventoryId
+                )->update(
+                        ['quantity' => $quantity]
+                ) > 0;
     }
 
-
     public function findQuantityById(
-        int $warehouseInventoryId
+            int $warehouseInventoryId
     ): int {
         return WarehouseInventoryModel::where(
-            'id',
-            $warehouseInventoryId
-        )->value(
-            'quantity'
-        );
+                        'id',
+                        $warehouseInventoryId
+                )->value(
+                        'quantity'
+                );
     }
 
     public function findQuantityByIdWithLock(
-        int $warehouseInventoryId
+            int $warehouseInventoryId
     ): int {
 
-        $warehouseInventoryModel
-        = WarehouseInventoryModel::lockForUpdate()
-        ->find($warehouseInventoryId);
+        $warehouseInventoryModel = WarehouseInventoryModel::lockForUpdate()
+                ->find($warehouseInventoryId);
 
         if (!$warehouseInventoryModel) {
             throw new InventoryNotFoundException(
-                "Inventario {$warehouseInventoryId} no encontrado."
-            );
+                            "Inventario {$warehouseInventoryId} no encontrado."
+                    );
         }
 
-        return (int)$warehouseInventoryModel->quantity;
+        return (int) $warehouseInventoryModel->quantity;
     }
 
-    public function getInventoryStatsByState(): array
-    {
+    public function getInventoryStatsByState(): array {
         $query = WarehouseInventoryModel::selectRaw("
-            ".$this->getQueryBase().",
+            " . $this->getQueryBase() . ",
             SUM(quantity) AS total_stock
         ");
 
         return $query->groupBy('state')
-            ->orderBy('state', 'DESC')
-            ->get()
-            ->toArray();
+                        ->orderBy('state', 'DESC')
+                        ->get()
+                        ->toArray();
     }
 
-    public function getInventoryStatsByStateAndWarehouse(): array
-    {
+    public function getInventoryStatsByStateAndWarehouse(): array {
         $query = WarehouseInventoryModel::selectRaw("
+            i.warehouse_id,
             w.warehouses_name,
-            ".$this->getQueryBase().",
+            " . $this->getQueryBase() . ",
             SUM(i.quantity) AS total_stock
         ")
-        ->from('warehouse_inventory as i')
-        ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+                ->from('warehouse_inventory as i')
+                ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
 
-        return $query->groupBy('w.warehouses_name', 'state')
-            ->orderBy('state', 'DESC')
-            ->get()
-            ->toArray();
+        return $query->groupBy('i.warehouse_id', 'w.warehouses_name', 'state')
+                        ->orderBy('state', 'DESC')
+                        ->get()
+                        ->toArray();
     }
 
-    public function getInventoryByState(int $state): array
-    {
+    public function getInventoryByState(int $state): array {
         $query = WarehouseInventoryModel::selectRaw("
             i.*,
             w.warehouses_name,
@@ -203,8 +191,8 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 NULLIF(DATEDIFF(i.expiration_date, i.created_at), 0)
             ) * 100, 2) AS obsolescence
         ")
-        ->from('warehouse_inventory as i')
-        ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+                ->from('warehouse_inventory as i')
+                ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
 
         switch ($state) {
             case 3:
@@ -219,38 +207,36 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         }
 
         return $query->orderBy('i.expiration_date', 'ASC')
-            ->get()
-            ->toArray();
+                        ->get()
+                        ->toArray();
     }
 
-    public function findById(int $id): ?WarehouseInventory
-    {
+    public function findById(int $id): ?WarehouseInventory {
         $inventory = WarehouseInventoryModel::with('warehouse')
-            ->where('id', $id)
-            ->first();
+                ->where('id', $id)
+                ->first();
 
         if (!$inventory) {
             return null;
         }
 
         $inventory = $this->warehouseInventoryModelToWarehouseInventory
-        ->convertWarehouseInventoryModelToWarehouseInventory(
-            $inventory
-        );
+                ->convertWarehouseInventoryModelToWarehouseInventory(
+                        $inventory
+                );
 
         return $inventory;
     }
 
-    public function updateById(int $id, array $data): bool
-    {
+    public function updateById(int $id, array $data): bool {
         return WarehouseInventoryModel::where('id', $id)->update($data) > 0;
     }
 
     public function transferInventory(
-        int $inventoryId,
-        string $fromWarehouseId,
-        string $lotNumber,
-        int $quantity
+            int $inventoryId,
+            string $fromWarehouseId,
+            string $lotNumber,
+            int $quantity
     ): array {
         $inventory = WarehouseInventoryModel::find($inventoryId);
 
@@ -270,7 +256,6 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $inventory->quantity = $inventory->quantity - $quantity;
         $inventory->save();
 
-
         // $newInventory = new WarehouseInventoryModel();
         // $newInventory->product_id = $inventory->product_id;
         // $newInventory->warehouse_name = $inventory->warehouse_name;
@@ -286,9 +271,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ];
     }
 
-
-    private function getQueryBase(): string
-    {
+    private function getQueryBase(): string {
         $query = "
             CASE 
                 WHEN DATEDIFF(expiration_date, CURDATE()) < 90 THEN 3
@@ -299,8 +282,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         return $query;
     }
 
-    public function findExpired(): array
-    {
+    public function findExpired(): array {
         return WarehouseInventoryModel::selectRaw("
             wi.product_id,
             wi.warehouse_id,
@@ -313,28 +295,27 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             wi.expiration_date,
             ABS(DATEDIFF(wi.expiration_date, CURDATE())) AS expired_days
         ")
-        ->from('warehouse_inventory AS wi')
-        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
-        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
-        ->orderBy('wi.expiration_date', 'asc')
-        ->get()
-        ->toArray();
+                        ->from('warehouse_inventory AS wi')
+                        ->join('warehouses AS w', 'wi.warehouse_id', '=', 'w.id')
+                        ->whereRaw('DATEDIFF(wi.expiration_date, CURDATE()) < 0')
+                        ->orderBy('wi.expiration_date', 'asc')
+                        ->get()
+                        ->toArray();
     }
 
     public function updateInventoryLocation(
-        int $id,
-        string $rack,
-        int $level
+            int $id,
+            string $rack,
+            int $level
     ): bool {
         return WarehouseInventoryModel::where('id', $id)
-        ->update([
-            'rack' => $rack,
-            '_level' => $level,
-        ]) > 0;
+                        ->update([
+                            'rack' => $rack,
+                            '_level' => $level,
+                        ]) > 0;
     }
 
-    public function findExpiredRanking(): array
-    {
+    public function findExpiredRanking(): array {
         // Compatible con MySQL 5.7 (sin window functions)
         // Obtener productos vencidos ordenados por bodega y cantidad desc
         $expired = \Illuminate\Support\Facades\DB::select("
@@ -364,20 +345,20 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
             if (!isset($grouped[$warehouseId])) {
                 $grouped[$warehouseId] = [
-                    'warehouse_id'   => $warehouseId,
+                    'warehouse_id' => $warehouseId,
                     'warehouse_name' => $row['warehouse_name'],
-                    'items'          => [],
+                    'items' => [],
                 ];
             }
 
             $rank = count(
-                $grouped[$warehouseId]['items']
-            ) + 1;
+                            $grouped[$warehouseId]['items']
+                    ) + 1;
 
             if ($rank <= 3) {
                 $grouped[$warehouseId]['items'][] = array_merge(
-                    $row,
-                    ['row_num' => $rank]
+                        $row,
+                        ['row_num' => $rank]
                 );
             }
         }
@@ -394,28 +375,71 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     }
 
     public function findSpecificInventory(
-        int $warehouseId,
-        string $rack,
-        int $level,
-        string $productId,
-        string $lotNumber
+            int $warehouseId,
+            string $rack,
+            int $level,
+            string $productId,
+            string $lotNumber
     ): ?WarehouseInventory {
 
         // 1. Ejecutar la consulta con Eloquent
         $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
-            ->where('rack', $rack)
-            ->where('_level', $level)
-            ->where('product_id', $productId)
-            ->where('lot_number', $lotNumber)
-            ->first();
+                ->where('rack', $rack)
+                ->where('_level', $level)
+                ->where('product_id', $productId)
+                ->where('lot_number', $lotNumber)
+                ->first();
 
         if (!$model) {
             return null;
         }
 
         return $this->warehouseInventoryModelToWarehouseInventory
-        ->convertWarehouseInventoryModelToWarehouseInventory(
-            $model
-        );
+                        ->convertWarehouseInventoryModelToWarehouseInventory(
+                                $model
+                        );
+    }
+
+    public function updateActiveInventory(
+            int $inventoryId): void {
+        WarehouseInventoryModel::where(
+                'id',
+                $inventoryId)->update([
+            'active_inventory' => false
+        ]);
+    }
+
+    public function findStockAndProductCountGroupedByWarehouse(): array {
+        $inventorySummary = WarehouseInventoryModel::select(
+            'warehouse_id')
+                ->selectRaw(
+                    'SUM(quantity) as stock')
+                ->selectRaw(
+                    'COUNT(DISTINCT product_id) as products')
+                ->groupBy(
+                    'warehouse_id')
+                ->get();
+        return $inventorySummary->toArray();
+    }
+
+    public function sumQuantityOfExpiredByWarehouse() : array {
+        return WarehouseInventoryModel::select(
+            'warehouse_id',
+             DB::raw(
+                'SUM(quantity) as total_quantity'))
+        ->whereDate(
+            'expiration_date',
+             '<', now())
+        ->groupBy(
+            'warehouse_id')
+        ->get()->keyBy('warehouse_id')->toArray();
+    }
+
+    public function getStockByWarehouseId(
+        int $warehouseId) : array {
+            return WarehouseInventoryModel::select('product_id', 'warehouse_name', DB::raw('SUM(quantity) as stock'))
+            ->where('warehouse_id', $warehouseId)
+            ->groupBy('product_id', 'warehouse_name')
+            ->get()->toArray();
     }
 }

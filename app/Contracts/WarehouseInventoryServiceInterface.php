@@ -60,4 +60,8 @@ interface WarehouseInventoryServiceInterface
     ): ResultPattern;
 
     public function getExpiredInventoryRanking(): array;
+
+    function getStockSummaryPerWarehouse() : array;
+
+    function getStockByWarehouse(int $warehouseId) : array;
 }

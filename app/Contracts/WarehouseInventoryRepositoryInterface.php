@@ -68,4 +68,14 @@ interface WarehouseInventoryRepositoryInterface
         string $productId,
         string $lotNumber
     ): ?WarehouseInventory;
+
+    public function updateActiveInventory(
+        int $inventoryId
+    ) : void;
+
+    public function findStockAndProductCountGroupedByWarehouse() : array;
+
+    public function sumQuantityOfExpiredByWarehouse() : array;
+
+    public function getStockByWarehouseId(int $warehouseId) : array;
 }

@@ -12,12 +12,12 @@ class WarehouseInventoryRequestDTO
     private ?int $bay;
     private ?int $platform;
     private int $quantity;
-    private \DateTime $expirationDate;
+    private ?\DateTime $expirationDate;
     private string $reason;
-    private string $loteNumber;
+    private ?string $loteNumber;
     private ?int $transferFolio;
     //manufacturing_date
-    private \DateTime $manufacturingDate;
+    private ?\DateTime $manufacturingDate;
 
     public function __construct(
         string $productId,
@@ -25,9 +25,9 @@ class WarehouseInventoryRequestDTO
         ?int $rack,
         ?int $level,
         int $quantity,
-        \DateTime $expirationDate,
+        ?\DateTime $expirationDate,
         string $reason,
-        string $loteNumber,
+        ?string $loteNumber,
         ?int $transferFolio
     ) {
         $this->productId = $productId;
@@ -160,12 +160,12 @@ class WarehouseInventoryRequestDTO
         $this->quantity = $quantity;
     }
 
-    public function getExpirationDate(): \DateTime
+    public function getExpirationDate(): ?\DateTime
     {
         return $this->expirationDate;
     }
 
-    public function setExpirationDate(\DateTime $expirationDate): void
+    public function setExpirationDate(?\DateTime $expirationDate): void
     {
         $this->expirationDate = $expirationDate;
     }

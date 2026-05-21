@@ -334,6 +334,7 @@
         border: 1px solid #e2e8f0;
         margin-bottom: 1.75rem;
         width: fit-content;
+        flex-wrap: wrap;
     }
 
     .tab-btn {
@@ -557,10 +558,13 @@
                 <button class="tab-btn" onclick="switchTab('existencias', this)">
                     <i class="bi bi-pie-chart-fill"></i> Existencias
                 </button>
+                {{-- ✅ NUEVO TAB --}}
+                <button class="tab-btn" onclick="switchTab('productos', this)">
+                    <i class="bi bi-box-seam"></i> Productos
+                </button>
                 <button class="tab-btn" onclick="switchTab('movimientos', this)">
                     <i class="bi bi-arrow-left-right"></i> Movimientos
                 </button>
-
                 <button class="tab-btn" onclick="switchTab('sales', this)">
                     <i class="bi bi-cart3"></i> Ventas
                 </button>
@@ -766,7 +770,299 @@
 
 
             {{-- =========================================== --}}
-            {{--         TAB 3: MOVIMIENTOS                  --}}
+            {{--         TAB 3: PRODUCTOS (NUEVO)            --}}
+            {{-- =========================================== --}}
+            <div id="tab-productos" class="tab-panel">
+
+                {{-- FILTROS --}}
+                <div class="reporte-filter-bar">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-medium">Producto</label>
+                            <input type="text" class="form-control form-control-sm" id="prodProducto"
+                                placeholder="TacsAmina 950 mls...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-medium">Bodega</label>
+                            <select class="form-select form-select-sm" id="prodAlmacen">
+                                <option value="">Todas las bodegas</option>
+                                @foreach ($almacenes as $almacen)
+                                    <option value="{{ $almacen->id }}">{{ $almacen->warehouses_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-medium">Período</label>
+                            <select class="form-select form-select-sm" id="prodPeriodo">
+                                <option value="6">Últimos 6 meses</option>
+                                <option value="12">Últimos 12 meses</option>
+                                <option value="all">Todo el historial</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-medium">Estado</label>
+                            <select class="form-select form-select-sm" id="prodEstado">
+                                <option value="">Todos</option>
+                                <option value="vigente">Vigentes</option>
+                                <option value="por_caducar">Por caducar</option>
+                                <option value="vencido">Vencidos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-sm btn-danger" onclick="buscarProducto()">
+                                <i class="bi bi-search me-1"></i> Buscar
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="limpiarBusquedaProducto()">
+                                <i class="bi bi-x-circle me-1"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- VISTA GRID DE BODEGAS (cuando NO hay producto seleccionado) --}}
+                <div id="productos-grid-view">
+                    <div class="mb-3">
+                        <h3 class="chart-title">
+                            <i class="bi bi-building me-2" style="color: var(--tacsa-red);"></i>
+                            Existencias por bodega
+                        </h3>
+                        <p class="text-muted small mb-0">Haz click en una bodega para ver el detalle de sus productos</p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        @foreach ($warehousesWithLocationsDTO as $warehouse)
+                            <div class="col-lg-4 col-md-6">
+                                <div class="reporte-card" style="cursor: pointer; transition: transform 0.15s;"
+                                    onclick="verDetalleBodega({{ $warehouse->getId() }}, 
+                                    '{{ $warehouse->getWarehouseName() }}',
+                                    '{{$stockSummary[$warehouse->getId()]->getStockTotal()}}',
+                                    '{{$stockSummary[$warehouse->getId()]->getProductTotal()}}',
+                                    '{{isset($statsWarehouses[1][$warehouse->getId()])
+                                                        ? $statsWarehouses[1][$warehouse->getId()]->getTotalStock()
+                                                        : 0 }}',
+                                                        '{{isset($statsWarehouses[2][$warehouse->getId()])
+                                                        ? $statsWarehouses[2][$warehouse->getId()]->getTotalStock()
+                                                        : 0 }}',
+                                                        '{{$stockSummary[$warehouse->getId()]->getTotalExpiredInventory()}}')"
+                                    onmouseover="this.style.transform='translateY(-4px)'"
+                                    onmouseout="this.style.transform='translateY(0)'">
+
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div
+                                            style="background: var(--tacsa-red); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                                            <i class="bi bi-building" style="font-size: 24px;"></i>
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <h4 class="mb-0"
+                                                style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                {{ $warehouse->getWarehouseName() }}
+                                            </h4>
+                                            <p class="text-muted small mb-0">{{ $warehouse->getHeadquartersName() }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div
+                                                style="background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center;">
+                                                <div class="text-muted" style="font-size: 11px;">Stock total</div>
+                                                <div style="font-size: 20px; font-weight: 700;">
+                                                    {{ $stockSummary[$warehouse->getId()]->getStockTotal() }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div
+                                                style="background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center;">
+                                                <div class="text-muted" style="font-size: 11px;">Productos</div>
+                                                <div style="font-size: 20px; font-weight: 700;">
+                                                    {{ $stockSummary[$warehouse->getId()]->getProductTotal() }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div
+                                                style="background: #EAF3DE; color: #173404; padding: 6px; border-radius: 6px; text-align: center; font-size: 11px;">
+                                                <div style="font-weight: 600;">
+                                                    {{ isset($statsWarehouses[1][$warehouse->getId()])
+                                                        ? $statsWarehouses[1][$warehouse->getId()]->getTotalStock()
+                                                        : 0 }}</div>
+                                                <div style="opacity: 0.8;">Vigentes</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div
+                                                style="background: #FAEEDA; color: #633806; padding: 6px; border-radius: 6px; text-align: center; font-size: 11px;">
+                                                <div style="font-weight: 600;">
+                                                    {{ isset($statsWarehouses[2][$warehouse->getId()])
+                                                        ? $statsWarehouses[2][$warehouse->getId()]->getTotalStock()
+                                                        : 0 }}
+                                                </div>
+                                                <div style="opacity: 0.8;">Por caducar</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div
+                                                style="background: #FCEBEB; color: #791F1F; padding: 6px; border-radius: 6px; text-align: center; font-size: 11px;">
+                                                <div style="font-weight: 600;">{{$stockSummary[$warehouse->getId()]->getTotalExpiredInventory()}}</div>
+                                                <div style="opacity: 0.8;">Vencidos</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                   
+                </div>
+
+                {{-- VISTA DETALLE DE PRODUCTO (cuando SÍ hay producto seleccionado) --}}
+                {{-- VISTA DETALLE BODEGA (tabla de productos) --}}
+                <div id="productos-detalle-bodega" style="display: none;">
+
+                    {{-- Breadcrumb --}}
+                    <div class="mb-3"
+                        style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #64748b;">
+                        <a href="#" onclick="volverAGridBodegas(); return false;"
+                            style="color: var(--tacsa-red); text-decoration: none;">
+                            <i class="bi bi-arrow-left me-1"></i> Existencias
+                        </a>
+                        <i class="bi bi-chevron-right" style="font-size: 12px;"></i>
+                        <span style="color: #1e293b; font-weight: 500;" id="breadcrumbBodegaNombre"></span>
+                    </div>
+
+                    {{-- Header bodega --}}
+                    <div class="reporte-card mb-3">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div
+                                    style="background: var(--tacsa-red); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                                    <i class="bi bi-building" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 4px;"
+                                        id="detalleBodegaNombre"></h2>
+                                    <p style="font-size: 13px; color: #64748b; margin: 0;">Planta · Actualizado hace 2
+                                        horas</p>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-download me-1"></i> Excel
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-printer me-1"></i> Imprimir
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- KPIs bodega --}}
+                        <div class="row g-2 mt-3">
+                            <div class="col-6 col-md">
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                                    <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Stock total</div>
+                                    <div style="font-size: 20px; font-weight: 700;" id="kpiStockTotal">-</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md">
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                                    <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Productos</div>
+                                    <div style="font-size: 20px; font-weight: 700;" id="kpiProductos">-</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md">
+                                <div style="background: #EAF3DE; padding: 12px; border-radius: 8px;">
+                                    <div style="font-size: 11px; color: #173404; margin-bottom: 4px;">Vigentes</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #3B6D11;" id="kpiVigentes">-
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md">
+                                <div style="background: #FAEEDA; padding: 12px; border-radius: 8px;">
+                                    <div style="font-size: 11px; color: #633806; margin-bottom: 4px;">Por caducar</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #854F0B;" id="kpiPorCaducar">-
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md">
+                                <div style="background: #FCEBEB; padding: 12px; border-radius: 8px;">
+                                    <div style="font-size: 11px; color: #791F1F; margin-bottom: 4px;">Vencidos</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: #A32D2D;" id="kpiVencidos">-
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Filtros --}}
+                    <div class="reporte-filter-bar">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Buscar producto</label>
+                                <input type="text" class="form-control form-control-sm" id="filterDetalleBuscar"
+                                    placeholder="Nombre, código o lote..." onkeyup="filtrarTablaDetalleBodega()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-medium">Estado</label>
+                                <select class="form-select form-select-sm" id="filterDetalleEstado"
+                                    onchange="filtrarTablaDetalleBodega()">
+                                    <option value="">Todos</option>
+                                    <option value="vigente">Vigentes</option>
+                                    <option value="por_caducar">Por caducar</option>
+                                    <option value="vencido">Vencidos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-medium">Ordenar por</label>
+                                <select class="form-select form-select-sm" id="filterDetalleOrden"
+                                    onchange="filtrarTablaDetalleBodega()">
+                                    <option value="caducidad">Caducidad próxima</option>
+                                    <option value="stock_desc">Stock descendente</option>
+                                    <option value="nombre">Nombre A-Z</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltrosDetalle()">
+                                    <i class="bi bi-x-circle me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tabla productos --}}
+                    <div class="reporte-card">
+                        <h3 class="chart-title mb-3">
+                            <i class="bi bi-package me-2" style="color: var(--tacsa-red);"></i>
+                            Productos en bodega
+                        </h3>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-semaforo mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableDetalleBodegaBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">
+                                            <i class="bi bi-hourglass-split me-2"></i>Cargando productos...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2 text-muted small" id="countDetalleBodega"></div>
+                    </div>
+
+                </div>{{-- /productos-detalle-bodega --}}
+
+            </div>{{-- /tab-productos --}}
+
+
+            {{-- =========================================== --}}
+            {{--         TAB 4: MOVIMIENTOS                  --}}
             {{-- =========================================== --}}
             <div id="tab-movimientos" class="tab-panel">
 
@@ -901,7 +1197,7 @@
             </div>{{-- /tab-movimientos --}}
 
             {{-- =========================================== --}}
-            {{--         TAB 4: SALES                  --}}
+            {{--         TAB 5: SALES                  --}}
             {{-- =========================================== --}}
             <div id="tab-sales" class="tab-panel">
 
@@ -1704,5 +2000,230 @@
             const rangoEl = document.getElementById('movRangoLabel');
             if (rangoEl) rangoEl.textContent = '';
         }
+
+        // =============================================
+        //   TAB PRODUCTOS (NUEVO)
+        // =============================================
+
+        // Variable global para almacenar productos de la bodega actual
+        let productosDetalleBodega = [];
+        let productosDetalleBodegaFiltrados = [];
+
+        function buscarProducto() {
+            const producto = document.getElementById('prodProducto').value;
+            const almacen = document.getElementById('prodAlmacen').value;
+            const periodo = document.getElementById('prodPeriodo').value;
+            const estado = document.getElementById('prodEstado').value;
+
+            if (!producto.trim()) {
+                alert('Por favor ingresa un nombre de producto');
+                return;
+            }
+
+            // TODO: Aquí harías un fetch al backend para obtener análisis del producto
+            console.log('Buscando producto:', {
+                producto,
+                almacen,
+                periodo,
+                estado
+            });
+
+            alert(
+                `Funcionalidad en desarrollo.\nProducto: ${producto}\nBodega: ${almacen || 'Todas'}\nPeríodo: ${periodo} meses`
+                );
+        }
+
+        function limpiarBusquedaProducto() {
+            document.getElementById('prodProducto').value = '';
+            document.getElementById('prodAlmacen').value = '';
+            document.getElementById('prodPeriodo').value = '6';
+            document.getElementById('prodEstado').value = '';
+
+            volverAGridBodegas();
+        }
+
+        async function verDetalleBodega(
+            almacenId, 
+            almacenNombre,
+            stock, 
+            totalProduct, 
+            current, 
+            expiringSoon,
+            expired
+        ) {
+            try {
+                // Mostrar loading
+                document.getElementById('tableDetalleBodegaBody').innerHTML = `
+            <tr><td colspan="7" class="text-center text-muted py-5">
+                <div class="spinner-border spinner-border-sm text-danger me-2"></div>
+                Cargando productos de ${almacenNombre}...
+            </td></tr>`;
+
+                // Ocultar grid, mostrar detalle
+                document.getElementById('productos-grid-view').style.display = 'none';
+                document.getElementById('productos-detalle-bodega').style.display = 'block';
+
+                // Actualizar breadcrumb y header
+                document.getElementById('breadcrumbBodegaNombre').textContent = almacenNombre;
+                document.getElementById('detalleBodegaNombre').textContent = almacenNombre;
+                actualizarKPIsBodega(
+                    stock,
+                    totalProduct,
+                    current,
+                    expiringSoon,
+                    expired
+                );
+                // Fetch datos del backend
+                const response = await fetch(`/reports/products/warehouse/${almacenId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al obtener productos');
+
+                const data = await response.json();
+                
+                productosDetalleBodega = data.products || [];
+                // Renderizar tabla
+                productosDetalleBodegaFiltrados = [...productosDetalleBodega];
+                
+                renderTablaDetalleBodega(productosDetalleBodegaFiltrados);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('tableDetalleBodegaBody').innerHTML = `
+            <tr><td colspan="7" class="text-center text-danger py-5">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Error al cargar productos. Por favor intenta nuevamente.
+            </td></tr>`;
+            }
+        }
+
+        function actualizarKPIsBodega(
+            stock,
+            totalProducts,
+            currentProducts,
+            expiringSoon,
+            expired
+            ) {
+            document.getElementById('kpiStockTotal').textContent = stock;
+            document.getElementById('kpiProductos').textContent = totalProducts;
+            document.getElementById('kpiVigentes').textContent = currentProducts;
+            document.getElementById('kpiPorCaducar').textContent = expiringSoon;
+            document.getElementById('kpiVencidos').textContent = expired;
+        }
+
+        function renderTablaDetalleBodega(productos) {
+            
+            const tbody = document.getElementById('tableDetalleBodegaBody');
+            const countEl = document.getElementById('countDetalleBodega');
+
+            if (!productos || productos.length === 0) {
+                tbody.innerHTML = `
+            <tr><td colspan="7" class="text-center text-muted py-5">
+                <i class="bi bi-inbox-fill me-2"></i>No se encontraron productos
+            </td></tr>`;
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            tbody.innerHTML = productos.map(p => {
+                
+
+                return `
+            <tr>
+                <td>
+                    <div style="font-weight: 500; margin-bottom: 2px;">${p.product_id || 'N/A'}</div>
+                    <div style="font-size: 11px; color: #64748b;">${p.product_name || ''}</div>
+                </td>
+                <td class="text-center" style="font-weight: 700;">${p.product_name}</td>
+                <td class="text-center" style="font-weight: 700;">${formatNumber(p.stock || 0)}</td>
+                
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}')">
+                        Ver detalle ↗
+                    </button>
+                </td>
+            </tr>`;
+            }).join('');
+
+            if (countEl) countEl.textContent = `${productos.length} producto${productos.length !== 1 ? 's' : ''}`;
+        }
+
+        function filtrarTablaDetalleBodega() {
+            const buscar = (document.getElementById('filterDetalleBuscar')?.value || '').toLowerCase();
+            const estado = document.getElementById('filterDetalleEstado')?.value || '';
+            const orden = document.getElementById('filterDetalleOrden')?.value || 'caducidad';
+
+            let filtrados = [...productosDetalleBodega];
+
+            // Filtrar por búsqueda
+            if (buscar) {
+                filtrados = filtrados.filter(p =>
+                    (p.product_name || '').toLowerCase().includes(buscar) ||
+                    (p.product_id || '').toLowerCase().includes(buscar) ||
+                    (p.lot_number || '').toLowerCase().includes(buscar)
+                );
+            }
+
+            // Filtrar por estado
+            if (estado) {
+                filtrados = filtrados.filter(p => {
+                    const dias = p.dias_restantes;
+                    if (estado === 'vencido') return dias < 0;
+                    if (estado === 'por_caducar') return dias >= 0 && dias <= 90;
+                    if (estado === 'vigente') return dias > 90;
+                    return true;
+                });
+            }
+
+            // Ordenar
+            if (orden === 'caducidad') {
+                filtrados.sort((a, b) => a.dias_restantes - b.dias_restantes);
+            } else if (orden === 'stock_desc') {
+                filtrados.sort((a, b) => b.quantity - a.quantity);
+            } else if (orden === 'nombre') {
+                filtrados.sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
+            }
+
+            productosDetalleBodegaFiltrados = filtrados;
+            renderTablaDetalleBodega(filtrados);
+        }
+
+        function limpiarFiltrosDetalle() {
+            document.getElementById('filterDetalleBuscar').value = '';
+            document.getElementById('filterDetalleEstado').value = '';
+            document.getElementById('filterDetalleOrden').value = 'caducidad';
+            filtrarTablaDetalleBodega();
+        }
+
+        function volverAGridBodegas() {
+            document.getElementById('productos-grid-view').style.display = 'block';
+            document.getElementById('productos-detalle-bodega').style.display = 'none';
+            productosDetalleBodega = [];
+            productosDetalleBodegaFiltrados = [];
+        }
+
+        function verAnalisisProducto(productoNombre) {
+            alert(
+                `Funcionalidad en desarrollo.\n\nAnálisis profundo de: ${productoNombre}\n\nAquí se mostrarán KPIs, predicción WMA, gráfica histórica y recomendaciones.`
+                );
+        }
+
+        function limpiarBusquedaProducto() {
+            document.getElementById('prodProducto').value = '';
+            document.getElementById('prodAlmacen').value = '';
+            document.getElementById('prodPeriodo').value = '6';
+            document.getElementById('prodEstado').value = '';
+
+            // Volver a vista grid
+            document.getElementById('productos-grid-view').style.display = 'block';
+            document.getElementById('productos-detalle-view').style.display = 'none';
+        }
+
+       
     </script>
 @endpush

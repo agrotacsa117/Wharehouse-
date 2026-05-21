@@ -25,6 +25,9 @@ use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseOutputStrategy;
 use Illuminate\Support\Facades\DB;
+use App\Mappers\DTO\WarehouseSummaryDTO;
+use App\Mappers\DTO\WarehouseStockDTO;
+
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -259,7 +262,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getInventoryStatsByStateAndWarehouse(): array
     {
         $stats  = $this->warehouseInventoryRepository->getInventoryStatsByStateAndWarehouse();
-
+        
         $groupedStats = [
             1 => [],
             2 => [],
@@ -268,13 +271,14 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         foreach ($stats as $stat) {
             $state = (int)($stat['state']);
-            $groupedStats[$state][] = new InventoryStatsByStateDTO(
+            $groupedStats[$state][$stat['warehouse_id']] = new InventoryStatsByStateDTO(
                 $state,
                 (int)($stat['total_stock']),
                 $stat['warehouses_name'] ?? ''
             );
         }
 
+        
         return $groupedStats;
     }
 
@@ -614,5 +618,50 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 . $e->getMessage()
             );
         }
+    }
+
+    function getStockSummaryPerWarehouse() : array {
+        $stockSummary = $this->warehouseInventoryRepository
+        ->findStockAndProductCountGroupedByWarehouse();
+        
+        $quantityExpiredByWarehouse = $this->warehouseInventoryRepository
+        ->sumQuantityOfExpiredByWarehouse();
+        
+        
+        $stockSummaryReport = array();
+
+        for ($i=0; $i <count($stockSummary) ; $i++) { 
+            $statics = $stockSummary[$i];
+            
+            $stockSummaryReport[$statics["warehouse_id"]] 
+            = new WarehouseSummaryDTO(
+                $statics["stock"],
+                $statics["products"],
+                isset(
+                    $quantityExpiredByWarehouse[$statics["warehouse_id"]]) 
+                    ? $quantityExpiredByWarehouse[$statics["warehouse_id"]]["total_quantity"] : 0
+            );
+        }
+        
+        return $stockSummaryReport;
+    }
+
+    public function getStockByWarehouse(int $warehouseId) : array{
+        $existences = $this->warehouseInventoryRepository
+        ->getStockByWarehouseId(
+            $warehouseId
+        );
+
+        $total = count($existences);
+        for ($i=0; $i <$total ; $i++) { 
+            $row = $existences[$i];
+            $existences[$i] = new WarehouseStockDTO(
+                (string) ($row['product_id']),
+                (string) ($row['warehouse_name']),
+                (int) ($row['stock'])
+            );
+        }
+
+       return $existences;
     }
 }
