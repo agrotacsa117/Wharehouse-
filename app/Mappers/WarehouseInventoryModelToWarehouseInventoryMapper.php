@@ -30,6 +30,9 @@ class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInve
         $entity->setModule($model->module);
         $entity->setBay($model->bay);
         $entity->setPlatform($model->platform);
+        $entity->setManufacturingDate(
+            $model->manufacturing_date ? new \DateTime(
+                $model->manufacturing_date) : null);
         return $entity;
     }
 } 

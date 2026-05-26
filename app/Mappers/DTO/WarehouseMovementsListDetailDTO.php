@@ -22,6 +22,12 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     private string $createdAt;
     private string $expirationDate;
     private string $destinationWarehouseName;
+    private ?int $module;
+    private ?int $bay;
+    private ?int $platform;
+    private ?int $invoiceSap;
+    private ?int $transferFolio;
+
 
 
     public function __construct(
@@ -42,7 +48,12 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         string $userName,
         string $createdAt,
         string $expirationDate,
-        string $destinationWarehouseName
+        string $destinationWarehouseName,
+        ?int $module,
+        ?int $bay,
+        ?int $platform,
+        ?int $invoiceSap,
+        ?int $transferFolio
     ) {
         $this->id = $id;
         $this->folio = $folio;
@@ -62,6 +73,11 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
         $this->createdAt = $createdAt;
         $this->expirationDate = $expirationDate;
         $this->destinationWarehouseName = $destinationWarehouseName;
+        $this->module = $module;
+        $this->bay = $bay;
+        $this->platform = $platform;
+        $this->invoiceSap = $invoiceSap;
+        $this->transferFolio = $transferFolio;
     }
 
     // Getters
@@ -223,7 +239,12 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
             'userName' => $this->userName,
             'createdAt' => $this->createdAt,
             'expiration_date' => $this->expirationDate,
-            'destinationWarehouseName' => $this->destinationWarehouseName
+            'destinationWarehouseName' => $this->destinationWarehouseName,
+            'module' => $this->module,
+            'bay' => $this->bay,
+            'platform' => $this->platform,
+            'invoiceSap' => $this->invoiceSap,
+            'transferFolio' => $this->transferFolio
         ];
     }
 
@@ -258,7 +279,12 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
                     $movement['inventory']['expiration_date']
                 )
             ),
-            $movement['source_warehouse']['warehouses_name']?? "Sin destino"
+            $movement['source_warehouse']['warehouses_name']?? "Sin destino",
+            $movement['inventory']['module'],
+            $movement['inventory']['bay'],
+            $movement['inventory']['platform'],
+            $movement['sale']['invoice_sap'] ?? null,
+            $movement['inventory']['transfer_folio']
         );
 
 

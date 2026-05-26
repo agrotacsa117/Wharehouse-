@@ -12,8 +12,11 @@ interface WarehouseInventoryQueryServiceI
 
     public function relocateInventory(
         int $id,
-        string $rack,
-        int $level
+        ?string $rack,
+        ?int $level,
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ): ResultPattern;
 
     public function updateOrCreateInventory(

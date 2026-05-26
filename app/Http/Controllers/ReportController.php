@@ -36,6 +36,10 @@ class ReportController extends Controller
 
     public function index()
     {
+            // $reportByProduct = $this->warehouseInventoryService
+            // ->getProductInventory(27, 
+            // 'dw008');
+      
         $this->warehouseInventoryService
         ->getStockByWarehouse(25);
         $stockSummary =  $this->warehouseInventoryService

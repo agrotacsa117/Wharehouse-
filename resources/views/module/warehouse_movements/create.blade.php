@@ -32,6 +32,10 @@
         margin: 0;
     }
 
+    .inventory-item {
+        cursor: pointer;
+    }
+
     /* ══════════════════════════════════
                                    TOP BAR
                                 ══════════════════════════════════ */
@@ -1538,8 +1542,10 @@
                                         <th>Tipo</th>
                                         <th>Producto</th>
                                         <th>Bodega</th>
+                                        <th>Ubicación</th>
                                         <th>Cantidad</th>
                                         <th>Lote</th>
+                                        <th>Folio Sap</th>
                                     </tr>
                                 </thead>
                                 <tbody id="movementsBody">
@@ -1628,9 +1634,10 @@
                     <div class="inventory-grid" style="margin-top:1rem;">
                         <!-- Product 1 -->
                         @foreach ($inventories as $item)
-                            <div class="inventory-item" data-product="{{ $item->getProductName() }}"
+                            <div class="inventory-item" data-id="{{ $item->getInventoryId() }}"
+                                data-product="{{ $item->getProductName() }}"
                                 data-warehouse="{{ $item->getWarehouseName() }}" data-rack="{{ $item->getRack() }}"
-                                data-level="{{ $item->getLevel() }}">
+                                data-level="{{ $item->getLevel() }}" onclick="goToInventoryMovements(this.dataset.id)">
                                 <div class="inventory-item-header">
                                     <h5>{{ $item->getProductName() }}</h5>
                                     <span class="badge-product">{{ $item->getProductCode() }}</span>
@@ -1652,7 +1659,8 @@
                                 </div>
                                 <div class="inventory-item-row">
                                     <span class="label">Tarima</span>
-                                    <span class="value" style="color:var(--tacsa-green);">{{ $item->getPlatform() }}</span>
+                                    <span class="value"
+                                        style="color:var(--tacsa-green);">{{ $item->getPlatform() }}</span>
                                 </div>
                                 <div class="inventory-item-row">
                                     <span class="label">Stock Actual</span>
@@ -1667,14 +1675,12 @@
 
                                 <div class="inventory-item-row">
                                     <span class="label">No. de lote</span>
-                                    <span class="value"
-                                        style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                    <span class="value" style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
                                 </div>
 
                                 <div class="inventory-item-row">
                                     <span class="label">Fecha de fabricación</span>
-                                    <span class="value"
-                                        style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                    <span class="value" style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -1908,8 +1914,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                     MODAL: NUEVA ENTRADA
-                                ══════════════════════════════════════════════ -->
+                                                 MODAL: NUEVA ENTRADA
+                                            ══════════════════════════════════════════════ -->
             <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -1941,8 +1947,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                     MODAL: NUEVA SALIDA
-                                ══════════════════════════════════════════════ -->
+                                                 MODAL: NUEVA SALIDA
+                                            ══════════════════════════════════════════════ -->
             <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2026,8 +2032,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                     MODAL: VER DETALLE
-                                 ══════════════════════════════════════════════ -->
+                                                 MODAL: VER DETALLE
+                                             ══════════════════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2052,8 +2058,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                     MODAL: ELIMINAR
-                                ══════════════════════════════════════════════ -->
+                                                 MODAL: ELIMINAR
+                                            ══════════════════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -2093,8 +2099,29 @@
 
 @endsection
 @push('scripts')
-    
     <script>
+        function goToInventoryMovements(inventoryId) {
+            const id = parseInt(inventoryId);
+
+            // Filtrar movements por warehouseInventoryId
+            filteredMovements = allMovements.filter(m => m.warehouseInventoryId === id);
+
+            pagination.current_page = 1;
+            pagination.total = filteredMovements.length;
+            pagination.last_page = Math.ceil(filteredMovements.length / pagination.per_page) || 1;
+
+            updatePagination();
+            renderMovements();
+
+            // Hacer switch al tab historial
+            const tabBtn = document.querySelector('.tacsa-tab');
+            switchTab('historial', tabBtn);
+
+            // Scroll suave a la tabla
+            document.getElementById('tab-historial').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
         // ══════════════════════════════════
         //  DATA
         // ══════════════════════════════════
@@ -2169,7 +2196,7 @@
             const start = (pagination.current_page - 1) * pagination.per_page;
             const end = start + pagination.per_page;
             const pageData = filteredMovements.slice(start, end);
-
+            
             pageData.forEach(m => {
 
                 let badgeClass, badgeIcon, badgeLabel;
@@ -2228,8 +2255,10 @@
                 <div style="font-size:0.6875rem; color:var(--text-secondary);">${m.productId}</div>
             </td>
             <td>${warehouseDisplay}</td>
+            <td>R:${m.rack ?? 'SR'} / N:${m.level ?? 'SN'} / M:${m.module ?? 'SM'} / B:${m.bay ?? 'SB'} / T:${m.platform ?? 'ST'}</td>
             <td><span class="cell-qty ${qtyClass}">${qtyPrefix}${m.quantity}</span></td>
             <td><span class="badge-product">${m.lotNumber}</span></td>
+            <td><span class="badge-product">${m.movementType === 'SALE' ? (m.invoiceSap || '-') : (m.movementType === 'TRANSFER' ? (m.transferFolio || '-') : '-')}</span></td>
         `;
 
                 fragment.appendChild(tr);

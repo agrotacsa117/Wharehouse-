@@ -10,13 +10,13 @@ class RemoveWarehouseInventoryStockDTO
     private string $movementType;
     private string $operationDate;
     private int $warehouseId;
-    private string $rack;
-    private int $level;
+    private ?string $rack;
+    private ?int $level;
     private int $invoiceId;
     private int $userId;
-    private int $module;
-    private int $bay;
-    private int $platform;
+    private ?int $module;
+    private ?int $bay;
+    private ?int $platform;
 
 
     
@@ -34,7 +34,7 @@ class RemoveWarehouseInventoryStockDTO
 
     
     // Getter y Setter para $module
-    public function getModule(): int 
+    public function getModule(): ?int 
     {
         return $this->module;
     }
@@ -45,7 +45,7 @@ class RemoveWarehouseInventoryStockDTO
     }
 
     // Getter y Setter para $bay
-    public function getBay(): int 
+    public function getBay(): ?int 
     {
         return $this->bay;
     }
@@ -56,7 +56,7 @@ class RemoveWarehouseInventoryStockDTO
     }
 
     // Getter y Setter para $platform
-    public function getPlatform(): int 
+    public function getPlatform(): ?int 
     {
         return $this->platform;
     }

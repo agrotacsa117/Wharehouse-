@@ -10,7 +10,7 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private string $productName;
     private string $productCode;
     private int $warehouseId;
-    private string $warehouseName;
+    private ?string $warehouseName;
     private ?int $level;
     private ?int $rack;
     private ?int $module;
@@ -21,13 +21,15 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
     private ?string $lotNumber;
     private ?int $remainingDays;
     private ?float $obsolescence;
+    private ?string $manufacturingDate;
+    private ?int $state;
 
     public function __construct(
         ?int $inventoryId,
         string $productName,
         string $productCode,
         int $warehouseId,
-        string $warehouseName,
+        ?string $warehouseName,
         ?int $level,
         ?int $rack,
         int $stock,
@@ -37,7 +39,9 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         ?float $obsolescence = null,
         ?int $module,
         ?int $bay,
-        ?int $platform
+        ?int $platform,
+        ?string $manufacturingDate,
+        ?int $state
     ) {
         $this->inventoryId =  $inventoryId;
         $this->productName = $productName;
@@ -54,8 +58,15 @@ class WarehouseInventoryDetailDTO implements \JsonSerializable
         $this->module =  $module;
         $this->bay =  $bay;
         $this->platform =  $platform;
+        $this->manufacturingDate = $manufacturingDate;
+        $this->state = $state;
     }
 
+
+    public function getManufacturingDate(): ?string
+    {
+        return $this->manufacturingDate;
+    }
 
     /**
      * @return int

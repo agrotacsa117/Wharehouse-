@@ -10,7 +10,10 @@ class WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper implements Wareho
 {
     public function convertToOutDetailDTO(WarehouseInventory $warehouseInventory): WarehouseInventoryOutDetailDTO
     {
-        return new WarehouseInventoryOutDetailDTO(
+       
+        //$warehouseInventory->getManufacturingDate()->format('Y-m-d')
+        $warehouseInventoryOutDetailDTO
+        = new WarehouseInventoryOutDetailDTO(
             $warehouseInventory->getId(),
             $warehouseInventory->getWarehouseId(),
             $warehouseInventory->getRack(),
@@ -22,8 +25,11 @@ class WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper implements Wareho
             $warehouseInventory->getExpirationDate()->format('Y-m-d'),
             $warehouseInventory->getModule(),
             $warehouseInventory->getBay(),
-            $warehouseInventory->getPlatform()
+            $warehouseInventory->getPlatform(),
+            $warehouseInventory->getManufacturingDate()->format('Y-m-d')
         );
+        
+        return $warehouseInventoryOutDetailDTO; 
     }
 
 }

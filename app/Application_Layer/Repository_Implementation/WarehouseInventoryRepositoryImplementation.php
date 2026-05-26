@@ -305,13 +305,19 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
     public function updateInventoryLocation(
             int $id,
-            string $rack,
-            int $level
+            ?string $rack,
+            ?int $level,
+            ?int $module,
+            ?int $bay,
+            ?int $platform
     ): bool {
         return WarehouseInventoryModel::where('id', $id)
                         ->update([
                             'rack' => $rack,
                             '_level' => $level,
+                            'module' => $module,
+                            'bay' =>  $bay,
+                            'platform' =>  $platform
                         ]) > 0;
     }
 
@@ -376,8 +382,11 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
     public function findSpecificInventory(
             int $warehouseId,
-            string $rack,
-            int $level,
+            ?int $rack,
+            ?int $level,
+            ?int $module,
+            ?int $platform,
+            ?int $bay,
             string $productId,
             string $lotNumber
     ): ?WarehouseInventory {
@@ -386,6 +395,9 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
                 ->where('rack', $rack)
                 ->where('_level', $level)
+                ->where('module', $module)
+                ->where('bay', $bay)
+                ->where('platform', $platform)
                 ->where('product_id', $productId)
                 ->where('lot_number', $lotNumber)
                 ->first();
@@ -441,5 +453,15 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->where('warehouse_id', $warehouseId)
             ->groupBy('product_id', 'warehouse_name')
             ->get()->toArray();
+    }
+
+    public function findByProductIdAndWarehouseId(
+        int $warehouseId, 
+        string $productId
+    ) : array{
+        return WarehouseInventoryModel::where('product_id', $productId)
+            ->where('warehouse_id', $warehouseId)
+            ->get()       // Trae la colección con todos los registros que coincidan
+            ->toArray();
     }
 }

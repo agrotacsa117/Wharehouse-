@@ -54,8 +54,11 @@ interface WarehouseInventoryRepositoryInterface
 
     public function updateInventoryLocation(
         int $id,
-        string $rack,
-        int $level
+        ?string $rack,
+        ?int $level,
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ): bool;
 
 
@@ -63,8 +66,11 @@ interface WarehouseInventoryRepositoryInterface
 
     public function findSpecificInventory(
         int $warehouseId,
-        string $rack,
-        int $level,
+        ?int $rack,
+        ?int $level,
+        ?int $module,
+        ?int $platform,
+        ?int $bay,
         string $productId,
         string $lotNumber
     ): ?WarehouseInventory;
@@ -78,4 +84,9 @@ interface WarehouseInventoryRepositoryInterface
     public function sumQuantityOfExpiredByWarehouse() : array;
 
     public function getStockByWarehouseId(int $warehouseId) : array;
+
+    public function findByProductIdAndWarehouseId(
+        int $warehouseId, 
+        string $productId
+    ) : array;
 }

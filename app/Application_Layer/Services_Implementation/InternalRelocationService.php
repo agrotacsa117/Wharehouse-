@@ -118,13 +118,18 @@ class InternalRelocationService extends BaseOutputService
                 $removeWarehouseInventoryStockDTO
                 ->getWarehouseId()
             ) {
-                $this->warehouseInventoryQueryService
+                $result = $this->warehouseInventoryQueryService
                 ->updateOrCreateInventory(
                     $removeWarehouseInventoryStockDTO,
                     $this->warehouseInventoryOutDetailDTO
                 );
+
+                if ($result->isFailure()) {
+                    return $result;
+                }
             }
 
+           
 
             $folio = $this->warehouseMovementsService
             ->generateMovementFolio();

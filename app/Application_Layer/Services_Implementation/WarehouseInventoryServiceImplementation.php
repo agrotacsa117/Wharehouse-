@@ -207,7 +207,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['expiration_date'],
                 $inventory[$i]['module'],
                 $inventory[$i]['bay'],
-                $inventory[$i]['platform']
+                $inventory[$i]['platform'],
+                $inventory[$i]['manufacturing_date'] ?? null
             );
         }
 
@@ -229,19 +230,19 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 ->processOutput(
                     $output
                 );
-
+                
+                
                 if ($result->isFailure()) {
                     return $result;
                 }
 
+                return $result;
             });
 
 
         } catch (\Throwable $th) {
-            ResultPattern::failure($th->getMessage());
+            return ResultPattern::failure($th->getMessage());
         }
-
-
 
         return ResultPattern::success($output);
     }
@@ -471,7 +472,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['obsolescence'] ?? null,
                 $inventory[$i]['module'],
                 $inventory[$i]['bay'],
-                $inventory[$i]['platform']
+                $inventory[$i]['platform'],
+                $inventory[$i]['manufacturing_date'] ?? null,
+                $inventory[$i]['state'] ?? null
             );
         }
 
@@ -504,15 +507,21 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function relocateInventory(
         int $id,
-        string $rack,
-        int $level
+        ?string $rack,
+        ?int $level,
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ): ResultPattern {
 
         try {
             $updated = $this->warehouseInventoryRepository->updateInventoryLocation(
                 $id,
                 $rack,
-                $level
+                $level,
+                $module,
+                $bay,
+                $platform
             );
 
             if (!$updated) {
@@ -663,5 +672,23 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         }
 
        return $existences;
+    }
+
+    public function getProductInventory(
+        int $warehouseId, 
+        string $productId) : array{
+
+        $inventory = $this
+        ->warehouseInventoryRepository
+        ->findByProductIdAndWarehouseId(
+            $warehouseId,
+            $productId
+        );
+
+        
+        $inventory = $this
+        ->generateWarehouseInventoryDetailDTO(
+            $inventory);
+        return $inventory;
     }
 }

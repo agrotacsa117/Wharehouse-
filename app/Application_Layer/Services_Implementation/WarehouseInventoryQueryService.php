@@ -34,6 +34,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             );
         }
 
+       
         $warehouseInventoryOutDetailDTO =
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
         ->convertToOutDetailDTO(
@@ -45,14 +46,20 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
 
     public function relocateInventory(
         int $id,
-        string $rack,
-        int $level
+        ?string $rack,
+        ?int $level,
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ): ResultPattern {
         try {
             $updated = $this->warehouseInventoryRepository->updateInventoryLocation(
                 $id,
                 $rack,
-                $level
+                $level,
+                $module,
+                $bay,
+                $platform
             );
 
             if (!$updated) {
@@ -73,17 +80,22 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO,
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
-
+        
         $warehouseInventoryEntity =  $this
         ->warehouseInventoryRepository
         ->findSpecificInventory(
             $removeWarehouseInventoryStockDTO->getWarehouseId(),
             $removeWarehouseInventoryStockDTO->getRack(),
             $removeWarehouseInventoryStockDTO->getLevel(),
+            $removeWarehouseInventoryStockDTO->getModule(),
+            $removeWarehouseInventoryStockDTO->getPlatform(),
+            $removeWarehouseInventoryStockDTO->getBay(),
             $warehouseInventoryOutDetailDTO->getProductCode(),
             $warehouseInventoryOutDetailDTO->getLotNumber()
         );
 
+        
+        
         if (!$warehouseInventoryEntity) {
             $timeZone = new \DateTimeZone('America/Mexico_City');
             $now = new \DateTime('now', $timeZone);
@@ -108,13 +120,44 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 null
             );
 
+            //
+            $warehouseInventory
+            ->setModule(
+                $removeWarehouseInventoryStockDTO
+                ->getModule());
+            
+            $warehouseInventory->setBay(
+                $removeWarehouseInventoryStockDTO
+                ->getBay()
+            );
+
+            $warehouseInventory->setPlatform(
+                $removeWarehouseInventoryStockDTO
+                ->getPlatform()
+            );
+
+            $warehouseInventory->setManufacturingDate(
+                new \DateTime(
+                    $warehouseInventoryOutDetailDTO
+                    ->getManufacturingDate()
+                )
+            );
             $warehouseInventory = $this->warehouseInventoryRepository
             ->save($warehouseInventory);
 
             return ResultPattern::success(
                 $warehouseInventory
             );
-        } 
+        }else{
+            $finalQuantity = $warehouseInventoryEntity
+            ->getQuantity() 
+            + $removeWarehouseInventoryStockDTO->getQuantity();
+           
+           $this->warehouseInventoryRepository->updateQuantity(
+                $warehouseInventoryEntity->getId(),
+                $finalQuantity
+           );
+        }
 
         
         return ResultPattern::success(true);

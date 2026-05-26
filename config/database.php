@@ -97,7 +97,7 @@ return [
         PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
         'TrustServerCertificate' => true,
     ],
-        ],
+            ],
 
     ],
 

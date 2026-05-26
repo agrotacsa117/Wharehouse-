@@ -835,15 +835,15 @@
                                 <div class="reporte-card" style="cursor: pointer; transition: transform 0.15s;"
                                     onclick="verDetalleBodega({{ $warehouse->getId() }}, 
                                     '{{ $warehouse->getWarehouseName() }}',
-                                    '{{$stockSummary[$warehouse->getId()]->getStockTotal()}}',
-                                    '{{$stockSummary[$warehouse->getId()]->getProductTotal()}}',
-                                    '{{isset($statsWarehouses[1][$warehouse->getId()])
-                                                        ? $statsWarehouses[1][$warehouse->getId()]->getTotalStock()
-                                                        : 0 }}',
-                                                        '{{isset($statsWarehouses[2][$warehouse->getId()])
-                                                        ? $statsWarehouses[2][$warehouse->getId()]->getTotalStock()
-                                                        : 0 }}',
-                                                        '{{$stockSummary[$warehouse->getId()]->getTotalExpiredInventory()}}')"
+                                    '{{ $stockSummary[$warehouse->getId()]->getStockTotal() }}',
+                                    '{{ $stockSummary[$warehouse->getId()]->getProductTotal() }}',
+                                    '{{ isset($statsWarehouses[1][$warehouse->getId()])
+                                        ? $statsWarehouses[1][$warehouse->getId()]->getTotalStock()
+                                        : 0 }}',
+                                                        '{{ isset($statsWarehouses[2][$warehouse->getId()])
+                                                            ? $statsWarehouses[2][$warehouse->getId()]->getTotalStock()
+                                                            : 0 }}',
+                                                        '{{ $stockSummary[$warehouse->getId()]->getTotalExpiredInventory() }}')"
                                     onmouseover="this.style.transform='translateY(-4px)'"
                                     onmouseout="this.style.transform='translateY(0)'">
 
@@ -884,7 +884,8 @@
                                                 <div style="font-weight: 600;">
                                                     {{ isset($statsWarehouses[1][$warehouse->getId()])
                                                         ? $statsWarehouses[1][$warehouse->getId()]->getTotalStock()
-                                                        : 0 }}</div>
+                                                        : 0 }}
+                                                </div>
                                                 <div style="opacity: 0.8;">Vigentes</div>
                                             </div>
                                         </div>
@@ -902,7 +903,9 @@
                                         <div class="col-4">
                                             <div
                                                 style="background: #FCEBEB; color: #791F1F; padding: 6px; border-radius: 6px; text-align: center; font-size: 11px;">
-                                                <div style="font-weight: 600;">{{$stockSummary[$warehouse->getId()]->getTotalExpiredInventory()}}</div>
+                                                <div style="font-weight: 600;">
+                                                    {{ $stockSummary[$warehouse->getId()]->getTotalExpiredInventory() }}
+                                                </div>
                                                 <div style="opacity: 0.8;">Vencidos</div>
                                             </div>
                                         </div>
@@ -912,7 +915,7 @@
                         @endforeach
                     </div>
 
-                   
+
                 </div>
 
                 {{-- VISTA DETALLE DE PRODUCTO (cuando SÍ hay producto seleccionado) --}}
@@ -1178,6 +1181,7 @@
                                     <th>Bodega Origen</th>
                                     <th>Bodega Destino</th>
                                     <th>Lote</th>
+                                    <th>Folio SAP</th>
                                     <th class="text-center">Cantidad</th>
                                     <th>Usuario</th>
                                 </tr>
@@ -1503,6 +1507,141 @@
         </div>
     </div>
 
+    {{-- ============================================================= --}}
+    {{--              MODAL DETALLE LOTES DE PRODUCTO                  --}}
+    {{-- ============================================================= --}}
+    <div class="modal fade" id="modalLotesProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #f8fafc, #e2e8f0); border-bottom: 2px solid var(--tacsa-red);">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-1" style="color: #1e293b;">
+                            <i class="bi bi-box-seam me-2" style="color: var(--tacsa-red);"></i>
+                            <span id="modalLotesProductoNombre">Producto</span>
+                        </h5>
+                        <p class="mb-0 small text-muted">
+                            <i class="bi bi-building me-1"></i>
+                            <span id="modalLotesBodegaNombre">Bodega</span>
+                            <span class="mx-2">·</span>
+                            <i class="bi bi-upc me-1"></i>
+                            Código: <span id="modalLotesProductoCodigo">-</span>
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    {{-- KPIs Resumen --}}
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div
+                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Total Lotes</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #1e293b;" id="modalLotesTotalLotes">
+                                    -</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div
+                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Stock Total</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #1e293b;" id="modalLotesStockTotal">
+                                    -</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div
+                                style="background: #FAEEDA; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #633806; margin-bottom: 4px;">Por Caducar</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #854F0B;" id="modalLotesPorCaducar">
+                                    -</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div
+                                style="background: #FCEBEB; border: 1px solid #dc2626; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #791F1F; margin-bottom: 4px;">Vencidos</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #A32D2D;" id="modalLotesVencidos">-
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Filtros --}}
+                    <div class="filter-section mb-3">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Buscar lote</label>
+                                <input type="text" class="form-control form-control-sm" id="filterLotesSearch"
+                                    placeholder="Número de lote..." onkeyup="filtrarLotesProducto()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-medium">Estado</label>
+                                <select class="form-select form-select-sm" id="filterLotesEstado"
+                                    onchange="filtrarLotesProducto()">
+                                    <option value="">Todos</option>
+                                    <option value="vigente">Vigentes</option>
+                                    <option value="por_caducar">Por caducar</option>
+                                    <option value="vencido">Vencidos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-medium">Ordenar por</label>
+                                <select class="form-select form-select-sm" id="filterLotesOrden"
+                                    onchange="filtrarLotesProducto()">
+                                    <option value="caducidad">Caducidad próxima</option>
+                                    <option value="stock_desc">Stock descendente</option>
+                                    <option value="lote">Lote</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltrosLotes()">
+                                    <i class="bi bi-x-circle me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tabla Lotes --}}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-semaforo mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Lote</th>
+                                    <th>Ubicación</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-center">Fecha Caducidad</th>
+                                    <th class="text-center">Días Restantes</th>
+                                    <th class="text-center">Obsolescencia</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableLotesProductoBody">
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-5">
+                                        <i class="bi bi-hourglass-split me-2"></i>Cargando lotes...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between" style="background: #f8fafc;">
+                    <span class="text-muted small" id="countLotes">0 lotes</span>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download me-1"></i> Exportar
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -1950,7 +2089,7 @@
             const tbody = document.getElementById('tableMovimientosBody');
             const countEl = document.getElementById('countMovimientos');
 
-
+            
             if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
                 <i class="bi bi-inbox-fill me-2"></i>No se encontraron movimientos con los filtros aplicados
@@ -1976,6 +2115,8 @@
                 <td><span class="badge bg-secondary">${mov.warehousesName || '-'}</span></td>
                 <td><span class="badge bg-secondary">${mov.destinationWarehouseName || '-'}</span></td>
                 <td><small>${mov.lotNumber || '-'}</small></td>
+                <td><span class="badge bg-secondary">
+                    ${mov.movementType === 'Ventas' ? (mov.invoiceSap || '-') : (mov.movementType === 'Traslado' ? (mov.transferFolio || '-') : '-')}</span></td>
                 <td class="text-center fw-bold">${formatNumber(mov.quantity || 0)}</td>
                 <td><small class="text-muted">${mov.userName || '-'}</small></td>
             </tr>`;
@@ -2030,7 +2171,7 @@
 
             alert(
                 `Funcionalidad en desarrollo.\nProducto: ${producto}\nBodega: ${almacen || 'Todas'}\nPeríodo: ${periodo} meses`
-                );
+            );
         }
 
         function limpiarBusquedaProducto() {
@@ -2043,11 +2184,11 @@
         }
 
         async function verDetalleBodega(
-            almacenId, 
+            almacenId,
             almacenNombre,
-            stock, 
-            totalProduct, 
-            current, 
+            stock,
+            totalProduct,
+            current,
             expiringSoon,
             expired
         ) {
@@ -2085,12 +2226,14 @@
                 if (!response.ok) throw new Error('Error al obtener productos');
 
                 const data = await response.json();
-                
+
                 productosDetalleBodega = data.products || [];
                 // Renderizar tabla
                 productosDetalleBodegaFiltrados = [...productosDetalleBodega];
-                
-                renderTablaDetalleBodega(productosDetalleBodegaFiltrados);
+
+                renderTablaDetalleBodega(
+                    productosDetalleBodegaFiltrados,
+                    almacenId, almacenNombre);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2108,7 +2251,7 @@
             currentProducts,
             expiringSoon,
             expired
-            ) {
+        ) {
             document.getElementById('kpiStockTotal').textContent = stock;
             document.getElementById('kpiProductos').textContent = totalProducts;
             document.getElementById('kpiVigentes').textContent = currentProducts;
@@ -2116,8 +2259,11 @@
             document.getElementById('kpiVencidos').textContent = expired;
         }
 
-        function renderTablaDetalleBodega(productos) {
-            
+        function renderTablaDetalleBodega(
+            productos,
+            warehouseId,
+            warehouseName) {
+
             const tbody = document.getElementById('tableDetalleBodegaBody');
             const countEl = document.getElementById('countDetalleBodega');
 
@@ -2131,7 +2277,7 @@
             }
 
             tbody.innerHTML = productos.map(p => {
-                
+
 
                 return `
             <tr>
@@ -2143,7 +2289,7 @@
                 <td class="text-center" style="font-weight: 700;">${formatNumber(p.stock || 0)}</td>
                 
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}')">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}','${p.product_id}','${warehouseId}','${warehouseName}', '${p.stock}')">
                         Ver detalle ↗
                     </button>
                 </td>
@@ -2207,10 +2353,28 @@
             productosDetalleBodegaFiltrados = [];
         }
 
-        function verAnalisisProducto(productoNombre) {
-            alert(
-                `Funcionalidad en desarrollo.\n\nAnálisis profundo de: ${productoNombre}\n\nAquí se mostrarán KPIs, predicción WMA, gráfica histórica y recomendaciones.`
-                );
+        function verAnalisisProducto(
+            productoNombre, productCode,
+            warehouseId, warehouseName, stock) {
+
+            actualizarKPIsLotes(stock);
+            document.getElementById(
+                'modalLotesProductoNombre').textContent = productoNombre;
+            document.getElementById(
+                'modalLotesBodegaNombre').textContent = warehouseName;
+            document.getElementById(
+                'modalLotesProductoCodigo').textContent = productCode;
+            const modal = new bootstrap.Modal(
+                document.getElementById(
+                    'modalLotesProducto'));
+            modal.show();
+        }
+
+        function actualizarKPIsLotes(kpis) {
+            //document.getElementById('modalLotesTotalLotes').textContent = kpis || 0;
+            document.getElementById('modalLotesStockTotal').textContent = formatNumber(kpis);
+            //document.getElementById('modalLotesPorCaducar').textContent = kpis.por_caducar || 0;
+            //document.getElementById('modalLotesVencidos').textContent = kpis.vencidos || 0;
         }
 
         function limpiarBusquedaProducto() {
@@ -2223,7 +2387,5 @@
             document.getElementById('productos-grid-view').style.display = 'block';
             document.getElementById('productos-detalle-view').style.display = 'none';
         }
-
-       
     </script>
 @endpush

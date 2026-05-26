@@ -55,8 +55,11 @@ interface WarehouseInventoryServiceInterface
 
     public function relocateInventory(
         int $id,
-        string $rack,
-        int $level
+        ?string $rack,
+        ?int $level,
+        ?int $module,
+        ?int $bay,
+        ?int $platform
     ): ResultPattern;
 
     public function getExpiredInventoryRanking(): array;
@@ -64,4 +67,8 @@ interface WarehouseInventoryServiceInterface
     function getStockSummaryPerWarehouse() : array;
 
     function getStockByWarehouse(int $warehouseId) : array;
+
+    function getProductInventory(
+        int $warehouseId, 
+        string $productId) : array;
 }

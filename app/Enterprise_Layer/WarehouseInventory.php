@@ -24,7 +24,7 @@ class WarehouseInventory
     private ?int $bay;
     private ?int $platform;
     private ?int $transferFolio;
-    private \DateTime $manufacturingDate;
+    private ?\DateTime $manufacturingDate;
 
     public function __construct(
         int $warehouseId,
@@ -54,7 +54,7 @@ class WarehouseInventory
         $this->transferFolio = $transferFolio;
     }
 
-    public function getManufacturingDate(): \DateTime
+    public function getManufacturingDate(): ?\DateTime
     {
         return $this->manufacturingDate;
     }
@@ -64,7 +64,7 @@ class WarehouseInventory
      * * @param \DateTime $manufacturingDate
      * @return self
      */
-    public function setManufacturingDate(\DateTime $manufacturingDate): self
+    public function setManufacturingDate(?\DateTime $manufacturingDate): self
     {
         $this->manufacturingDate = $manufacturingDate;
 

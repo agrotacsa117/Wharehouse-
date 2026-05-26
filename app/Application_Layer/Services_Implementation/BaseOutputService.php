@@ -54,10 +54,19 @@ abstract class BaseOutputService implements WarehouseOutputStrategy
             $newQuantity
         );
 
+        
         if (!$updated) {
             return ResultPattern::failure("Error al actualizar el inventario");
         }
 
+        if ($newQuantity === 0) {
+            $this->inventoryRepository
+            ->updateActiveInventory(
+                $removeWarehouseInventoryStockDTO
+                ->getWarehouseInventoryId()
+            );
+        }
+        
         return ResultPattern::success($newQuantity);
     }
     protected function recordMovement(

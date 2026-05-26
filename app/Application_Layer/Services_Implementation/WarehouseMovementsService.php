@@ -27,12 +27,13 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     public function listAllMovements(): array
     {
         $movements = $this->warehouseMovementsRepository->findAll();
-
+        
         for ($i = 0; $i < count($movements) ; $i++) {
             $movements[$i] = WarehouseMovementsListDetailDTO::fromModel(
                 $movements[$i]
             );
         }
+
         return  $movements;
     }
 

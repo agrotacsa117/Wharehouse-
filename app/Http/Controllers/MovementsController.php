@@ -72,7 +72,7 @@ class MovementsController extends Controller
                );
 
         $movements = $this->warehouseMovementsService->listAllMovements();
-
+        
         $expiredProducts = $this->warehouseInventoryService
         ->getExpiredInventory();
 

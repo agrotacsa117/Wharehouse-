@@ -122,13 +122,12 @@ class OutputController extends Controller
 
         $movementType = $request->movement_type;
         $request->validate([
-                    'new_rack' => 'required|string|max:50',
-                    'new_level' => 'required|integer|min:1',
+                    'new_rack' => 'nullable|string|max:50',
+                    'new_level' => 'nullable|integer|min:1',
                     'quantity' => 'required|integer|min:1',
-                    'module' => 'required|integer|min:1',
-                    'bay' => 'required|integer|min:1',
-                    'platform' => 'required|integer|min:1'
-
+                    'module' => 'nullable|integer|min:1',
+                    'bay' => 'nullable|integer|min:1',
+                    'platform' => 'nullable|integer|min:1'
                 ]);
 
         $this->removeWarehouseInventoryStockDTO =
@@ -177,10 +176,23 @@ class OutputController extends Controller
         ->setPlatform(
             $request->platform
         );
-        $this->warehouseInventoryService
+
+        $result = $this->warehouseInventoryService
         ->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
         );
+
+
+
+        if ($result->isFailure()) {
+            return back()
+                ->withErrors($result->getError())
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('output.get')
+            ->with('success', 'Reubicación registrada correctamente');
 
     }
 

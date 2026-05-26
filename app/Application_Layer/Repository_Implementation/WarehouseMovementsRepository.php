@@ -26,7 +26,8 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     {
         $movements = WarehouseInventoryMovementsModel::with(
             ['inventory.warehouse',
-            'user']
+            'user',
+            'sale']
         )->orderBy('created_at', 'asc')
         ->get();
 
@@ -113,6 +114,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         ->with([
             'inventory.warehouse',
             'user',
+            'sale',
             'sourceWarehouse' => function ($q) {
                 $q->select('id', 'warehouses_name');
             }])
