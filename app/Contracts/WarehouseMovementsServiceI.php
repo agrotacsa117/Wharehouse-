@@ -3,8 +3,8 @@
 namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
-use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use App\Mappers\DTO\WarehouseMovementsDTO;
 
 interface WarehouseMovementsServiceI
 {
@@ -26,7 +26,9 @@ interface WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern;
 
+    public function isReserved(string $folio): bool;
 
-    
-   
+    public function getWarehouseMovementsByFolio(
+        string $folio
+    ): ?WarehouseMovementsDTO;
 }

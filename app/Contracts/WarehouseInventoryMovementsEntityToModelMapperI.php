@@ -2,8 +2,8 @@
 
 namespace App\Contracts;
 
-use App\Models\WarehouseInventoryMovementsModel;
 use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Models\WarehouseInventoryMovementsModel;
 
 interface WarehouseInventoryMovementsEntityToModelMapperI
 {

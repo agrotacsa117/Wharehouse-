@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Mappers;
 
 use App\Contracts\WarehouseInventoryEntityToWarehouseInventoryModelMapperI;
-use App\Models\WarehouseInventoryModel;
 use App\Enterprise_Layer\WarehouseInventory;
+use App\Models\WarehouseInventoryModel;
 
 class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements WarehouseInventoryEntityToWarehouseInventoryModelMapperI
 {
@@ -14,7 +14,7 @@ class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements Warehou
         WarehouseInventory $warehouseInventory
     ): WarehouseInventoryModel {
 
-        $warehouseInventoryModel = new WarehouseInventoryModel();
+        $warehouseInventoryModel = new WarehouseInventoryModel;
 
         $warehouseInventoryModel->warehouse_id = $warehouseInventory->getWarehouseId();
         $warehouseInventoryModel->product_id = $warehouseInventory->getProductId();
@@ -32,6 +32,7 @@ class WarehouseInventoryEntityToWarehouseInventoryModelMapper implements Warehou
         $warehouseInventoryModel->bay = $warehouseInventory->getBay();
         $warehouseInventoryModel->platform = $warehouseInventory->getPlatform();
         $warehouseInventoryModel->transfer_folio = $warehouseInventory->getTransferFolio();
+
         return $warehouseInventoryModel;
     }
 }

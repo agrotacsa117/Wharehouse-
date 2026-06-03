@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Warehouse;
-use App\Mappers\DTO\WarehouseDTO;
-use App\Contracts\WarehouseStorageServiceInterface;
 use App\Contracts\LocationServiceInterface;
+use App\Contracts\WarehouseStorageServiceInterface;
 use App\Contracts\WarehouseTypeServiceInterface;
-use App\Enterprise_Layer\WarehouseType;
 use App\Infrastructure\StoreWarehouseRequest;
+use App\Mappers\DTO\WarehouseDTO;
 
 class WarehouseRegistrationController extends Controller
 {
     private LocationServiceInterface $locationService;
+
     private WarehouseTypeServiceInterface $warehouseTypeService;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
@@ -36,7 +35,7 @@ class WarehouseRegistrationController extends Controller
 
         return view('module.warehouses.create', [
             'headquarters' => $headquarters,
-            'warehouseTypes' =>   $warehouseTypes
+            'warehouseTypes' => $warehouseTypes,
         ]);
     }
 
@@ -49,8 +48,8 @@ class WarehouseRegistrationController extends Controller
             $request->warehouse_manager,
             $request->phone_number,
             $request->email,
-            (int)$request->warehouse_type_id,
-            (int)$request->location_id,
+            (int) $request->warehouse_type_id,
+            (int) $request->location_id,
             auth()->id()
         );
 
@@ -60,17 +59,17 @@ class WarehouseRegistrationController extends Controller
 
         if ($result->isFailure()) {
             return redirect()->route('warehouses.create')
-    ->with(
-        'success',
-        $result->getError()
-    );
+                ->with(
+                    'success',
+                    $result->getError()
+                );
         }
 
         return redirect()->route('warehouses.create')
-    ->with(
-        'success',
-        "¡Almacén registrado con éxito!"
-    );
+            ->with(
+                'success',
+                '¡Almacén registrado con éxito!'
+            );
 
     }
 }

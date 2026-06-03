@@ -2,24 +2,33 @@
 
 namespace App\Enterprise_Layer;
 
-use App\Enterprise_Layer\Warehouse;
 use DateTime;
 
 class WarehouseBuilder
 {
     private int $warehouseId;
-    private string $warehouseName;
-    private int $userId;
-    private DateTime $creationDate;
-    private DateTime $lastUpdateDate;
-    private int $userLastUpdate;
-    private string $warehouseKey;
-    private string $warehouseManager;
-    private string $phoneNumber;
-    private string $email;
-    private int $warehouseTypeId;
-    private int $locationId;
 
+    private string $warehouseName;
+
+    private int $userId;
+
+    private DateTime $creationDate;
+
+    private DateTime $lastUpdateDate;
+
+    private int $userLastUpdate;
+
+    private string $warehouseKey;
+
+    private string $warehouseManager;
+
+    private string $phoneNumber;
+
+    private string $email;
+
+    private int $warehouseTypeId;
+
+    private int $locationId;
 
     public function build(): Warehouse
     {
@@ -92,72 +101,84 @@ class WarehouseBuilder
     public function setLocationId(int $locationId): WarehouseBuilder
     {
         $this->locationId = $locationId;
+
         return $this;
     }
 
     public function setWarehouseId(int $warehouseId): WarehouseBuilder
     {
         $this->warehouseId = $warehouseId;
+
         return $this;
     }
 
     public function setWarehousesName(string $warehousesName): WarehouseBuilder
     {
         $this->warehouseName = $warehousesName;
+
         return $this;
     }
 
     public function setUserId(int $userId): WarehouseBuilder
     {
         $this->userId = $userId;
+
         return $this;
     }
 
     public function setCreationDate(DateTime $creationDate): WarehouseBuilder
     {
         $this->creationDate = $creationDate;
+
         return $this;
     }
 
     public function setLastUpdateDate(DateTime $lastUpdateDate): WarehouseBuilder
     {
         $this->lastUpdateDate = $lastUpdateDate;
+
         return $this;
     }
 
     public function setUserLastUpdate(int $userLastUpdate): WarehouseBuilder
     {
         $this->userLastUpdate = $userLastUpdate;
+
         return $this;
     }
 
     public function setWarehousesKey(string $warehousesKey): WarehouseBuilder
     {
         $this->warehouseKey = $warehousesKey;
+
         return $this;
     }
 
     public function setWarehouseManager(string $warehouseManager): WarehouseBuilder
     {
         $this->warehouseManager = $warehouseManager;
+
         return $this;
     }
 
     public function setPhoneNumber(string $phoneNumber): WarehouseBuilder
     {
         $this->phoneNumber = $phoneNumber;
+
         return $this;
     }
 
     public function setEmail(string $email): WarehouseBuilder
     {
         $this->email = $email;
+
         return $this;
     }
 
     public function setWarehouseTypeId(int $warehouseTypeId): WarehouseBuilder
     {
         $this->warehouseTypeId = $warehouseTypeId;
+
         return $this;
     }
 }

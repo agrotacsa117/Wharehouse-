@@ -11,5 +11,5 @@ interface WarehouseInventoryMovementsMapperI
 {
     public function toWarehouseInventoryMovementsEntity(
         WarehouseMovementsDTO $warehouseMovementsDTO
-    ):WarehouseInventoryMovements;
+    ): WarehouseInventoryMovements;
 }

@@ -3,8 +3,8 @@
 namespace App\Mappers;
 
 use App\Contracts\WarehouseSalesRequestDTOToEntityMapperI;
-use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 use App\Enterprise_Layer\WarehouseSalesEntity;
+use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 
 class WarehouseSalesRequestDTOToEntityMapper implements WarehouseSalesRequestDTOToEntityMapperI
 {

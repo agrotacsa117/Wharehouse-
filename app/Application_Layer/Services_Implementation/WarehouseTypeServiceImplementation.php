@@ -2,20 +2,20 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
+use App\Application_Layer\ResultPattern;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI;
+use App\Contracts\WarehouseTypeRepositoryInterface;
+use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 use App\Contracts\WarehouseTypeServiceInterface;
 use App\Mappers\DTO\Requests\WarehouseTypeRequestDTO;
-use App\Application_Layer\ResultPattern;
-use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
-use LDAP\Result;
-use App\Contracts\WarehouseTypeRepositoryInterface;
-use App\Contracts\WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI;
-use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 use App\Mappers\DTO\WarehouseTypeListDTO;
 
 class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterface
 {
     private WarehouseTypeRepositoryInterface $warehouseTypeRepository;
+
     private WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI $warehouseTypeEntityToDTOMapper;
+
     private WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI $warehouseTypeRequestDTOToWarehouseTypeEntity;
 
     public function __construct(
@@ -32,21 +32,21 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
     {
         if ($id <= 0) {
             return ResultPattern::failure(
-                "¡Error: id invalido!"
+                '¡Error: id invalido!'
             );
         }
 
         $warehouseTypeEntity = $this->warehouseTypeRepository
-        ->findById($id);
+            ->findById($id);
 
-        if (!$warehouseTypeEntity) {
+        if (! $warehouseTypeEntity) {
             return ResultPattern::failure(
-                "¡Error: tipo de almacen no encontrado!"
+                '¡Error: tipo de almacen no encontrado!'
             );
         }
 
         $warehouseTypeDTO = $this->warehouseTypeEntityToDTOMapper
-        ->convertWarehouseTypeEntityToWarehouseTypeDetailDTO($warehouseTypeEntity);
+            ->convertWarehouseTypeEntityToWarehouseTypeDetailDTO($warehouseTypeEntity);
 
         return ResultPattern::success($warehouseTypeDTO);
     }
@@ -55,7 +55,7 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
     {
         $warehouseTypes = $this->warehouseTypeRepository->getAllCategoryWarehouse();
 
-        for ($i = 0; $i < count($warehouseTypes) ; $i++) {
+        for ($i = 0; $i < count($warehouseTypes); $i++) {
             $warehouseTypes[$i] = new WarehouseTypeListDTO(
                 $warehouseTypes[$i]['id'],
                 $warehouseTypes[$i]['category_warehouse']
@@ -69,9 +69,9 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
     {
         try {
             $warehouseTypeEntity = $this->warehouseTypeRequestDTOToWarehouseTypeEntity
-            ->convertWarehouseTypeRequestDTOToWarehouseTypeEntity(
-                $warehouseTypeRequestDTO
-            );
+                ->convertWarehouseTypeRequestDTOToWarehouseTypeEntity(
+                    $warehouseTypeRequestDTO
+                );
 
             $warehouseTypeEntity->setId(0);
 
@@ -103,11 +103,10 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
 
         if ($this->getWarehouseTypeById($id)->isFailure()) {
             return ResultPattern::failure(
-                "¡Error: no es posible actualizar "
-                ."el tipo de almacen porque no existe!"
+                '¡Error: no es posible actualizar '
+                .'el tipo de almacen porque no existe!'
             );
         }
-
 
         return ResultPattern::success(true);
     }
@@ -116,8 +115,8 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
     {
         if ($this->getWarehouseTypeById($id)->isFailure()) {
             return ResultPattern::failure(
-                "¡Error: no es posible eliminar "
-                ."el tipo de almacen porque no existe!"
+                '¡Error: no es posible eliminar '
+                .'el tipo de almacen porque no existe!'
             );
 
         }
@@ -127,6 +126,7 @@ class WarehouseTypeServiceImplementation implements WarehouseTypeServiceInterfac
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
+
         return ResultPattern::success(true);
     }
 }

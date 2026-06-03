@@ -4,22 +4,29 @@ declare(strict_types=1);
 
 namespace App\Enterprise_Layer;
 
-use App\Enterprise_Layer\Exception\InvalidPostalCodeException;
 use App\Enterprise_Layer\Exception\InvalidAddressException;
 use App\Enterprise_Layer\Exception\InvalidCityNameException;
-use App\Enterprise_Layer\Exception\InvalidStateNameException;
 use App\Enterprise_Layer\Exception\InvalidHeadquartersName;
+use App\Enterprise_Layer\Exception\InvalidPostalCodeException;
+use App\Enterprise_Layer\Exception\InvalidStateNameException;
 use DateTime;
 
 class Location
 {
     private int $id;
+
     private string $headquartersName;
+
     private int $postalCode;
+
     private string $state;
+
     private string $city;
+
     private DateTime $createdAt;
+
     private DateTime $updatedAt;
+
     private string $address;
 
     public function __construct(
@@ -121,36 +128,34 @@ class Location
         $this->address = $address;
     }
 
-
     private function validatePostalCode(int $postalCode): void
     {
         if ($postalCode <= 0) {
             throw new InvalidPostalCodeException(
-                "¡Error: código postal invalido!",
+                '¡Error: código postal invalido!',
                 23
             );
         }
 
-        if (strlen((string)$postalCode) !== 5) {
+        if (strlen((string) $postalCode) !== 5) {
             throw new InvalidPostalCodeException(
-                "¡Error: código postal invalido!",
+                '¡Error: código postal invalido!',
                 24
             );
         }
 
     }
 
-
     private function validateAddress(
         string $address
     ): void {
 
-        if (!preg_match(
+        if (! preg_match(
             "/^(?=.{3,50}$)[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s.,#\-\/()°º'&]+$/",
             $address
         )) {
             throw new InvalidAddressException(
-                "¡Error: dirección no valida!",
+                '¡Error: dirección no valida!',
                 25
             );
         }
@@ -158,13 +163,13 @@ class Location
 
     private function validateCity(string $city)
     {
-        if (!$this-> validateNames(
+        if (! $this->validateNames(
             $city,
             3,
             35
         )) {
             throw new InvalidCityNameException(
-                "¡Error: nombre de ciudad no valido!",
+                '¡Error: nombre de ciudad no valido!',
                 26
             );
         }
@@ -172,13 +177,13 @@ class Location
 
     private function validateState(string $state): void
     {
-        if (!$this->validateNames(
+        if (! $this->validateNames(
             $state,
             6,
             20
         )) {
             throw new InvalidStateNameException(
-                "¡Error: nombre de estado no valido!",
+                '¡Error: nombre de estado no valido!',
                 27
             );
         }
@@ -188,13 +193,13 @@ class Location
         string $headquartersName
     ): void {
 
-        if (!$this->validateNames(
+        if (! $this->validateNames(
             $headquartersName,
             6,
             50
         )) {
             throw new InvalidHeadquartersName(
-                "¡Error: nombre de sede no valido!"
+                '¡Error: nombre de sede no valido!'
             );
         }
     }
@@ -204,10 +209,10 @@ class Location
         int $minLenght,
         int $maxLenght
     ): bool {
-       
+
         $isCorrect = preg_match(
-            "/^(?=.{".$minLenght.
-            ",".$maxLenght."}$)[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/",
+            '/^(?=.{'.$minLenght.
+            ','.$maxLenght."}$)[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/",
             $name
         );
 

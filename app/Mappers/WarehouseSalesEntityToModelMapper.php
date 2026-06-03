@@ -3,8 +3,8 @@
 namespace App\Mappers;
 
 use App\Contracts\WarehouseSalesEntityToModelMapperI;
-use App\Models\WarehouseSalesModel;
 use App\Enterprise_Layer\WarehouseSalesEntity;
+use App\Models\WarehouseSalesModel;
 
 class WarehouseSalesEntityToModelMapper implements WarehouseSalesEntityToModelMapperI
 {
@@ -12,7 +12,7 @@ class WarehouseSalesEntityToModelMapper implements WarehouseSalesEntityToModelMa
         WarehouseSalesEntity $warehouseSalesEntity
     ): WarehouseSalesModel {
 
-        $warehouseSalesModel = new WarehouseSalesModel();
+        $warehouseSalesModel = new WarehouseSalesModel;
 
         if ($warehouseSalesEntity->getId()) {
             $warehouseSalesModel->exists = true;
@@ -20,12 +20,12 @@ class WarehouseSalesEntityToModelMapper implements WarehouseSalesEntityToModelMa
         }
 
         $warehouseSalesModel
-        ->movement_id = $warehouseSalesEntity
-        ->getMovementId();
+            ->movement_id = $warehouseSalesEntity
+            ->getMovementId();
         $warehouseSalesModel
-        ->invoice_sap = $warehouseSalesEntity
-        ->getInvoiceSap();
-        
+            ->invoice_sap = $warehouseSalesEntity
+            ->getInvoiceSap();
+
         return $warehouseSalesModel;
     }
 }

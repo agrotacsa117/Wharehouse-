@@ -6,7 +6,6 @@ use App\Models\User;
 
 interface UserManagerRepositoryInterface
 {
-
     public function saveUser(User $user): User;
 
     public function deleteUser(User $user): bool;

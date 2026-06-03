@@ -5,22 +5,30 @@ namespace App\Mappers\DTO;
 class RemoveWarehouseInventoryStockDTO
 {
     private int $warehouseInventoryId;
+
     private int $quantity;
+
     private string $reason;
+
     private string $movementType;
+
     private string $operationDate;
+
     private int $warehouseId;
-    private ?string $rack;
+
+    private ?int $rack;
+
     private ?int $level;
+
     private int $invoiceId;
+
     private int $userId;
+
     private ?int $module;
+
     private ?int $bay;
+
     private ?int $platform;
-
-
-    
-
 
     public function __construct(
         int $warehouseInventoryId,
@@ -32,40 +40,39 @@ class RemoveWarehouseInventoryStockDTO
         $this->reason = $reason;
     }
 
-    
     // Getter y Setter para $module
-    public function getModule(): ?int 
+    public function getModule(): ?int
     {
         return $this->module;
     }
 
-    public function setModule(int $module): void 
+    public function setModule(int $module): void
     {
         $this->module = $module;
     }
 
     // Getter y Setter para $bay
-    public function getBay(): ?int 
+    public function getBay(): ?int
     {
         return $this->bay;
     }
 
-    public function setBay(int $bay): void 
+    public function setBay(int $bay): void
     {
         $this->bay = $bay;
     }
 
     // Getter y Setter para $platform
-    public function getPlatform(): ?int 
+    public function getPlatform(): ?int
     {
         return $this->platform;
     }
 
-    public function setPlatform(int $platform): void 
+    public function setPlatform(int $platform): void
     {
         $this->platform = $platform;
     }
-    
+
     public function getUserId(): int
     {
         return $this->userId;
@@ -136,12 +143,12 @@ class RemoveWarehouseInventoryStockDTO
         $this->warehouseId = $warehouseId;
     }
 
-    public function getRack(): string
+    public function getRack(): int
     {
         return $this->rack;
     }
 
-    public function setRack(string $rack): void
+    public function setRack(int $rack): void
     {
         $this->rack = $rack;
     }
@@ -156,7 +163,6 @@ class RemoveWarehouseInventoryStockDTO
         $this->level = $level;
     }
 
-   
     public function getInvoiceId(): int
     {
         return $this->invoiceId;

@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('compras', function (Blueprint $table) {
             $table->id();
-             $table->foreignId('user_id')->constrained('users');
-             $table->foreignId('producto_id')->constrained('productos');
-             $table->integer('cantidad');
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('producto_id')->constrained('productos');
+            $table->integer('cantidad');
             $table->timestamps();
         });
     }

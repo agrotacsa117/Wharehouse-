@@ -2,14 +2,11 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\WarehouseOutputStrategy;
-use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
-use App\Mappers\DTO\WarehouseMovementsDTO;
-use App\Application_Layer\Services_Implementation\BaseOutputService;
 use App\Contracts\WarehouseSalesServiceI;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 
 class SaleOutputService extends BaseOutputService
@@ -32,7 +29,7 @@ class SaleOutputService extends BaseOutputService
     public function processOutput(RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO): ResultPattern
     {
 
-        $result =  $this->validateStockAvailability(
+        $result = $this->validateStockAvailability(
             $removeWarehouseInventoryStockDTO
         );
 
@@ -61,16 +58,15 @@ class SaleOutputService extends BaseOutputService
             $movementDTO->setOperationDate(
                 new \DateTime(
                     $removeWarehouseInventoryStockDTO
-                    ->getOperationDate()
+                        ->getOperationDate()
                 )
             );
 
-
             // 5. Persistir
-            $result =  $this->warehouseMovementsService
-            ->saveWarehouseMovement(
-                $movementDTO
-            );
+            $result = $this->warehouseMovementsService
+                ->saveWarehouseMovement(
+                    $movementDTO
+                );
 
             if ($result->isFailure()) {
                 return $result;
@@ -82,9 +78,9 @@ class SaleOutputService extends BaseOutputService
             );
 
             $this->warehouseSalesService
-            ->saveWarehouseSales(
-                $warehouseSalesDTO
-            );
+                ->saveWarehouseSales(
+                    $warehouseSalesDTO
+                );
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
@@ -94,12 +90,12 @@ class SaleOutputService extends BaseOutputService
             'message' => 'Venta registrada exitosamente',
             'sold_quantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
             'remaining_stock' => $newQuantity,
-            'invoice_sap' => $removeWarehouseInventoryStockDTO->getInvoiceId()
+            'invoice_sap' => $removeWarehouseInventoryStockDTO->getInvoiceId(),
         ]);
     }
 
     public function getType(): string
     {
-        return "SALE";
+        return 'SALE';
     }
 }

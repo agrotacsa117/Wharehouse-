@@ -1003,7 +1003,7 @@
                             <div class="col-md-4">
                                 <label class="form-label small fw-medium">Buscar producto</label>
                                 <input type="text" class="form-control form-control-sm" id="filterDetalleBuscar"
-                                    placeholder="Nombre, código o lote..." onkeyup="filtrarTablaDetalleBodega()">
+                                    placeholder="Nombre o código" onkeyup="filtrarTablaDetalleBodega()">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small fw-medium">Estado</label>
@@ -1536,15 +1536,17 @@
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div
-                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
-                                <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Total Lotes</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #1e293b;" id="modalLotesTotalLotes">
+                                style="background: #eb4b4bdc; border: 1px solid #e2e4f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div class="text-muted"
+                                    style="font-size: 14px; margin-bottom: 4px; color: #eff1f4 !important;">En Peligro
+                                </div>
+                                <div style="font-size: 24px; font-weight: 700; color: #eff1f4;" id="modalLotesTotalLotes">
                                     -</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div
-                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                style="background: #f8fafc; border: 1px solid #f0e5e2; border-radius: 8px; padding: 12px; text-align: center;">
                                 <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Stock Total</div>
                                 <div style="font-size: 24px; font-weight: 700; color: #1e293b;" id="modalLotesStockTotal">
                                     -</div>
@@ -2089,7 +2091,7 @@
             const tbody = document.getElementById('tableMovimientosBody');
             const countEl = document.getElementById('countMovimientos');
 
-            
+
             if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
                 <i class="bi bi-inbox-fill me-2"></i>No se encontraron movimientos con los filtros aplicados
@@ -2148,6 +2150,9 @@
 
         // Variable global para almacenar productos de la bodega actual
         let productosDetalleBodega = [];
+        let productStockDetails = [];
+        let currentWarehouseId = 0;
+        let warehouseName = "";
         let productosDetalleBodegaFiltrados = [];
 
         function buscarProducto() {
@@ -2223,6 +2228,8 @@
                     }
                 });
 
+                currentWarehouseId = almacenId;
+                warehouseName = almacenNombre;
                 if (!response.ok) throw new Error('Error al obtener productos');
 
                 const data = await response.json();
@@ -2263,6 +2270,12 @@
             productos,
             warehouseId,
             warehouseName) {
+
+            console.log(
+                "The warehouse id in turn is: " +
+                warehouseId + " and warehouse name is: " +
+                warehouseName
+            );
 
             const tbody = document.getElementById('tableDetalleBodegaBody');
             const countEl = document.getElementById('countDetalleBodega');
@@ -2307,7 +2320,9 @@
             let filtrados = [...productosDetalleBodega];
 
             // Filtrar por búsqueda
-            if (buscar) {
+            // alert("The element to saerch is: " + buscar);
+            if (buscar && buscar != '') {
+                //alert("Entered here!")
                 filtrados = filtrados.filter(p =>
                     (p.product_name || '').toLowerCase().includes(buscar) ||
                     (p.product_id || '').toLowerCase().includes(buscar) ||
@@ -2319,6 +2334,7 @@
             if (estado) {
                 filtrados = filtrados.filter(p => {
                     const dias = p.dias_restantes;
+
                     if (estado === 'vencido') return dias < 0;
                     if (estado === 'por_caducar') return dias >= 0 && dias <= 90;
                     if (estado === 'vigente') return dias > 90;
@@ -2335,8 +2351,15 @@
                 filtrados.sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
             }
 
+            console.log(
+                "The current warehouse id is: " +
+                currentWarehouseId);
             productosDetalleBodegaFiltrados = filtrados;
-            renderTablaDetalleBodega(filtrados);
+            renderTablaDetalleBodega(
+                filtrados,
+                currentWarehouseId,
+                warehouseName
+            );
         }
 
         function limpiarFiltrosDetalle() {
@@ -2353,17 +2376,40 @@
             productosDetalleBodegaFiltrados = [];
         }
 
-        function verAnalisisProducto(
+        async function verAnalisisProducto(
             productoNombre, productCode,
             warehouseId, warehouseName, stock) {
 
             actualizarKPIsLotes(stock);
+
+            try {
+                const response = await fetch(
+                    `/reports/products/stock/warehouses/${warehouseId}/products/${productCode}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                if (!response.ok) throw new Error('Error al obtener productos');
+
+                const data = await response.json();
+
+                productStockDetails = data.products || [];
+
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
             document.getElementById(
                 'modalLotesProductoNombre').textContent = productoNombre;
             document.getElementById(
                 'modalLotesBodegaNombre').textContent = warehouseName;
             document.getElementById(
                 'modalLotesProductoCodigo').textContent = productCode;
+            renderTableLotsProduct(productStockDetails);
             const modal = new bootstrap.Modal(
                 document.getElementById(
                     'modalLotesProducto'));
@@ -2387,5 +2433,91 @@
             document.getElementById('productos-grid-view').style.display = 'block';
             document.getElementById('productos-detalle-view').style.display = 'none';
         }
+
+        function renderTableLotsProduct(lotes) {
+            //alert(JSON.stringify(lotes));
+            const tbody = document.getElementById('tableLotesProductoBody');
+            const countEl = document.getElementById('countLotes');
+
+            if (!lotes || lotes.length === 0) {
+                tbody.innerHTML = `
+            <tr><td colspan="8" class="text-center text-muted py-5">
+                <i class="bi bi-inbox-fill me-2"></i>No se encontraron lotes
+            </td></tr>`;
+                if (countEl) countEl.textContent = '0 lotes';
+                return;
+            }
+
+            tbody.innerHTML = lotes.map((lote, index) => {
+                const diasRestantes = lote.remainingDays;
+                let estadoBadge, bgRow;
+
+                if (diasRestantes < 0) {
+                    estadoBadge = '<span class="badge bg-danger">Vencido</span>';
+                    bgRow = 'table-danger';
+                } else if (diasRestantes <= 90) {
+                    estadoBadge = '<span class="badge bg-warning text-dark">Por caducar</span>';
+                    bgRow = 'table-warning';
+                } else {
+                    estadoBadge = '<span class="badge bg-success">Vigente</span>';
+                    bgRow = '';
+                }
+
+                // Construir ubicación completa
+                const ubicacion = [
+                    lote.rack ? `Rack ${lote.rack}` : '',
+                    lote.level ? `Nv.${lote.level}` : '',
+                    lote.module ? `Mod.${lote.module}` : '',
+                    lote.bay ? `Bahía ${lote.bay}` : '',
+                    lote.platform ? `Plat.${lote.platform}` : ''
+                ].filter(Boolean).join(' · ') || 'Sin ubicación';
+
+                return `
+            <tr class="${bgRow}">
+                <td class="text-center text-muted">${index + 1}</td>
+                <td><span style="font-family: monospace; font-weight: 500;">${lote.lotNumber || '-'}</span></td>
+                <td><small style="font-size: 11px;">${ubicacion}</small></td>
+                <td class="text-center fw-bold">${formatNumber(lote.quantity || 0)}</td>
+                <td class="text-center">${lote.expirationDate || '-'}</td>
+                <td class="text-center">
+                    <span class="badge ${diasRestantes < 0 ? 'bg-danger' : diasRestantes <= 90 ? 'bg-warning text-dark' : 'bg-success'}">
+                        ${diasRestantes < 0 ? `Vencido hace ${Math.abs(diasRestantes)} días` : `${diasRestantes} días`}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                        <div class="progress" style="height: 6px; width: 50px;">
+                            <div class="progress-bar ${(lote.obsolescence || 0) > 80 ? 'bg-danger' : (lote.obsolescence || 0) > 50 ? 'bg-warning' : 'bg-success'}" 
+                                 role="progressbar" 
+                                 style="width: ${Math.min(100, Math.abs(lote.obsolescence || 0))}%">
+                            </div>
+                        </div>
+                        <span class="small fw-medium">${(lote.obsolescence || 0).toFixed(1)}%</span>
+                    </div>
+                </td>
+                <td class="text-center">${estadoBadge}</td>
+            </tr>`;
+            }).join('');
+
+            if (countEl) countEl.textContent = `${lotes.length} lote${lotes.length !== 1 ? 's' : ''}`;
+        }
+
+        
+
+        function limpiarFiltrosLotes() {
+            console.log("Entered in this method !");
+            document.getElementById('filterLotesSearch').value = '';
+            document.getElementById('filterLotesEstado').value = '';
+            document.getElementById('filterLotesOrden').value = 'caducidad';
+            //filtrarLotesProducto();
+        }
+
+        document.getElementById('modalLotesProducto')?.addEventListener('hidden.bs.modal', function() {
+            lotesProductoData = [];
+            lotesProductoFiltrados = [];
+            currentProductoId = null;
+            currentWarehouseId = null;
+            limpiarFiltrosLotes();
+        });
     </script>
 @endpush

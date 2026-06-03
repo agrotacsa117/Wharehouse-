@@ -10,7 +10,9 @@ use InvalidArgumentException;
 class ResultPattern
 {
     private bool $isSuccess;
+
     private string $error;
+
     /** @var T|null */
     private $value;
 
@@ -19,14 +21,14 @@ class ResultPattern
         string $error,
         $value
     ) {
-        $this->isSuccess =  $isSuccess;
+        $this->isSuccess = $isSuccess;
         $this->error = $error;
         $this->value = $value;
     }
 
     /**
- * @return T|null
- */
+     * @return T|null
+     */
     public function getValue()
     {
         return $this->value;
@@ -37,11 +39,11 @@ class ResultPattern
         return $this->isSuccess;
     }
 
-
     public function isFailure(): bool
     {
-        return !$this->isSuccess;
+        return ! $this->isSuccess;
     }
+
     public function getError(): string
     {
         return $this->error;
@@ -52,7 +54,7 @@ class ResultPattern
 
         return new ResultPattern(
             true,
-            "",
+            '',
             $value
         );
     }
@@ -61,9 +63,10 @@ class ResultPattern
         string $failureMessage
     ): ResultPattern {
 
-        if ($failureMessage === "" || $failureMessage === null) {
+        if ($failureMessage === '' || $failureMessage === null) {
             throw new InvalidArgumentException('The error argument can´t be null');
         }
+
         return new ResultPattern(
             false,
             $failureMessage,

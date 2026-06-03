@@ -1,25 +1,24 @@
 <?php
 
-use App\Enterprise_Layer\Warehouse;
-use App\Enterprise_Layer\WarehouseInventory;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Categorias;
-use App\Http\Controllers\Usuarios;
-use App\Http\Controllers\Productos;
 use App\Http\Controllers\Dashboard;
+use App\Http\Controllers\InventoryManagementController;
 use App\Http\Controllers\LocationRegistrationController;
 use App\Http\Controllers\MovementsController;
 use App\Http\Controllers\OutputController;
+use App\Http\Controllers\Productos;
 use App\Http\Controllers\Proveedores;
+use App\Http\Controllers\RackController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Reportes_productos;
+use App\Http\Controllers\Usuarios;
 use App\Http\Controllers\Ventas;
 use App\Http\Controllers\WarehouseManagmentController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRegistrationController;
 use App\Http\Controllers\WarehouseTypeController;
 use App\Http\Controllers\WareouseInventoryController;
-use App\Http\Controllers\InventoryManagementController;
-use App\Http\Controllers\ReportController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,33 +33,25 @@ use App\Http\Controllers\ReportController;
 // usuario admin solo una vez
 Route::get('/crear-admin', [AuthController::class, 'crearAdmin']);
 
-
 Route::post(
     '/register-warehouse',
     [WarehouseRegistrationController::class, 'registerWarehouse']
 )->name('warehouses.store');
-
-
 
 Route::post(
     '/register-location',
     [LocationRegistrationController::class, 'store']
 )->name('locations.store');
 
-
-
-
 Route::get(
     '/operation',
     [WareouseInventoryController::class, 'getView']
 )->name('operation.get');
 
-
 Route::post(
     '/operation',
     [WareouseInventoryController::class, 'store']
 )->name('operation.get.store');
-
 
 Route::post(
     '/warehouse-type',
@@ -77,7 +68,12 @@ Route::post(
     [MovementsController::class, 'reportByCaducidad']
 )->name('warehouse-movements.report-caducidad');
 
-Route::middleware("auth")->group(function () {
+Route::post(
+    '/warehouse-movements/movements/${reversalMovementId}/reason/${reason}',
+    [MovementsController::class, 'reverseMovement']
+)->name('warehouse-movements.reverse-movement');
+
+Route::middleware('auth')->group(function () {
     Route::get(
         '/warehouse-movements',
         [MovementsController::class, 'getView']
@@ -85,19 +81,16 @@ Route::middleware("auth")->group(function () {
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-
-
 Route::post(
     '/warehouse-movements/report',
     [MovementsController::class, 'reportByPeriod']
 )->name('warehouse-movements.report');
 
-//expirationReport
+// expirationReport
 Route::get(
     '/warehouse-movements/expiration-report',
     [MovementsController::class, 'expirationReport']
 )->name('warehouse-movements.expiration-report');
-;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 Route::post('/logear', [AuthController::class, 'logear'])->name('logear');
@@ -105,7 +98,7 @@ Route::post('/logear', [AuthController::class, 'logear'])->name('logear');
 Route::get(
     '/output',
     [OutputController::class,
-    'getView']
+        'getView']
 )->name('output.get');
 
 // Ruta para editar almacén
@@ -118,14 +111,14 @@ Route::get(
     '/warehouses/by-location/{locationId}',
     [
         OutputController::class,
-        'getWarehousesByLocation'
+        'getWarehousesByLocation',
     ]
 )->name(
     'warehouses.by-location'
 );
 
 Route::get('/output/{id}/inventory', [OutputController::class,
-'getInventory'])->name('output.inventory.get');
+    'getInventory'])->name('output.inventory.get');
 
 Route::post('/output/process', [
     OutputController::class,
@@ -136,15 +129,21 @@ Route::get('/reports/products/warehouse/{id}', [ReportController::class, 'getPro
 Route::get(
     '/reports/filter',
     [ReportController::class,
-    'getTransactionsByDateRange']
+        'getTransactionsByDateRange']
 )->name('reports.filter.by.range');
 
-Route::middleware("auth")->group(function () {
+Route::get(
+    '/reports/products/stock/warehouses/{warehouseId}/products/{productId}',
+    [ReportController::class,
+        'getStocksByProductAndWarehouse']
+)->name('reports.filter.by.product.warehouse');
+
+Route::middleware('auth')->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-Route::middleware("auth")->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.get');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
@@ -198,7 +197,7 @@ Route::prefix('managment')->middleware(['auth', 'role:admin'])->group(function (
         '/inventory-management',
         [
             InventoryManagementController::class,
-             'index']
+            'index']
     )->name('inventory.management');
 
     Route::get(
@@ -232,12 +231,12 @@ Route::post('/salida-productos/finalizar', [Ventas::class, 'finalizarSalida'])->
 Route::get('/reporte-salidas', [Ventas::class, 'reporteSalidas'])->name('reporte.salidas');
 Route::delete('/salida-productos/{id}', [Ventas::class, 'destroySalida'])->name('salida-productos.destroy');
 Route::prefix('racks')->middleware(['auth'])->group(function () {
-    Route::get('/', [\App\Http\Controllers\RackController::class, 'index'])->name('rack.index');
-    Route::get('/create', [\App\Http\Controllers\RackController::class, 'create'])->name('rack.create');
-    Route::post('/store', [\App\Http\Controllers\RackController::class, 'store'])->name('rack.store');
-    Route::get('/edit/{id}', [\App\Http\Controllers\RackController::class, 'edit'])->name('rack.edit');
-    Route::put('/update/{id}', [\App\Http\Controllers\RackController::class, 'update'])->name('rack.update');
-    Route::delete('/destroy/{id}', [\App\Http\Controllers\RackController::class, 'destroy'])->name('rack.destroy');
+    Route::get('/', [RackController::class, 'index'])->name('rack.index');
+    Route::get('/create', [RackController::class, 'create'])->name('rack.create');
+    Route::post('/store', [RackController::class, 'store'])->name('rack.store');
+    Route::get('/edit/{id}', [RackController::class, 'edit'])->name('rack.edit');
+    Route::put('/update/{id}', [RackController::class, 'update'])->name('rack.update');
+    Route::delete('/destroy/{id}', [RackController::class, 'destroy'])->name('rack.destroy');
 });
 Route::prefix('ventas')->middleware(['auth'])->group(function () {
     Route::get('/generar-ticket-salida', [Ventas::class, 'generarTicketSalida'])->name('ventas.generarTicketSalida');

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\Return_;
 
 class DetalleVentas extends Controller
 {
@@ -12,7 +11,7 @@ class DetalleVentas extends Controller
      */
     public function index()
     {
-        Return view('module.detalles_ventas.index');
+        return view('module.detalles_ventas.index');
     }
 
     /**

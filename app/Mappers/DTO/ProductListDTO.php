@@ -5,6 +5,7 @@ namespace App\Mappers\DTO;
 class ProductListDTO
 {
     private string $id;
+
     private string $productName;
 
     public function __construct(string $id, string $productName)

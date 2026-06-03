@@ -7,18 +7,31 @@ use DateTime;
 class WarehouseListDetailDTO
 {
     private int $id;
+
     private string $warehouseName;
+
     private DateTime $createdAt;
+
     private DateTime $updatedAt;
+
     private int $userLastUpdate;
+
     private string $userName;
+
     private string $warehouseKey;
+
     private string $warehouseManager;
+
     private string $phoneNumber;
+
     private string $email;
+
     private int $warehouseTypeId;
+
     private string $categoryWarehouse;
+
     private int $locationId;
+
     private string $headquartersName;
 
     public function __construct(

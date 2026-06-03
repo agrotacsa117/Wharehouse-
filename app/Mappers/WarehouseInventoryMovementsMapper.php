@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Mappers;
 
-use App\Mappers\DTO\WarehouseMovementsDTO;
-use App\Enterprise_Layer\WarehouseInventoryMovements;
 use App\Contracts\WarehouseInventoryMovementsMapperI;
+use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Mappers\DTO\WarehouseMovementsDTO;
 
 class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMapperI
 {
@@ -25,9 +25,9 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
 
         if ($warehouseMovementsDTO->getTransferFolio()) {
             $warehouseInventoryMovements
-            ->setTransferFolio(
-                $warehouseMovementsDTO->getTransferFolio()
-            );
+                ->setTransferFolio(
+                    $warehouseMovementsDTO->getTransferFolio()
+                );
         }
         if ($warehouseMovementsDTO->getSourceWarehouseId() !== null) {
             $warehouseInventoryMovements->setSourceWarehouseId(
@@ -35,14 +35,27 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
             );
         }
 
-
-
-
         if ($warehouseMovementsDTO->getOperationDate() !== null) {
             $warehouseInventoryMovements->setOperationDate(
                 $warehouseMovementsDTO->getOperationDate()
             );
         }
+
+        if ($warehouseMovementsDTO->getReversedBy()) {
+            $warehouseInventoryMovements->setReversedBy(
+                $warehouseMovementsDTO->getReversedBy()
+            );
+        }
+
+        if ($warehouseMovementsDTO->getReversedOf()) {
+            $warehouseInventoryMovements->setReversalOf(
+                $warehouseMovementsDTO->getReversedOf()
+            );
+        }
+
+        $warehouseInventoryMovements->setIsReversed(
+            $warehouseMovementsDTO->isReversed()
+        );
 
         return $warehouseInventoryMovements;
     }

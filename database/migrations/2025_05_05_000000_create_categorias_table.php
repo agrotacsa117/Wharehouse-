@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('categorias', function (Blueprint $table) {
             $table->id();
-            //crear FK
+            // crear FK
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string("clave");
-            $table->string("nombre");
+            $table->string('clave');
+            $table->string('nombre');
             $table->timestamps();
         });
     }

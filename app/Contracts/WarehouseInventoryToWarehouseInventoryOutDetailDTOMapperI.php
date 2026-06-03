@@ -2,8 +2,8 @@
 
 namespace App\Contracts;
 
-use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Enterprise_Layer\WarehouseInventory;
+use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 interface WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI
 {

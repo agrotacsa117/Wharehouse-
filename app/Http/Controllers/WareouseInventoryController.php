@@ -5,16 +5,15 @@ namespace App\Http\Controllers;
 use App\Contracts\ProductServiceInterface;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
-use App\Enterprise_Layer\Warehouse;
-use App\Enterprise_Layer\WarehouseInventory;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
+use Illuminate\Http\Request;
 
 class WareouseInventoryController extends Controller
 {
     private ProductServiceInterface $productService;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
+
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
 
     public function __construct(
@@ -31,7 +30,8 @@ class WareouseInventoryController extends Controller
     {
         $products = $this->productService->listAllProducts();
         $warehouses = $this->warehouseStorageService
-        ->getWarehouseIdAndName();
+            ->getWarehouseIdAndName();
+
         return view(
             'module.operations.create',
             compact(
@@ -44,21 +44,20 @@ class WareouseInventoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'productId'      => 'required|string',
-        'warehouseId'    => 'required|integer',
-        'rack'           => 'nullable|string',
-        'level'          => 'nullable|integer|min:1',
-        'quantity'       => 'required|integer|min:1',
-        'expirationDate' => 'nullable|date',
-        'manufacturingDate' => 'nullable|date',
-        'reason'         => 'required|string',
-        'loteNumber'     => 'nullable',
-        'module' => 'nullable|integer|min:0',
-        'bay' => 'nullable|integer|min:0',
-        'platform' => 'nullable|integer|min:0',
-        'transfer_folio' => 'nullable|integer|min:1'
+            'productId' => 'required|string',
+            'warehouseId' => 'required|integer',
+            'rack' => 'nullable|integer',
+            'level' => 'nullable|integer|min:1',
+            'quantity' => 'required|integer|min:1',
+            'expirationDate' => 'nullable|date',
+            'manufacturingDate' => 'nullable|date',
+            'reason' => 'required|string',
+            'loteNumber' => 'nullable',
+            'module' => 'nullable|integer|min:0',
+            'bay' => 'nullable|integer|min:0',
+            'platform' => 'nullable|integer|min:0',
+            'transfer_folio' => 'nullable|integer|min:1',
         ]);
-
 
         $dto = new WarehouseInventoryRequestDTO(
             $request->productId,
@@ -94,7 +93,7 @@ class WareouseInventoryController extends Controller
         }
 
         return redirect()
-        ->route('operation.get')
-        ->with('success', 'Inventario registrado correctamente');
+            ->route('operation.get')
+            ->with('success', 'Inventario registrado correctamente');
     }
 }

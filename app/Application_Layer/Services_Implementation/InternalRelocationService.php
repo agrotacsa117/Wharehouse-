@@ -2,26 +2,28 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\WarehouseOutputStrategy;
-use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Application_Layer\ResultPattern;
+use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
-use App\Contracts\WarehouseInventoryServiceInterface;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseMovementsServiceI;
+use App\Contracts\WarehouseStorageServiceInterface;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
-use App\Contracts\WarehouseInventoryQueryServiceI;
-use App\Application_Layer\Services_Implementation\BaseOutputService;
-use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
-use App\Contracts\WarehouseStorageServiceInterface;
 
 class InternalRelocationService extends BaseOutputService
 {
     private ResultPattern $result;
+
     private WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO;
+
     private WarehouseMovementsDTO $warehouseMovementsDTO;
+
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
+
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
@@ -44,10 +46,10 @@ class InternalRelocationService extends BaseOutputService
     ): ResultPattern {
 
         $warehouseDestination = $this->warehouseStorageService
-        ->getWarehouseNameById(
-            $removeWarehouseInventoryStockDTO->getWarehouseId()
-        );
-        $this->result =  $this->validateStockAvailability(
+            ->getWarehouseNameById(
+                $removeWarehouseInventoryStockDTO->getWarehouseId()
+            );
+        $this->result = $this->validateStockAvailability(
             $removeWarehouseInventoryStockDTO
         );
 
@@ -55,12 +57,10 @@ class InternalRelocationService extends BaseOutputService
             return $this->result;
         }
 
-
         $this->result = $this->warehouseInventoryQueryService
-        ->getInventoryById(
-            $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
-        );
-
+            ->getInventoryById(
+                $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
+            );
 
         if ($this->result->isFailure()) {
             return $this->result;
@@ -68,20 +68,20 @@ class InternalRelocationService extends BaseOutputService
 
         $inventoryDTO = $this->result->getValue();
         if (
-            !$removeWarehouseInventoryStockDTO->getRack()
-            || $removeWarehouseInventoryStockDTO->getRack() === ""
+            ! $removeWarehouseInventoryStockDTO->getRack()
+            || $removeWarehouseInventoryStockDTO->getRack() === ''
         ) {
             return ResultPattern::failure(
-                "¡Error el campo rack no ".
-                "puede estar vacio!"
+                '¡Error el campo rack no '.
+                'puede estar vacio!'
             );
         }
 
-        if (!$removeWarehouseInventoryStockDTO->getLevel()
-            || $removeWarehouseInventoryStockDTO->getLevel() === "") {
+        if (! $removeWarehouseInventoryStockDTO->getLevel()
+            || $removeWarehouseInventoryStockDTO->getLevel() === '') {
             return ResultPattern::failure(
-                "¡Error el campo nivel no ".
-                "puede estar vacio!"
+                '¡Error el campo nivel no '.
+                'puede estar vacio!'
             );
         }
 
@@ -89,26 +89,23 @@ class InternalRelocationService extends BaseOutputService
 
         $hasChange =
         $this->warehouseInventoryOutDetailDTO
-        ->getLevel() !== $removeWarehouseInventoryStockDTO
-        ->getLevel()
+            ->getLevel() !== $removeWarehouseInventoryStockDTO
+            ->getLevel()
         || $this->warehouseInventoryOutDetailDTO->getRack()
         !== $removeWarehouseInventoryStockDTO->getRack();
 
-        $successfulReduction =  $this->reduceStock(
+        $successfulReduction = $this->reduceStock(
             $this->warehouseInventoryOutDetailDTO->getQuantity(),
             $removeWarehouseInventoryStockDTO
         );
 
         if ($successfulReduction->isFailure()) {
-            return  $successfulReduction;
+            return $successfulReduction;
         }
 
-
-
-
-        if (!$hasChange) {
+        if (! $hasChange) {
             return ResultPattern::success(
-                "¡No hay cambios detectados!"
+                '¡No hay cambios detectados!'
             );
         }
 
@@ -116,23 +113,21 @@ class InternalRelocationService extends BaseOutputService
 
             if (
                 $removeWarehouseInventoryStockDTO
-                ->getWarehouseId()
+                    ->getWarehouseId()
             ) {
                 $result = $this->warehouseInventoryQueryService
-                ->updateOrCreateInventory(
-                    $removeWarehouseInventoryStockDTO,
-                    $this->warehouseInventoryOutDetailDTO
-                );
+                    ->updateOrCreateInventory(
+                        $removeWarehouseInventoryStockDTO,
+                        $this->warehouseInventoryOutDetailDTO
+                    );
 
                 if ($result->isFailure()) {
                     return $result;
                 }
             }
 
-           
-
             $folio = $this->warehouseMovementsService
-            ->generateMovementFolio();
+                ->generateMovementFolio();
 
             $movementDTO = new WarehouseMovementsDTO(
                 $folio,
@@ -140,7 +135,7 @@ class InternalRelocationService extends BaseOutputService
                 $this->getType(),
                 $removeWarehouseInventoryStockDTO->getQuantity(), // Cantidad 0 porque solo es cambio de ubicación
                 sprintf(
-                    "Reubicación: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s",
+                    'Reubicación: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
                     $removeWarehouseInventoryStockDTO->getReason(),
                     $inventoryDTO->getRack(),
                     $removeWarehouseInventoryStockDTO->getRack(),
@@ -149,7 +144,7 @@ class InternalRelocationService extends BaseOutputService
                     $removeWarehouseInventoryStockDTO->getModule(),
                     $removeWarehouseInventoryStockDTO->getBay(),
                     $removeWarehouseInventoryStockDTO->getPlatform(),
-                    $warehouseDestination 
+                    $warehouseDestination
                 ),
                 $removeWarehouseInventoryStockDTO->getUserId()
             );
@@ -168,6 +163,6 @@ class InternalRelocationService extends BaseOutputService
 
     public function getType(): string
     {
-        return "RELOCATION";
+        return 'RELOCATION';
     }
 }

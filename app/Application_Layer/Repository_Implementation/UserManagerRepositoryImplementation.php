@@ -5,17 +5,19 @@ namespace App\Application_Layer\Repository_Implementation;
 use App\Contracts\UserManagerRepositoryInterface;
 use App\Models\User;
 
-class UserManagerRepositoryImplementation implements UserManagerRepositoryInterface{
-
+class UserManagerRepositoryImplementation implements UserManagerRepositoryInterface
+{
     public function saveUser(User $user): User
     {
         $user->save();
+
         return $user;
     }
 
     public function deleteUser(User $user): bool
     {
         $user->delete();
+
         return true;
     }
 
@@ -24,6 +26,7 @@ class UserManagerRepositoryImplementation implements UserManagerRepositoryInterf
         if ($user->isDirty()) {
             $user->save();
         }
+
         return $user;
     }
 
@@ -32,8 +35,10 @@ class UserManagerRepositoryImplementation implements UserManagerRepositoryInterf
         $user = User::find($id);
         if ($user) {
             $user->delete();
+
             return true;
         }
+
         return false;
     }
 
@@ -43,7 +48,7 @@ class UserManagerRepositoryImplementation implements UserManagerRepositoryInterf
         if ($user) {
             $user->delete();
         }
+
         return true;
     }
-
 }

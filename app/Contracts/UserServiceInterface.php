@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Contracts;
+
 use App\Models\User;
 
-interface UserServiceInterface {
-
-
+interface UserServiceInterface
+{
     public function createUser(User $user): User;
 
     public function deleteUser(User $user): bool;
@@ -15,8 +15,4 @@ interface UserServiceInterface {
     public function saerchById(int $id): ?User;
 
     public function deleteUserById(int $id): bool;
-
-
-    
 }
-

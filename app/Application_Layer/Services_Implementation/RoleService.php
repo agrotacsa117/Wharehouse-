@@ -2,8 +2,8 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\RoleServiceI;
 use App\Contracts\RoleRepositoryI;
+use App\Contracts\RoleServiceI;
 use App\Mappers\DTO\RoleDTO;
 
 class RoleService implements RoleServiceI
@@ -28,6 +28,6 @@ class RoleService implements RoleServiceI
             );
         }
 
-        return  $rols;
+        return $rols;
     }
 }

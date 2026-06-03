@@ -2,24 +2,27 @@
 
 namespace App\Infrastructure\Factories;
 
-use App\Contracts\WarehouseOutputStrategyFactoryInterface;
-use App\Contracts\WarehouseOutputStrategy;
-use App\Contracts\WarehouseInventoryServiceInterface;
-use App\Contracts\WarehouseMovementsServiceI;
 use App\Application_Layer\Services_Implementation\InternalRelocationService;
-use App\Contracts\WarehouseInventoryRepositoryInterface;
-use App\Contracts\WarehouseInventoryQueryServiceI;
-use App\Application_Layer\Services_Implementation\SimpleOutputService;
 use App\Application_Layer\Services_Implementation\SaleOutputService;
+use App\Application_Layer\Services_Implementation\SimpleOutputService;
+use App\Contracts\WarehouseInventoryQueryServiceI;
+use App\Contracts\WarehouseInventoryRepositoryInterface;
+use App\Contracts\WarehouseMovementsServiceI;
+use App\Contracts\WarehouseOutputStrategy;
+use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseSalesServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
 {
     private WarehouseMovementsServiceI $warehouseMovementsService;
+
     private WarehouseInventoryQueryServiceI $warehouseInventoryQueryService;
+
     private WarehouseInventoryRepositoryInterface $inventoryRepository;
+
     private WarehouseSalesServiceI $warehouseSalesService;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
@@ -48,20 +51,18 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                 );
                 break;
 
-            case "OUT":
+            case 'OUT':
                 return new SimpleOutputService(
                     $this->inventoryRepository,
                     $this->warehouseMovementsService
                 );
 
-            case "SALE":
+            case 'SALE':
                 return new SaleOutputService(
                     $this->inventoryRepository,
                     $this->warehouseMovementsService,
                     $this->warehouseSalesService
                 );
-
-
 
             default:
                 throw new \InvalidArgumentException(
@@ -70,5 +71,4 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                 break;
         }
     }
-
 }

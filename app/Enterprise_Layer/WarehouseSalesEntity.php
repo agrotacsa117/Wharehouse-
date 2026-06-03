@@ -5,9 +5,13 @@ namespace App\Enterprise_Layer;
 class WarehouseSalesEntity
 {
     private ?int $id;
+
     private string $movementId;
+
     private int $invoiceSap;
+
     private \DateTime $createdAt;
+
     private \DateTime $updatedAt;
 
     public function __construct(
@@ -30,13 +34,10 @@ class WarehouseSalesEntity
         return $this->movementId;
     }
 
-    
-
     public function getInvoiceSap(): int
     {
         return $this->invoiceSap;
     }
-
 
     public function getCreatedAt(): \DateTime
     {
@@ -59,13 +60,10 @@ class WarehouseSalesEntity
         $this->movementId = $movementId;
     }
 
-
     public function setInvoiceSap(int $invoiceSap): void
     {
         $this->invoiceSap = $invoiceSap;
     }
-
-
 
     public function setCreatedAt(\DateTime $createdAt): void
     {

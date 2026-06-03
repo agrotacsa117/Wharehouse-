@@ -3,22 +3,17 @@
 namespace App\Application_Layer\Repository_Implementation;
 
 use App\Application_Layer\ResultPattern;
-use App\Contracts\InterfaceDTOToEntityMapper;
+use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
 use App\Contracts\WarehouseStorageRepositoryInterface;
 use App\Enterprise_Layer\Warehouse;
 use App\Models\WarehouseModel;
-use App\Mappers\WarehouseToWarehouseModelMapper;
 use Illuminate\Database\QueryException;
-use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
+use Illuminate\Support\Facades\Log;
 
-class WarehouseStorageRepositoryImplementation implements
-    WarehouseStorageRepositoryInterface
+class WarehouseStorageRepositoryImplementation implements WarehouseStorageRepositoryInterface
 {
     private WarehouseEntityToWarehouseModelMapperI $entityToModelMapper;
 
-    /**
-     * @param WarehouseEntityToWarehouseModelMapperI $entityToModelMapper
-     */
     public function __construct(WarehouseEntityToWarehouseModelMapperI $entityToModelMapper)
     {
         $this->entityToModelMapper = $entityToModelMapper;
@@ -29,8 +24,8 @@ class WarehouseStorageRepositoryImplementation implements
     {
         $warehouseModel = $this->findWarehouseById($warehouseId);
 
-        if (!$warehouseModel) {
-            return ResultPattern::failure("Warehouse not found");
+        if (! $warehouseModel) {
+            return ResultPattern::failure('Warehouse not found');
         }
 
         try {
@@ -39,7 +34,7 @@ class WarehouseStorageRepositoryImplementation implements
             return ResultPattern::failure($e->getMessage());
         }
 
-        return ResultPattern::success("Warehouse deleted successfully");
+        return ResultPattern::success('Warehouse deleted successfully');
     }
 
     #[\Override]
@@ -52,9 +47,9 @@ class WarehouseStorageRepositoryImplementation implements
     public function saveWarehouse(Warehouse $warehouse): ResultPattern
     {
         $warehouseModel = $this->entityToModelMapper
-        ->convertDomainEntityToModel(
-            $warehouse
-        );
+            ->convertDomainEntityToModel(
+                $warehouse
+            );
 
         try {
             $warehouseModel->save();
@@ -62,7 +57,7 @@ class WarehouseStorageRepositoryImplementation implements
             return ResultPattern::failure($e->getMessage());
         }
 
-        return ResultPattern::success("Warehouse saved successfully");
+        return ResultPattern::success('Warehouse saved successfully');
     }
 
     #[\Override]
@@ -70,8 +65,8 @@ class WarehouseStorageRepositoryImplementation implements
     {
         $warehouseModel = $this->findWarehouseById($warehouseId);
 
-        if (!$warehouseModel) {
-            return ResultPattern::failure("Warehouse not found");
+        if (! $warehouseModel) {
+            return ResultPattern::failure('Warehouse not found');
         }
 
         try {
@@ -81,19 +76,19 @@ class WarehouseStorageRepositoryImplementation implements
             return ResultPattern::failure($e->getMessage());
         }
 
-        return ResultPattern::success("Warehouse updated successfully");
+        return ResultPattern::success('Warehouse updated successfully');
     }
 
     #[\Override]
     public function updateWarehouse(Warehouse $warehouse): ResultPattern
     {
-        
+
         try {
-            \Illuminate\Support\Facades\Log::info('Repository: updateWarehouse called', [
+            Log::info('Repository: updateWarehouse called', [
                 'warehouse_id' => $warehouse->getWarehousesId(),
                 'name' => $warehouse->getWarehousesName(),
                 'type_id' => $warehouse->getWarehouseTypeId(),
-                'location_id' => $warehouse->getLocationId()
+                'location_id' => $warehouse->getLocationId(),
             ]);
 
             $warehouseModel = $this->entityToModelMapper
@@ -101,8 +96,8 @@ class WarehouseStorageRepositoryImplementation implements
 
             $existingModel = WarehouseModel::find($warehouse->getWarehousesId());
 
-            if (!$existingModel) {
-                return ResultPattern::failure("Almacén no encontrado.");
+            if (! $existingModel) {
+                return ResultPattern::failure('Almacén no encontrado.');
             }
 
             $existingModel->warehouses_name = $warehouseModel->warehouses_name;
@@ -115,12 +110,13 @@ class WarehouseStorageRepositoryImplementation implements
             $existingModel->user_last_update = $warehouseModel->user_last_update;
             $existingModel->save();
 
-            \Illuminate\Support\Facades\Log::info('Repository: save completed');
+            Log::info('Repository: save completed');
 
-            return ResultPattern::success("Almacén actualizado correctamente.");
+            return ResultPattern::success('Almacén actualizado correctamente.');
         } catch (QueryException $e) {
-            \Illuminate\Support\Facades\Log::error('Repository error: ' . $e->getMessage());
-            return ResultPattern::failure("Error al actualizar: " . $e->getMessage());
+            Log::error('Repository error: '.$e->getMessage());
+
+            return ResultPattern::failure('Error al actualizar: '.$e->getMessage());
         }
     }
 
@@ -136,7 +132,7 @@ class WarehouseStorageRepositoryImplementation implements
 
     public function getNameById(int $warehouseId): string
     {
-        $warehousesName =  WarehouseModel::where(
+        $warehousesName = WarehouseModel::where(
             'id',
             $warehouseId
         )->value('warehouses_name');
@@ -147,9 +143,9 @@ class WarehouseStorageRepositoryImplementation implements
     public function findAll(): array
     {
         $warehouses = WarehouseModel::with([
-        'userLastUpdate:id,name',
-        'location:id,headquarters_name',
-        'warehouseType:id,category_warehouse'
+            'userLastUpdate:id,name',
+            'location:id,headquarters_name',
+            'warehouseType:id,category_warehouse',
         ])->get();
 
         return $warehouses->toArray();

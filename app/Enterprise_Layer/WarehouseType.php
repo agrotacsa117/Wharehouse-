@@ -9,8 +9,11 @@ use DateTime;
 class WarehouseType
 {
     private int $id;
+
     private string $categoryWarehouse;
+
     private DateTime $createdAt;
+
     private DateTime $updatedAt;
 
     public function __construct(string $categoryWarehouse)
@@ -57,6 +60,4 @@ class WarehouseType
     {
         $this->updatedAt = $updatedAt;
     }
-
-
 }

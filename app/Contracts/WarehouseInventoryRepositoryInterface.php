@@ -25,7 +25,6 @@ interface WarehouseInventoryRepositoryInterface
         int $quantity
     ): bool;
 
-
     public function findQuantityById(
         int $warehouseInventoryId
     ): int;
@@ -49,18 +48,16 @@ interface WarehouseInventoryRepositoryInterface
         int $quantity
     ): array;
 
-
     public function findExpired(): array;
 
     public function updateInventoryLocation(
         int $id,
-        ?string $rack,
+        ?int $rack,
         ?int $level,
         ?int $module,
         ?int $bay,
         ?int $platform
     ): bool;
-
 
     public function findExpiredRanking(): array;
 
@@ -77,16 +74,20 @@ interface WarehouseInventoryRepositoryInterface
 
     public function updateActiveInventory(
         int $inventoryId
-    ) : void;
+    ): void;
 
-    public function findStockAndProductCountGroupedByWarehouse() : array;
+    public function findStockAndProductCountGroupedByWarehouse(): array;
 
-    public function sumQuantityOfExpiredByWarehouse() : array;
+    public function sumQuantityOfExpiredByWarehouse(): array;
 
-    public function getStockByWarehouseId(int $warehouseId) : array;
+    public function getStockByWarehouseId(int $warehouseId): array;
 
     public function findByProductIdAndWarehouseId(
-        int $warehouseId, 
+        int $warehouseId,
         string $productId
-    ) : array;
+    ): array;
+
+    public function getExpirationMetrics(
+        int $warehouseId,
+        string $productId): array;
 }

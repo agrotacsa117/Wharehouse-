@@ -12,7 +12,7 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         WarehouseInventoryMovements $warehouseInventoryMovements
     ): WarehouseInventoryMovementsModel {
 
-        $model = new WarehouseInventoryMovementsModel();
+        $model = new WarehouseInventoryMovementsModel;
 
         $model->folio = $warehouseInventoryMovements->getFolio();
         $model->warehouse_inventory_id = $warehouseInventoryMovements->getWarehouseInventoryId();
@@ -36,6 +36,13 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         if ($warehouseInventoryMovements->getOperationDate() !== null) {
             $model->operation_date = $warehouseInventoryMovements->getOperationDate();
         }
+
+        $model->is_reversed = $warehouseInventoryMovements
+            ->isReversed();
+        $model->reversed_by = $warehouseInventoryMovements
+            ->getReversedBy();
+        $model->reversal_of = $warehouseInventoryMovements
+            ->getReversalOf();
 
         return $model;
     }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WarehouseInventoryModel extends Model
 {
-    protected $table = "warehouse_inventory";
+    protected $table = 'warehouse_inventory';
 
     protected $fillable = [
         'warehouse_id',
@@ -24,9 +24,8 @@ class WarehouseInventoryModel extends Model
         'platform',
         'transfer_folio',
         'manufacturing_date',
-        'active_inventory'
+        'active_inventory',
     ];
-
 
     public function warehouse()
     {

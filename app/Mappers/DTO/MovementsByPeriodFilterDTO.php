@@ -2,11 +2,14 @@
 
 namespace App\Mappers\DTO;
 
-class MovementsByPeriodFilterDTO  implements \JsonSerializable
+class MovementsByPeriodFilterDTO implements \JsonSerializable
 {
     private string $startDate;
+
     private string $endDate;
+
     private ?string $movementType = null;
+
     private ?int $warehouseId = null;
 
     public function __construct(

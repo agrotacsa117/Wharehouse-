@@ -4,6 +4,4 @@ namespace App\Infrastructure\Exception;
 
 use RuntimeException;
 
-class InventoryNotFoundException extends RuntimeException
-{
-}
+class InventoryNotFoundException extends RuntimeException {}

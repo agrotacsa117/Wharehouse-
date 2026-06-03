@@ -5,7 +5,9 @@ namespace App\Mappers\DTO;
 class WarehouseExpiredRankingDTO implements \JsonSerializable
 {
     private int $warehouseId;
+
     private string $warehouseName;
+
     private array $expiredItems;
 
     public function __construct(
@@ -38,7 +40,7 @@ class WarehouseExpiredRankingDTO implements \JsonSerializable
         return [
             'warehouseId' => $this->warehouseId,
             'warehouseName' => $this->warehouseName,
-            'expiredItems' => $this->expiredItems
+            'expiredItems' => $this->expiredItems,
         ];
     }
 }

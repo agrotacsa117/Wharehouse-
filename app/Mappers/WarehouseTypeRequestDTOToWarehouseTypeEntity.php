@@ -2,17 +2,17 @@
 
 namespace App\Mappers;
 
+use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 use App\Enterprise_Layer\WarehouseType;
 use App\Mappers\DTO\Requests\WarehouseTypeRequestDTO;
-use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 
 class WarehouseTypeRequestDTOToWarehouseTypeEntity implements WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI
 {
     public function convertWarehouseTypeRequestDTOToWarehouseTypeEntity(
         WarehouseTypeRequestDTO $warehouseTypeRequestDTO
     ): WarehouseType {
-        
-        if (!$warehouseTypeRequestDTO instanceof WarehouseTypeRequestDTO) {
+
+        if (! $warehouseTypeRequestDTO instanceof WarehouseTypeRequestDTO) {
             throw new \InvalidArgumentException(
                 'Expected WarehouseTypeRequestDTO'
             );

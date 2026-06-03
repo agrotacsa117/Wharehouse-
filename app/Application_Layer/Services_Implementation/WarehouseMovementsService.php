@@ -2,39 +2,45 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\WarehouseMovementsServiceI;
-use App\Contracts\WarehouseMovementsRepositoryI;
-use App\Mappers\DTO\WarehouseMovementsListDetailDTO;
-use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryMovementsMapperI;
-use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use App\Contracts\WarehouseMovementMapperI;
+use App\Contracts\WarehouseMovementsRepositoryI;
+use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\DetailsOfMovements;
+use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use App\Mappers\DTO\WarehouseMovementsDTO;
+use App\Mappers\DTO\WarehouseMovementsListDetailDTO;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
 {
     private WarehouseMovementsRepositoryI $warehouseMovementsRepository;
+
     private WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper;
+
+    private WarehouseMovementMapperI $warehouseMovementMapperI;
 
     public function __construct(
         WarehouseMovementsRepositoryI $warehouseMovementsRepository,
-        WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper
+        WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper,
+        WarehouseMovementMapperI $warehouseMovementMapperI
     ) {
         $this->warehouseMovementsRepository = $warehouseMovementsRepository;
         $this->warehouseInventoryMovementsMapper = $warehouseInventoryMovementsMapper;
+        $this->warehouseMovementMapperI = $warehouseMovementMapperI;
     }
 
     public function listAllMovements(): array
     {
         $movements = $this->warehouseMovementsRepository->findAll();
-        
-        for ($i = 0; $i < count($movements) ; $i++) {
+
+        for ($i = 0; $i < count($movements); $i++) {
             $movements[$i] = WarehouseMovementsListDetailDTO::fromModel(
                 $movements[$i]
             );
         }
 
-        return  $movements;
+        return $movements;
     }
 
     public function listAllMovementsPaginated(int $page = 1, int $perPage = 15): array
@@ -50,7 +56,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             'total' => $result['total'],
             'per_page' => $result['per_page'],
             'current_page' => $result['current_page'],
-            'last_page' => $result['last_page']
+            'last_page' => $result['last_page'],
         ];
     }
 
@@ -61,10 +67,10 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
     public function countByMovementType(string $movementType): int
     {
-        return  $this->warehouseMovementsRepository
-        ->countByMovementType(
-            $movementType
-        );
+        return $this->warehouseMovementsRepository
+            ->countByMovementType(
+                $movementType
+            );
     }
 
     public function saveWarehouseMovement(
@@ -73,12 +79,11 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
         try {
             $warehouseInventoryMovements = $this
-            ->warehouseInventoryMovementsMapper
-            ->toWarehouseInventoryMovementsEntity(
-                $warehouseMovementsDTO
-            );
+                ->warehouseInventoryMovementsMapper
+                ->toWarehouseInventoryMovementsEntity(
+                    $warehouseMovementsDTO
+                );
 
-            
             $this->warehouseMovementsRepository->save(
                 $warehouseInventoryMovements
             );
@@ -94,57 +99,51 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     ): ResultPattern {
 
         $movementsFiltered = $this->warehouseMovementsRepository
-        ->findByDateRange(
-            $movementsByPeriodFilterDTO->getStartDate(),
-            $movementsByPeriodFilterDTO->getEndDate(),
-            $movementsByPeriodFilterDTO->getWarehouseId(),
-            $movementsByPeriodFilterDTO->getMovementType()
-        );
-
-
-
+            ->findByDateRange(
+                $movementsByPeriodFilterDTO->getStartDate(),
+                $movementsByPeriodFilterDTO->getEndDate(),
+                $movementsByPeriodFilterDTO->getWarehouseId(),
+                $movementsByPeriodFilterDTO->getMovementType()
+            );
 
         $statistics = $this->warehouseMovementsRepository
-        ->getMovementCountsByType(
-            $movementsByPeriodFilterDTO->getStartDate(),
-            $movementsByPeriodFilterDTO->getEndDate()
-        );
+            ->getMovementCountsByType(
+                $movementsByPeriodFilterDTO->getStartDate(),
+                $movementsByPeriodFilterDTO->getEndDate()
+            );
 
-
-        $finalFiltered = array();
+        $finalFiltered = [];
         $index = 0;
 
-        for ($i = 0; $i < count($movementsFiltered) ; $i++) {
+        for ($i = 0; $i < count($movementsFiltered); $i++) {
 
-            $movementType =  $movementsFiltered[$i]['movement_type'];
+            $movementType = $movementsFiltered[$i]['movement_type'];
             $saveMovementType = $movementType;
 
             switch ($movementType) {
                 case 'IN':
-                    $movementType = "Entrada";
+                    $movementType = 'Entrada';
                     break;
                 case 'OUT':
-                    $movementType = "Salida";
+                    $movementType = 'Salida';
                     break;
                 case 'ADJUSTMENT':
-                    $movementType = "Ajuste";
+                    $movementType = 'Ajuste';
                     break;
                 case 'TRANSFER':
-                    $movementType = "Traslado";
+                    $movementType = 'Traslado';
                     break;
 
                 case 'SALE':
-                    $movementType = "Ventas";
+                    $movementType = 'Ventas';
                     break;
 
                 case 'RELOCATION':
-                    $movementType = "Reubicacion";
+                    $movementType = 'Reubicacion';
                     break;
             }
 
-
             $movementsFiltered[$i]['movement_type'] = $movementType;
-
 
             $register = WarehouseMovementsListDetailDTO::fromModel(
                 $movementsFiltered[$i]
@@ -153,9 +152,6 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             $finalFiltered[$index] = $register;
             $index++;
         }
-
-
-
 
         $filteredReport = new DetailsOfMovements(
             $finalFiltered,
@@ -167,15 +163,39 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
     public function generateMovementFolio(): string
     {
-        return 'MOV-' . str_pad(
+        return 'MOV-'.str_pad(
             $this
-            ->warehouseMovementsRepository
-            ->countFolio() + 1,
+                ->warehouseMovementsRepository
+                ->countFolio() + 1,
             6,
             '0',
             STR_PAD_LEFT
         );
     }
 
+    public function isReserved(string $folio): bool
+    {
+        return $this->warehouseMovementsRepository
+            ->isReversed(
+                $folio
+            );
+    }
 
+    public function getWarehouseMovementsByFolio(
+        string $folio
+    ): ?WarehouseMovementsDTO {
+
+        $warehouseMovements = $this
+            ->warehouseMovementsRepository
+            ->findByFolio($folio);
+
+        if ($warehouseMovements) {
+            return $this->warehouseMovementMapperI
+                ->convertToWarehouseMovementsDTO(
+                    $warehouseMovements
+                );
+        }
+
+        return null;
+    }
 }

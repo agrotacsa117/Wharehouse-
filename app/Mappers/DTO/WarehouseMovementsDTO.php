@@ -5,14 +5,28 @@ namespace App\Mappers\DTO;
 class WarehouseMovementsDTO
 {
     private string $folio;
+
     private int $warehouseInventoryId;
+
     private string $movementType;
+
     private int $quantity;
+
     private string $reason;
+
     private int $userId;
+
     private ?\DateTime $operationDate;
+
     private ?int $sourceWarehouseId;
+
     private ?int $transferFolio = null;
+
+    private bool $isReversed;
+
+    private ?int $reversedBy;
+
+    private ?int $reversedOf;
 
     public function __construct(
         string $folio,
@@ -30,6 +44,7 @@ class WarehouseMovementsDTO
         $this->userId = $userId;
         $this->operationDate = null;
         $this->sourceWarehouseId = null;
+        $this->isReversed = false;
     }
 
     public function getTransferFolio(): ?int
@@ -93,5 +108,35 @@ class WarehouseMovementsDTO
     public function getUserId(): ?int
     {
         return $this->userId;
+    }
+
+    public function isReversed(): bool
+    {
+        return $this->isReversed;
+    }
+
+    public function setIsReversed(bool $isReversed): void
+    {
+        $this->isReversed = $isReversed;
+    }
+
+    public function getReversedBy(): ?int
+    {
+        return $this->reversedBy;
+    }
+
+    public function setReversedBy(?int $reversedBy): void
+    {
+        $this->reversedBy = $reversedBy;
+    }
+
+    public function getReversedOf(): ?int
+    {
+        return $this->reversedOf;
+    }
+
+    public function setReversedOf(?int $reversedOf): void
+    {
+        $this->reversedOf = $reversedOf;
     }
 }

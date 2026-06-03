@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Producto extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'productos';
-    
+
     protected $fillable = [
         'user_id',
         'categoria_id',
@@ -30,14 +30,14 @@ class Producto extends Model
         'fecha_ingreso',
         'fecha_caducidad',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
     }
- 
+
     public function proveedor()
     {
         return $this->belongsTo(Proveedor::class);
@@ -47,7 +47,7 @@ class Producto extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function rack()
     {
         return $this->belongsTo(Rack::class);

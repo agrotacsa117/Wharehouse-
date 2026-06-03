@@ -11,8 +11,6 @@ class RoleMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @param  string  $role
      * @return mixed
      */
@@ -21,9 +19,10 @@ class RoleMiddleware
         $user = Auth::user();
         $userRol = strtolower(trim($user->rol ?? ''));
         $requiredRol = strtolower(trim($role));
-        if (!$user || $userRol !== $requiredRol) {
+        if (! $user || $userRol !== $requiredRol) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
+
         return $next($request);
     }
 }

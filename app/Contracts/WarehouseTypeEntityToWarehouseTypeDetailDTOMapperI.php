@@ -2,7 +2,6 @@
 
 namespace App\Contracts;
 
-use App\Enterprise_Layer\Warehouse;
 use App\Enterprise_Layer\WarehouseType;
 use App\Mappers\DTO\WarehouseTypeDetailDTO;
 

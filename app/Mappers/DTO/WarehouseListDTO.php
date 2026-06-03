@@ -5,6 +5,7 @@ namespace App\Mappers\DTO;
 class WarehouseListDTO
 {
     private int $id;
+
     private string $warehouseName;
 
     // Constructor

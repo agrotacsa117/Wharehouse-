@@ -10,6 +10,4 @@ interface WarehouseTypeModelToWarehouseTypeEntityMapperI
     public function convertWarehouseTypeModelToWarehouseTypeEntity(
         WarehouseTypeModel $warehouseTypeModel
     ): WarehouseType;
-
-
 }

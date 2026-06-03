@@ -5,6 +5,7 @@ namespace App\Mappers\DTO;
 class LocationListDTO
 {
     private int $id;
+
     private string $headquartersName;
 
     public function __construct(int $id, string $headquartersName)
@@ -32,5 +33,4 @@ class LocationListDTO
     {
         $this->headquartersName = $headquartersName;
     }
-
 }

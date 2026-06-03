@@ -5,19 +5,30 @@ namespace App\Mappers\DTO;
 class WarehouseInventoryOutDetailDTO implements \JsonSerializable
 {
     private int $inventoryId;
-    private int $warehouseId;
-    private ?int $rack;
-    private ?int $level;
-    private string $productCode;
-    private string $productName;
-    private int $quantity;
-    private string $lotNumber;
-    private string $expirationDate;
-    private ?int $module;
-    private ?int $bay;
-    private ?int $platform;
-    private ?string $manufacturingDate;
 
+    private int $warehouseId;
+
+    private ?int $rack;
+
+    private ?int $level;
+
+    private string $productCode;
+
+    private string $productName;
+
+    private int $quantity;
+
+    private string $lotNumber;
+
+    private string $expirationDate;
+
+    private ?int $module;
+
+    private ?int $bay;
+
+    private ?int $platform;
+
+    private ?string $manufacturingDate;
 
     public function __construct(
         int $inventoryId,
@@ -158,7 +169,7 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
             'expirationDate' => $this->expirationDate,
             'module' => $this->module,
             'bay' => $this->bay,
-            'platform' => $this->platform
+            'platform' => $this->platform,
         ];
     }
 }

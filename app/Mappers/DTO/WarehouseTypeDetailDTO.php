@@ -5,10 +5,12 @@ namespace App\Mappers\DTO;
 class WarehouseTypeDetailDTO
 {
     private int $id;
-    private string $categoryWarehouse;
-    private \DateTime $createdAt;
-    private \DateTime $updatedAt;
 
+    private string $categoryWarehouse;
+
+    private \DateTime $createdAt;
+
+    private \DateTime $updatedAt;
 
     public function __construct(
         int $id,
@@ -21,7 +23,6 @@ class WarehouseTypeDetailDTO
         $this->createdAt = $createdAt;
         $this->updatedAt = $updatedAt;
     }
-
 
     public function getId(): int
     {

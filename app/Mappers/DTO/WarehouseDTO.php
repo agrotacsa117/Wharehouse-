@@ -5,13 +5,21 @@ namespace App\Mappers\DTO;
 class WarehouseDTO implements \JsonSerializable
 {
     private int $id;
+
     private int $userLastUpdate;
+
     private string $warehouseKey;
+
     private string $warehouseName;
+
     private string $responsiblePersonName;
+
     private string $phoneNumber;
+
     private string $email;
+
     private int $warehouseTypeId;
+
     private int $locationId;
 
     public function __construct(
@@ -61,12 +69,10 @@ class WarehouseDTO implements \JsonSerializable
         return $this->userLastUpdate;
     }
 
-
     public function setUserId(int $userId): void
     {
         $this->userLastUpdate = $userId;
     }
-
 
     public function getWarehouseKey(): string
     {
@@ -157,6 +163,4 @@ class WarehouseDTO implements \JsonSerializable
             'locationId' => $this->locationId,
         ];
     }
-
-
 }

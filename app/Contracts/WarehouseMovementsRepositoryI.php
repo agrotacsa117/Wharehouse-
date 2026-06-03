@@ -18,7 +18,6 @@ interface WarehouseMovementsRepositoryI
 
     public function countFolio(): int;
 
-
     public function countByMovementType(string $movementType): int;
 
     public function findByDateRange(
@@ -32,4 +31,8 @@ interface WarehouseMovementsRepositoryI
         string $startDate,
         string $endDate
     ): array;
+
+    public function isReversed(string $folio): bool;
+
+    public function findByFolio(string $folio): ?WarehouseInventoryMovements;
 }

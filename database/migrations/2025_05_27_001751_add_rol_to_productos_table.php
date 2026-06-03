@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -16,7 +16,7 @@ return new class extends Migration
     public function up(): void
     {
         // Verificar si la columna 'rol' ya existe
-        if (!Schema::hasColumn('productos', 'rol')) {
+        if (! Schema::hasColumn('productos', 'rol')) {
             Schema::table('productos', function (Blueprint $table) {
                 $table->string('rol')->nullable()->after('user_id');
             });

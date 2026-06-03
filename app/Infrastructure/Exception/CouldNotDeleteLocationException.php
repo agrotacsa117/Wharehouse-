@@ -4,7 +4,4 @@ namespace App\Infrastructure\Exception;
 
 use RuntimeException;
 
-class CouldNotDeleteLocationException extends RuntimeException{
-    
-}
-
+class CouldNotDeleteLocationException extends RuntimeException {}

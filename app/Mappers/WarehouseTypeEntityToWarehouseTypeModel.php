@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Mappers;
 
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
 use App\Enterprise_Layer\WarehouseType;
 use App\Models\WarehouseTypeModel;
-use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
 
 class WarehouseTypeEntityToWarehouseTypeModel implements WarehouseTypeEntityToWarehouseTypeModelMapperI
 {
@@ -14,11 +14,11 @@ class WarehouseTypeEntityToWarehouseTypeModel implements WarehouseTypeEntityToWa
         WarehouseType $warehouseType
     ): WarehouseTypeModel {
 
-        if (!$warehouseType instanceof WarehouseType) {
+        if (! $warehouseType instanceof WarehouseType) {
             throw new \InvalidArgumentException('Expected instance of WarehouseType');
         }
 
-        $model = new WarehouseTypeModel();
+        $model = new WarehouseTypeModel;
 
         // Si el entity ya tiene ID (caso update)
         if ($warehouseType->getId() !== 0) {

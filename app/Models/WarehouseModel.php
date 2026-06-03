@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use App\Enterprise_Layer\Warehouse;
-use App\Enterprise_Layer\WarehouseType;
 use Illuminate\Database\Eloquent\Model;
 
 class WarehouseModel extends Model
 {
-    protected $table = "warehouses";
+    protected $table = 'warehouses';
 
     protected $fillable = [
         'warehouses_name',
@@ -20,9 +18,8 @@ class WarehouseModel extends Model
         'phone_number',
         'email',
         'warehouse_type_id',
-        'location_id'
+        'location_id',
     ];
-
 
     public function warehouseType()
     {
@@ -51,7 +48,8 @@ class WarehouseModel extends Model
         );
     }
 
-    public function userLastUpdate(){
+    public function userLastUpdate()
+    {
         return $this->belongsTo(
             User::class,
             'user_last_update',

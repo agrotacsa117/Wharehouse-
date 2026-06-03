@@ -510,13 +510,7 @@
                                     <div class="col-12">
                                         <label class="form-label small fw-bold" for="input-reason">Motivo /
                                             Observaciones</label>
-                                        <select name="reason" id="input-reason" class="form-control">
-                                            <option value="" disabled selected>Descripción del movimiento...
-                                            </option>
-                                            <option value="Venta">Venta</option>
-                                            <option value="Envío de Traslado">Envío de Traslado</option>
-                                            <option value="Ajuste">Ajuste</option>
-                                        </select>
+                                        <input type="text" name="reason" id="input-reason" class="form-control" placeholder="Descripción del movimiento...">
                                     </div>
 
                                     <div class="col-12 d-flex gap-2 justify-content-end mt-4">

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Mappers;
 
+use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
 use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
-use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
 
 class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements WarehouseInventoryRequestDTOToWarehouseInventoryMapperI
 {
@@ -14,7 +14,7 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
         WarehouseInventoryRequestDTO $warehouseInventoryRequestDTO
     ): WarehouseInventory {
 
-        $now = new \DateTime();
+        $now = new \DateTime;
         $warehouseInventory = new WarehouseInventory(
             $warehouseInventoryRequestDTO->getWarehouseId(),
             $warehouseInventoryRequestDTO->getProductId(),
@@ -32,25 +32,26 @@ class WarehouseInventoryRequestDTOToWarehouseInventoryMapper implements Warehous
 
         $warehouseInventory->setModule(
             $warehouseInventoryRequestDTO
-            ->getModule()
+                ->getModule()
         );
 
         $warehouseInventory
-        ->setManufacturingDate(
-            $warehouseInventoryRequestDTO->getManufacturingDate()
-        );
+            ->setManufacturingDate(
+                $warehouseInventoryRequestDTO->getManufacturingDate()
+            );
 
         $warehouseInventory
-        ->setBay(
-            $warehouseInventoryRequestDTO
-            ->getBay()
-        );
+            ->setBay(
+                $warehouseInventoryRequestDTO
+                    ->getBay()
+            );
 
         $warehouseInventory
-        ->setPlatform(
-            $warehouseInventoryRequestDTO
-            ->getPlatform()
-        );
+            ->setPlatform(
+                $warehouseInventoryRequestDTO
+                    ->getPlatform()
+            );
+
         return $warehouseInventory;
     }
 }

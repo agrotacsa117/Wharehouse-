@@ -4,91 +4,85 @@ namespace App\Providers;
 
 use App\Application_Layer\Repository_Implementation\LocationRepositoryImplementation;
 use App\Application_Layer\Repository_Implementation\ProductRepositoryImplementation;
-use Illuminate\Support\ServiceProvider;
+use App\Application_Layer\Repository_Implementation\RoleRepository;
 use App\Application_Layer\Repository_Implementation\UserFinderRepositoryImplementation;
+use App\Application_Layer\Repository_Implementation\WarehouseInventoryRepositoryImplementation;
+use App\Application_Layer\Repository_Implementation\WarehouseMovementsRepository;
+use App\Application_Layer\Repository_Implementation\WarehouseSalesRepository;
 use App\Application_Layer\Repository_Implementation\WarehouseStorageRepositoryImplementation;
 use App\Application_Layer\Repository_Implementation\WarehouseTypeRepositoryImplementation;
-use App\Contracts\AuthServiceInterface;
-use App\Contracts\UserFinderRepositoryInterface;
 use App\Application_Layer\Services_Implementation\AuthServiceImplementation;
-use App\Contracts\WarehouseStorageServiceInterface;
-use App\Contracts\WarehouseStorageRepositoryInterface;
-use App\Application_Layer\Services_Implementation\WarehouseStorageServiceImplementation;
-use App\Contracts\LocationServiceInterface;
 use App\Application_Layer\Services_Implementation\LocationServiceImplementation;
 use App\Application_Layer\Services_Implementation\ProductServiceImplementation;
+use App\Application_Layer\Services_Implementation\RoleService;
+use App\Application_Layer\Services_Implementation\WarehouseInventoryQueryService;
 use App\Application_Layer\Services_Implementation\WarehouseInventoryServiceImplementation;
+use App\Application_Layer\Services_Implementation\WarehouseMovementsService;
+use App\Application_Layer\Services_Implementation\WarehouseSalesService;
+use App\Application_Layer\Services_Implementation\WarehouseStorageServiceImplementation;
 use App\Application_Layer\Services_Implementation\WarehouseTypeServiceImplementation;
-use App\Contracts\EntityToModelMapperInterface;
-use App\Contracts\InterfaceEntityToDTOMapper;
-use App\Contracts\InterfaceMapperToEntity;
+use App\Contracts\AuthServiceInterface;
 use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
 use App\Contracts\LocationEntityToLocationModelMapperI;
 use App\Contracts\LocationModelToLocationEntityMapperI;
 use App\Contracts\LocationRepositoryInterface;
 use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
-use App\Contracts\ModelMapperToEntityInterface;
+use App\Contracts\LocationServiceInterface;
 use App\Contracts\ProductRepositoryInterface;
 use App\Contracts\ProductServiceInterface;
-use App\Contracts\WarehouseTypeRepositoryInterface;
-use App\Contracts\WarehouseTypeServiceInterface;
-use App\Enterprise_Layer\Location;
-use App\Enterprise_Layer\WarehouseType;
-use App\Mappers\LocationRequestDTOToLocationEntity;
-use App\Mappers\LocationEntityToLocationDetailDTO;
-use App\Mappers\LocationEntityToLocationModel;
-use App\Mappers\LocationModelToLocationEntityMapper;
-use App\Mappers\WarehouseDTOToEntityMapper;
-use App\Mappers\WarehouseToWarehouseModelMapper;
-use App\Mappers\WarehouseTypeEntityToWarehouseTypeDetailDTO;
-use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
-use Dom\Entity;
-use App\Mappers\WarehouseTypeModelToWarehouseTypeEntityMapper;
-use App\Mappers\WarehouseTypeRequestDTOToWarehouseTypeEntity;
+use App\Contracts\RoleRepositoryI;
+use App\Contracts\RoleServiceI;
+use App\Contracts\UserFinderRepositoryInterface;
 use App\Contracts\WarehouseDTOToEntityMapperInterface;
 use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
 use App\Contracts\WarehouseInventoryEntityToWarehouseInventoryModelMapperI;
-use App\Application_Layer\Repository_Implementation\WarehouseInventoryRepositoryImplementation;
-use App\Contracts\WarehouseInventoryRepositoryInterface;
-use App\Contracts\WarehouseInventoryServiceInterface;
-use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
-use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
-use App\Contracts\WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI;
-use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
-use App\Enterprise_Layer\WarehouseInventory;
-use App\Mappers\WarehouseInventoryEntityToWarehouseInventoryModelMapper;
-use App\Mappers\WarehouseInventoryRequestDTOToWarehouseInventoryMapper;
-use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
-use App\Application_Layer\Services_Implementation\WarehouseMovementsService;
-use App\Contracts\WarehouseMovementsServiceI;
-use App\Contracts\WarehouseMovementsRepositoryI;
-use App\Application_Layer\Repository_Implementation\WarehouseMovementsRepository;
-use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
-use App\Mappers\WarehouseInventoryMovementsEntityToModelMapper;
-use App\Contracts\WarehouseInventoryMovementsMapperI;
-use App\Mappers\WarehouseInventoryMovementsMapper;
-use App\Contracts\WarehouseInventoryMovementModelMapperI;
-use App\Mappers\WarehouseInventoryMovementModelMapper;
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
-use App\Mappers\WarehouseInventoryModelToWarehouseInventoryMapper;
-use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
-use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
-use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
-use App\Contracts\WarehouseOutputStrategyFactoryInterface;
-use App\Application_Layer\Services_Implementation\WarehouseInventoryQueryService;
+use App\Contracts\WarehouseInventoryMovementModelMapperI;
+use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
+use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Contracts\WarehouseInventoryQueryServiceI;
-use App\Application_Layer\Services_Implementation\WarehouseSalesService;
-use App\Contracts\WarehouseSalesServiceI;
-use App\Contracts\WarehouseSalesRequestDTOToEntityMapperI;
-use App\Mappers\WarehouseSalesRequestDTOToEntityMapper;
-use App\Contracts\WarehouseSalesRepositoryI;
-use App\Application_Layer\Repository_Implementation\WarehouseSalesRepository;
+use App\Contracts\WarehouseInventoryRepositoryInterface;
+use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
+use App\Contracts\WarehouseInventoryServiceInterface;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
+use App\Contracts\WarehouseMovementMapperI;
+use App\Contracts\WarehouseMovementsRepositoryI;
+use App\Contracts\WarehouseMovementsServiceI;
+use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseSalesEntityToModelMapperI;
+use App\Contracts\WarehouseSalesRepositoryI;
+use App\Contracts\WarehouseSalesRequestDTOToEntityMapperI;
+use App\Contracts\WarehouseSalesServiceI;
+use App\Contracts\WarehouseStorageRepositoryInterface;
+use App\Contracts\WarehouseStorageServiceInterface;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI;
+use App\Contracts\WarehouseTypeEntityToWarehouseTypeModelMapperI;
+use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
+use App\Contracts\WarehouseTypeRepositoryInterface;
+use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
+use App\Contracts\WarehouseTypeServiceInterface;
+use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
+use App\Mappers\LocationEntityToLocationDetailDTO;
+use App\Mappers\LocationEntityToLocationModel;
+use App\Mappers\LocationModelToLocationEntityMapper;
+use App\Mappers\LocationRequestDTOToLocationEntity;
+use App\Mappers\WarehouseDTOToEntityMapper;
+use App\Mappers\WarehouseInventoryEntityToWarehouseInventoryModelMapper;
+use App\Mappers\WarehouseInventoryModelToWarehouseInventoryMapper;
+use App\Mappers\WarehouseInventoryMovementModelMapper;
+use App\Mappers\WarehouseInventoryMovementsEntityToModelMapper;
+use App\Mappers\WarehouseInventoryMovementsMapper;
+use App\Mappers\WarehouseInventoryRequestDTOToWarehouseInventoryMapper;
+use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+use App\Mappers\WarehouseMovementEntityToDTOMapper;
 use App\Mappers\WarehouseSalesEntityToModelMapper;
-use App\Contracts\RoleRepositoryI;
-use App\Contracts\RoleServiceI;
-use App\Application_Layer\Repository_Implementation\RoleRepository;
-use App\Application_Layer\Services_Implementation\RoleService;
+use App\Mappers\WarehouseSalesRequestDTOToEntityMapper;
+use App\Mappers\WarehouseToWarehouseModelMapper;
+use App\Mappers\WarehouseTypeEntityToWarehouseTypeDetailDTO;
+use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
+use App\Mappers\WarehouseTypeModelToWarehouseTypeEntityMapper;
+use App\Mappers\WarehouseTypeRequestDTOToWarehouseTypeEntity;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -114,7 +108,6 @@ class AppServiceProvider extends ServiceProvider
             LocationServiceInterface::class,
             LocationServiceImplementation::class
         );
-
 
         $this->app->bind(
             LocationRepositoryInterface::class,
@@ -170,7 +163,6 @@ class AppServiceProvider extends ServiceProvider
             WarehouseDTOToEntityMapper::class
         );
 
-
         $this->app->bind(
             WarehouseTypeServiceInterface::class,
             WarehouseTypeServiceImplementation::class
@@ -181,7 +173,6 @@ class AppServiceProvider extends ServiceProvider
             WarehouseTypeRepositoryImplementation::class
         );
 
-
         $this->app->bind(
             WarehouseTypeModelToWarehouseTypeEntityMapperI::class,
             WarehouseTypeModelToWarehouseTypeEntityMapper::class
@@ -191,7 +182,6 @@ class AppServiceProvider extends ServiceProvider
             WarehouseTypeEntityToWarehouseTypeModelMapperI::class,
             WarehouseTypeEntityToWarehouseTypeModel::class
         );
-
 
         $this->app->bind(
             WarehouseTypeEntityToWarehouseTypeDetailDTOMapperI::class,
@@ -218,7 +208,6 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryServiceImplementation::class
         );
 
-
         $this->app->bind(
             WarehouseInventoryRepositoryInterface::class,
             WarehouseInventoryRepositoryImplementation::class
@@ -244,7 +233,6 @@ class AppServiceProvider extends ServiceProvider
             WarehouseInventoryRequestDTOToWarehouseInventoryMapper::class
         );
 
-
         $this->app->bind(
             WarehouseMovementsServiceI::class,
             WarehouseMovementsService::class
@@ -268,6 +256,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseInventoryMovementModelMapperI::class,
             WarehouseInventoryMovementModelMapper::class
+        );
+
+        $this->app->bind(
+            WarehouseMovementMapperI::class,
+            WarehouseMovementEntityToDTOMapper::class
         );
 
         $this->app->bind(

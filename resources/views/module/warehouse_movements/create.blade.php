@@ -1025,32 +1025,7 @@
     /* ══════════════════════════════════
                                    MODALS
                                 ══════════════════════════════════ */
-    .modal {
-        display: none;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
 
-    .modal.show {
-        display: block !important;
-    }
-
-    .modal.show .modal-dialog {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-    }
-
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-content {
-        border: none;
-        border-radius: 12px;
-        position: relative;
-        z-index: 1060;
-    }
 
     .modal-header {
         border-bottom: 1px solid var(--border-color);
@@ -1400,6 +1375,29 @@
             flex-direction: column;
             gap: 0.75rem;
         }
+
+
+        #reversalMotive {
+            padding: 2px 5px !important;
+            /* Reduce el padding de la celda para dar espacio al input */
+            vertical-align: middle !important;
+        }
+
+        #reason-reverse {
+            width: 100%;
+            height: 30px;
+            /* Altura fija para que no crezca */
+            margin: 0;
+            padding: 2px 8px;
+            border: 1px solid #ccc;
+            /* Borde simple y claro */
+            border-radius: 4px;
+            font-size: 13px;
+            display: block;
+            /* Importante para que tome el ancho del 100% */
+            box-sizing: border-box;
+            /* Asegura que el padding no sume al ancho */
+        }
     }
 </style>
 
@@ -1546,6 +1544,7 @@
                                         <th>Cantidad</th>
                                         <th>Lote</th>
                                         <th>Folio Sap</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="movementsBody">
@@ -1914,8 +1913,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                 MODAL: NUEVA ENTRADA
-                                            ══════════════════════════════════════════════ -->
+                                                                                                                                         MODAL: NUEVA ENTRADA
+                                                                                                                                    ══════════════════════════════════════════════ -->
             <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -1941,14 +1940,15 @@
                                         <i class="bi bi-box-arrow-in-down"></i> Registrar Entrada
                                     </button>
                                 </div>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                 MODAL: NUEVA SALIDA
-                                            ══════════════════════════════════════════════ -->
+                                                                                                                                         MODAL: NUEVA SALIDA
+                                                                                                                                    ══════════════════════════════════════════════ -->
             <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2032,8 +2032,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                 MODAL: VER DETALLE
-                                             ══════════════════════════════════════════════ -->
+                                                                                                                                         MODAL: VER DETALLE
+                                                                                                                                     ══════════════════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2058,8 +2058,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                 MODAL: ELIMINAR
-                                            ══════════════════════════════════════════════ -->
+                                                                                                                                         MODAL: ELIMINAR
+                                                                                                                                    ══════════════════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -2086,6 +2086,66 @@
                 </div>
             </div>
 
+            {{-- Modal Confirmación Contramovimiento --}}
+            <div class="modal fade" id="modalReversalConfirm" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header"
+                            style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-left: 5px solid #dc2626;">
+                            <h5 class="modal-title fw-bold" style="color: #dc2626;">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>Confirmar cancelación de movimiento
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Esta acción no puede deshacerse.</strong> Se generará un movimiento inverso que
+                                cancela el original. El historial queda íntegro.
+                            </div>
+                            <table class="table table-sm table-bordered mb-0">
+                                <tr>
+                                    <td class="text-muted fw-medium" style="width: 40%;">Folio original</td>
+                                    <td><strong id="reversalFolioOriginal">-</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-medium">Producto</td>
+                                    <td id="reversalProducto">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-medium">Tipo</td>
+                                    <td id="reversalTipo">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted fw-medium">Cantidad</td>
+                                    <td><strong id="reversalCantidad">-</strong></td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td class="text-muted fw-medium">Folio cancelación de movimiento</td>
+                                    <td><strong id="reversalFolioNuevo" style="color: #dc2626;">-</strong></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="text-muted fw-medium" style="width: 60%;">Motivo:</td>
+                                    <td id="reversalMotive">
+                                        <input type="text" id="reason-reverse"
+                                            placeholder="Ingrese el motivo de cancelación" autocomplete="off">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnConfirmarReversal"
+                                onclick="confirmarReversal()">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Confirmar cancelación de movimiento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- TOAST -->
             <div class="tacsa-toast" id="toast">
                 <div class="toast-icon success" id="toastIcon">
@@ -2196,7 +2256,7 @@
             const start = (pagination.current_page - 1) * pagination.per_page;
             const end = start + pagination.per_page;
             const pageData = filteredMovements.slice(start, end);
-            
+
             pageData.forEach(m => {
 
                 let badgeClass, badgeIcon, badgeLabel;
@@ -2246,6 +2306,7 @@
                 }
 
                 const tr = document.createElement('tr');
+
                 tr.innerHTML = `
             <td style="font-weight:600; color:var(--tacsa-red);">${m.folio}</td>
             <td>${m.createdAt}</td>
@@ -2259,12 +2320,50 @@
             <td><span class="cell-qty ${qtyClass}">${qtyPrefix}${m.quantity}</span></td>
             <td><span class="badge-product">${m.lotNumber}</span></td>
             <td><span class="badge-product">${m.movementType === 'SALE' ? (m.invoiceSap || '-') : (m.movementType === 'TRANSFER' ? (m.transferFolio || '-') : '-')}</span></td>
+            <td class="text-center">
+                ${generarBotonReversal(m)}
+            </td>
         `;
 
                 fragment.appendChild(tr);
             });
 
             tbody.appendChild(fragment);
+        }
+
+        function generarBotonReversal(mov) {
+
+            const esAdmin = {{ auth()->user()->rol === 'admin' ? 'true' : 'false' }};
+            const tiposRevertibles = ['IN', 'OUT', 'SALE', 'TRANSFER'];
+            const tipo = (mov.movementType || '').toUpperCase();
+            const esRevertible = tiposRevertibles.includes(tipo);
+            const estaRevertido = mov.isReversed;
+            const esContramovimiento = (mov.folio || '').startsWith('REV-');
+
+            if (!esAdmin) return '<span class="text-muted small">-</span>';
+
+            if (esContramovimiento) {
+                return `<span class="badge bg-secondary">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Contramovimiento
+                </span>`;
+            }
+
+            if (estaRevertido) {
+                return `<span class="badge bg-secondary text-white">
+                    <i class="bi bi-check-circle me-1"></i>Revertido
+                </span>`;
+            }
+
+            if (!esRevertible) return '<span class="text-muted small">-</span>';
+
+            return `<button class="btn btn-sm btn-outline-danger reversal-btn" 
+    data-id="${mov.id}"
+    data-folio="${mov.folio}"
+    data-tipo="${mov.movementType}"
+    data-producto="${mov.productName.replace(/"/g, '&quot;')}"
+    data-cantidad="${mov.quantity}">
+    <i class="bi bi-arrow-counterclockwise me-1"></i> Revertir
+</button>`;
         }
 
         // ══════════════════════════════════
@@ -2961,5 +3060,135 @@
         //  INIT
         // ══════════════════════════════════
         renderMovements();
+
+        // =============================================
+        //   CONTRAMOVIMIENTOS
+        // =============================================
+        let reversalMovementId = null;
+
+        const tipoLabels = {
+            'IN': 'Entrada',
+            'OUT': 'Salida',
+            'SALE': 'Venta',
+            'TRANSFER': 'Transferencia'
+        };
+
+        const tipoInverso = {
+            'IN': '→ generará OUT (Salida)',
+            'OUT': '→ generará IN (Entrada)',
+            'SALE': '→ generará IN (Entrada)',
+            'TRANSFER': '→ revierte origen y destino'
+        };
+
+        document.getElementById('movementsBody').addEventListener('click', function(e) {
+            const btn = e.target.closest('.reversal-btn');
+            if (!btn) return;
+
+            abrirModalReversal(
+                btn.dataset.id,
+                btn.dataset.folio,
+                btn.dataset.tipo,
+                btn.dataset.producto,
+                btn.dataset.cantidad
+            );
+        });
+
+        function abrirModalReversal(movId, folio, tipo, producto, cantidad) {
+            reversalMovementId = movId;
+            console.log(
+                movId,
+                folio,
+                tipo,
+                producto,
+                cantidad
+            );
+
+            const parent = document.getElementById('modalReversalConfirm').parentElement;
+            console.log(parent.tagName, parent.id, parent.className);
+            console.log(getComputedStyle(parent).display);
+            console.log(getComputedStyle(parent).overflow);
+            console.log(getComputedStyle(parent).position);
+            //alert("The label type is: " + tipoInverso[tipo]);
+            document.getElementById('reversalFolioOriginal').textContent = folio;
+            document.getElementById('reversalProducto').textContent = producto;
+            document.getElementById('reversalTipo').textContent =
+                `${tipoLabels[tipo] || tipo} ${tipoInverso[tipo] || ''}`;
+            document.getElementById('reversalCantidad').textContent = cantidad;
+            document.getElementById('reversalFolioNuevo').textContent = `REV-${folio}`;
+
+            new bootstrap.Modal(document.getElementById('modalReversalConfirm')).show();
+
+        }
+
+        async function confirmarReversal() {
+            const btn = document.getElementById('btnConfirmarReversal');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Procesando...';
+
+            // try {
+            //     const response = await fetch(`/reportes/movimientos/${reversalMovementId}/revertir`, {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //             'Accept': 'application/json',
+            //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            //         }
+            //     });
+
+            //     const data = await response.json();
+
+            //     if (data.success) {
+            //         // Cerrar modal de confirmación
+            //         bootstrap.Modal.getInstance(
+            //             document.getElementById('modalReversalConfirm')
+            //         ).hide();
+
+            //         // Mostrar éxito
+            //         mostrarToastReversal(
+            //             'success',
+            //             `Contramovimiento ${data.reversal_folio} creado correctamente`
+            //         );
+
+            //         // Refrescar tabla de movimientos
+            //         filtrarMovimientos();
+
+            //     } else {
+            //         mostrarToastReversal('error', data.message);
+            //     }
+
+            // } catch (error) {
+            //     mostrarToastReversal('error', 'Error de conexión. Intenta nuevamente.');
+            //     console.error(error);
+            // } finally {
+            //     btn.disabled = false;
+            //     btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i> Confirmar Contramovimiento';
+            //     reversalMovementId = null;
+            // }
+        }
+
+        function mostrarToastReversal(tipo, mensaje) {
+            // Toast temporal en pantalla
+            const toastId = 'toastReversal_' + Date.now();
+            const bgClass = tipo === 'success' ? 'bg-success' : 'bg-danger';
+            const icon = tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+
+            const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 position-fixed bottom-0 end-0 m-3" 
+             role="alert" style="z-index: 9999; min-width: 300px;">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi ${icon} me-2"></i>${mensaje}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`;
+
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = document.getElementById(toastId);
+            new bootstrap.Toast(toastEl, {
+                delay: 4000
+            }).show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
     </script>
 @endpush

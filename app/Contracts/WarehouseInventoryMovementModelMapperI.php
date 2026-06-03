@@ -9,5 +9,5 @@ interface WarehouseInventoryMovementModelMapperI
 {
     public function convertWarehouseInventoryMovementsModelToEntity(
         WarehouseInventoryMovementsModel $warehouseInventoryMovementsModel
-        ): WarehouseInventoryMovements;
+    ): WarehouseInventoryMovements;
 }

@@ -5,13 +5,21 @@ namespace App\Mappers\DTO;
 class TransferInventoryDTO
 {
     private int $inventoryId;
+
     private int $fromWarehouseId;
+
     private string $toWarehouseId;
+
     private string $rack;
+
     private int $level;
+
     private string $lotNumber;
+
     private int $quantity;
+
     private string $reason;
+
     private int $transferFolio;
 
     public function __construct(
@@ -33,7 +41,7 @@ class TransferInventoryDTO
         $this->lotNumber = $lotNumber;
         $this->quantity = $quantity;
         $this->reason = $reason;
-        $this->transferFolio = $transferFolio ;
+        $this->transferFolio = $transferFolio;
     }
 
     public function getTransferFolio(): int

@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    
     public function index()
     {
         $products = Product::with('category')
-            ->select('products.*', 
+            ->select('products.*',
                 DB::raw('products.precio * products.cantidad as precio_total'))
             ->paginate(10);
+
         return view('module.productos.index', compact('products'));
     }
 
@@ -25,6 +25,7 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
+
         return view('module.productos.create', compact('categories'));
     }
 
@@ -42,16 +43,17 @@ class ProductController extends Controller
             'fecha_ingreso' => 'required|date',
             'fecha_caducidad' => 'required|date',
             'activo' => 'boolean',
-            'precio_total' => 'numeric|min:0'
+            'precio_total' => 'numeric|min:0',
         ]);
 
         $data = $request->all();
         // Calcular precio total si no se proporciona
-        if (!isset($data['precio_total'])) {
+        if (! isset($data['precio_total'])) {
             $data['precio_total'] = $data['precio'] * $data['cantidad'];
         }
 
         Product::create($data);
+
         return redirect()->route('productos.index')->with('success', 'Producto creado exitosamente');
     }
 
@@ -61,6 +63,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
+
         return view('module.productos.edit', compact('product', 'categories'));
     }
 
@@ -78,7 +81,7 @@ class ProductController extends Controller
             'fecha_ingreso' => 'required|date',
             'fecha_caducidad' => 'required|date',
             'activo' => 'boolean',
-            'precio_total' => 'numeric|min:0'
+            'precio_total' => 'numeric|min:0',
         ]);
 
         $data = $request->all();
@@ -86,11 +89,11 @@ class ProductController extends Controller
         $data['precio_total'] = $data['precio'] * $data['cantidad'];
 
         $product->update($data);
+
         return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente');
     }
 
     /**
      * Muestra productos a punto de vencer
      */
-   
 }

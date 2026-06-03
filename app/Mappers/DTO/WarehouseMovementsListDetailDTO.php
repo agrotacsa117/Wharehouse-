@@ -5,30 +5,50 @@ namespace App\Mappers\DTO;
 class WarehouseMovementsListDetailDTO implements \JsonSerializable
 {
     private int $id;
+
     private string $folio;
+
     private int $warehouseInventoryId;
+
     private int $warehouseId;
+
     private string $warehousesName;
+
     private string $productId;
+
     private string $productName;
+
     private ?int $rack;
+
     private ?int $level;
+
     private string $lotNumber;
+
     private string $movementType;
+
     private int $quantity;
+
     private string $reason;
+
     private int $userId;
+
     private string $userName;
+
     private string $createdAt;
+
     private string $expirationDate;
+
     private string $destinationWarehouseName;
+
     private ?int $module;
+
     private ?int $bay;
+
     private ?int $platform;
+
     private ?int $invoiceSap;
+
     private ?int $transferFolio;
-
-
 
     public function __construct(
         int $id,
@@ -90,62 +110,77 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     {
         return $this->id;
     }
+
     public function getFolio(): string
     {
         return $this->folio;
     }
+
     public function getWarehouseInventoryId(): int
     {
         return $this->warehouseInventoryId;
     }
+
     public function getWarehouseId(): int
     {
         return $this->warehouseId;
     }
+
     public function getWarehousesName(): string
     {
         return $this->warehousesName;
     }
+
     public function getProductId(): string
     {
         return $this->productId;
     }
+
     public function getProductName(): string
     {
         return $this->productName;
     }
+
     public function getRack(): ?int
     {
         return $this->rack;
     }
+
     public function getLevel(): ?int
     {
         return $this->level;
     }
+
     public function getLotNumber(): string
     {
         return $this->lotNumber;
     }
+
     public function getMovementType(): string
     {
         return $this->movementType;
     }
+
     public function getQuantity(): int
     {
         return $this->quantity;
     }
+
     public function getReason(): string
     {
         return $this->reason;
     }
+
     public function getUserId(): int
     {
         return $this->userId;
     }
+
     public function getUserName(): string
     {
         return $this->userName;
     }
+
     public function getCreatedAt(): string
     {
         return $this->createdAt;
@@ -157,67 +192,81 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
     {
         $this->id = $id;
     }
+
     public function setFolio(string $folio): void
     {
         $this->folio = $folio;
     }
+
     public function setWarehouseInventoryId(int $warehouseInventoryId): void
     {
         $this->warehouseInventoryId = $warehouseInventoryId;
     }
+
     public function setWarehouseId(int $warehouseId): void
     {
         $this->warehouseId = $warehouseId;
     }
+
     public function setWarehousesName(string $warehousesName): void
     {
         $this->warehousesName = $warehousesName;
     }
+
     public function setProductId(string $productId): void
     {
         $this->productId = $productId;
     }
+
     public function setProductName(string $productName): void
     {
         $this->productName = $productName;
     }
+
     public function setRack(int $rack): void
     {
         $this->rack = $rack;
     }
+
     public function setLevel(int $level): void
     {
         $this->level = $level;
     }
+
     public function setLotNumber(string $lotNumber): void
     {
         $this->lotNumber = $lotNumber;
     }
+
     public function setMovementType(string $movementType): void
     {
         $this->movementType = $movementType;
     }
+
     public function setQuantity(int $quantity): void
     {
         $this->quantity = $quantity;
     }
+
     public function setReason(string $reason): void
     {
         $this->reason = $reason;
     }
+
     public function setUserId(int $userId): void
     {
         $this->userId = $userId;
     }
+
     public function setUserName(string $userName): void
     {
         $this->userName = $userName;
     }
+
     public function setCreatedAt(string $createdAt): void
     {
         $this->createdAt = $createdAt;
     }
-
 
     public function jsonSerialize(): array
     {
@@ -244,13 +293,12 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
             'bay' => $this->bay,
             'platform' => $this->platform,
             'invoiceSap' => $this->invoiceSap,
-            'transferFolio' => $this->transferFolio
+            'transferFolio' => $this->transferFolio,
         ];
     }
 
-
     public static function fromModel(array $movement): self
-    {    
+    {
         return new self(
             $movement['id'],
             $movement['folio'],
@@ -279,14 +327,13 @@ class WarehouseMovementsListDetailDTO implements \JsonSerializable
                     $movement['inventory']['expiration_date']
                 )
             ),
-            $movement['source_warehouse']['warehouses_name']?? "Sin destino",
+            $movement['source_warehouse']['warehouses_name'] ?? 'Sin destino',
             $movement['inventory']['module'],
             $movement['inventory']['bay'],
             $movement['inventory']['platform'],
             $movement['sale']['invoice_sap'] ?? null,
-            $movement['inventory']['transfer_folio']
+            $movement['transfer_folio']
         );
-
 
     }
 }

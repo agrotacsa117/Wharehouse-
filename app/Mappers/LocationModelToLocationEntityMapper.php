@@ -3,9 +3,8 @@
 namespace App\Mappers;
 
 use App\Contracts\LocationModelToLocationEntityMapperI;
-use App\Models\LocationModel;
 use App\Enterprise_Layer\Location;
-
+use App\Models\LocationModel;
 
 class LocationModelToLocationEntityMapper implements LocationModelToLocationEntityMapperI
 {

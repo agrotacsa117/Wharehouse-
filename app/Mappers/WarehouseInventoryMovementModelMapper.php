@@ -14,21 +14,25 @@ class WarehouseInventoryMovementModelMapper implements WarehouseInventoryMovemen
         WarehouseInventoryMovementsModel $warehouseInventoryMovementsModel
     ): WarehouseInventoryMovements {
         $entity = new WarehouseInventoryMovements(
-            $model->folio,
-            (int) $model->warehouse_inventory_id,
-            $model->movement_type,
-            (int) $model->quantity,
-            $model->reason,
-            $model->user_id ? (int) $model->user_id : null
+            $warehouseInventoryMovementsModel->folio,
+            (int) $warehouseInventoryMovementsModel->warehouse_inventory_id,
+            $warehouseInventoryMovementsModel->movement_type,
+            (int) $warehouseInventoryMovementsModel->quantity,
+            $warehouseInventoryMovementsModel->reason,
+            $warehouseInventoryMovementsModel->user_id ? (int) $warehouseInventoryMovementsModel->user_id : null
         );
 
-        $entity->setId((int) $model->id);
+        $entity->setId((int) $warehouseInventoryMovementsModel->id);
 
         $entity->setTimestamps(
-            $model->created_at,
-            $model->updated_at
+            $warehouseInventoryMovementsModel->created_at,
+            $warehouseInventoryMovementsModel->updated_at
         );
 
-        return  $entity;
+        $entity->setIsReversed($warehouseInventoryMovementsModel->is_reversed);
+        $entity->setReversedBy($warehouseInventoryMovementsModel->reversed_by);
+        $entity->setReversalOf($warehouseInventoryMovementsModel->reversal_of);
+
+        return $entity;
     }
 }

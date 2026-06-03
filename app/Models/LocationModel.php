@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LocationModel extends Model
 {
-    protected $table = "location";
+    protected $table = 'location';
 
     protected $fillable = [
         'headquarters_name',
@@ -15,7 +15,7 @@ class LocationModel extends Model
         'city',
         'created_at',
         'updated_at',
-        'adress'
+        'adress',
     ];
 
     public function warehouses()
@@ -26,5 +26,4 @@ class LocationModel extends Model
             'id'
         );
     }
-
 }
