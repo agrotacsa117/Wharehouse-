@@ -23,12 +23,15 @@ class SimpleOutputService extends BaseOutputService
         RemoveWarehouseInventoryStockDTO $dto
     ): ResultPattern {
         // 1. Validar stock disponible
+
         $result = $this
             ->validateStockAvailability(
                 $dto
             );
 
-        if ($result->isFailure()) {
+        if ($result->isFailure()
+            && ! $dto
+                ->isForceNegativeStock()) {
             return $result;
         }
 
@@ -57,6 +60,10 @@ class SimpleOutputService extends BaseOutputService
                     $movementDTO
                 );
 
+            if ($result->isFailure()) {
+                return $result;
+            }
+
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
@@ -66,6 +73,7 @@ class SimpleOutputService extends BaseOutputService
             'previous_quantity' => $currentQuantity,
             'new_quantity' => $newQuantity,
             'removed' => $dto->getQuantity(),
+            'movementId' => $result->getValue(),
         ]);
     }
 

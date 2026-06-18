@@ -34,6 +34,16 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     {
         $movements = $this->warehouseMovementsRepository->findAll();
 
+        return $this
+            ->convertToWarehouseMovementsListDetailDTO(
+                $movements
+            );
+
+    }
+
+    private function convertToWarehouseMovementsListDetailDTO(
+        array $movements
+    ): array {
         for ($i = 0; $i < count($movements); $i++) {
             $movements[$i] = WarehouseMovementsListDetailDTO::fromModel(
                 $movements[$i]
@@ -197,5 +207,70 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         }
 
         return null;
+    }
+
+    public function getDependentMovements(
+        int $inventoryId,
+        string $folio
+    ): array {
+
+        $dependentMovements = $this->warehouseMovementsRepository
+            ->findByWarehouseInventoryIdAndFolioNot(
+                $inventoryId,
+                $folio
+            );
+
+        return $this
+            ->convertToWarehouseMovementsListDetailDTO(
+                $dependentMovements
+            );
+    }
+
+    public function getIdByFolio(string $folio): int
+    {
+        return $this->warehouseMovementsRepository
+            ->findIdByFolio(
+                $folio
+            );
+    }
+
+    public function reserveAMovementFolio(
+        string $folio,
+        int $countermovementId): bool
+    {
+        return $this->warehouseMovementsRepository
+            ->setReversedByFolio(
+                $folio,
+                $countermovementId
+            );
+    }
+
+    public function markStatusIsReserved(
+        string $folio, bool $status
+    ): bool {
+        return $this
+            ->warehouseMovementsRepository
+            ->setReversedByFolio(
+                $folio,
+                $status
+            );
+    }
+
+    public function getTotalOfRelocation(): int
+    {
+        $reloactionTotal = $this->warehouseMovementsRepository
+            ->countByMovementType(
+                'RELOCATION');
+
+        $internalRelocationTotal = $this
+            ->warehouseMovementsRepository
+            ->countByMovementType(
+                'LOCATION_UPDATE'
+            );
+
+        $movementsTotal = $reloactionTotal
+        + $internalRelocationTotal;
+
+        return $movementsTotal;
     }
 }

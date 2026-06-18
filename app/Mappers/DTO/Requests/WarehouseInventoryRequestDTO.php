@@ -53,7 +53,7 @@ class WarehouseInventoryRequestDTO
         $this->transferFolio = $transferFolio;
     }
 
-    public function getManufacturingDate(): \DateTime
+    public function getManufacturingDate(): ?\DateTime
     {
         return $this->manufacturingDate;
     }
@@ -61,7 +61,7 @@ class WarehouseInventoryRequestDTO
     /**
      * Establece la fecha de fabricación.
      */
-    public function setManufacturingDate(\DateTime $manufacturingDate): self
+    public function setManufacturingDate(?\DateTime $manufacturingDate): self
     {
         $this->manufacturingDate = $manufacturingDate;
 

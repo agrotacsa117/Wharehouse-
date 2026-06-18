@@ -188,6 +188,9 @@ class Dashboard extends Controller
         $semaforoAttention = $this->warehouseInventoryService->getInventoryByState(2);
         $semaforoOk = $this->warehouseInventoryService->getInventoryByState(1);
 
+        $semaforoCritical = [];
+        $semaforoAttention = [];
+        $semaforoOk = [];
         $almacenes = WarehouseModel::select('id', 'warehouses_name')->get();
 
         return view('module.dashboard.home', compact(

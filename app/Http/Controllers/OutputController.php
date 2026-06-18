@@ -56,6 +56,12 @@ class OutputController extends Controller
                     $movementType
                 );
 
+            case 'LOCATION_UPDATE':
+                return $this->processLocationUpdate(
+                    $request,
+                    $userId,
+                    $movementType
+                );
             default:
                 return back()->withErrors('Tipo de movimiento no válido.');
         }
@@ -201,7 +207,9 @@ class OutputController extends Controller
         string $movementType
     ): RemoveWarehouseInventoryStockDTO {
 
-        $quantity = ($movementType === 'RELOCATION') ? 0 : (int) $request->quantity;
+        $quantity = (
+            $movementType === 'RELOCATION'
+        || $movementType === 'LOCATION_UPDATE') ? 0 : (int) $request->quantity;
         $dto = new RemoveWarehouseInventoryStockDTO(
             $request->warehouseInventoryId,
             $quantity,
@@ -353,5 +361,73 @@ class OutputController extends Controller
         }
 
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
+    }
+
+    public function processLocationUpdate(
+        Request $request,
+        int $userId,
+        string $movementType
+    ) {
+        $request->validate([
+            'new_rack_r' => 'nullable|integer|max:50',
+            'new_level_r' => 'nullable|integer|min:1',
+            'new_module_r' => 'nullable|integer|min:1',
+            'new_bay_r' => 'nullable|integer|min:1',
+            'new_platform_r' => 'nullable|integer|min:1',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $this->removeWarehouseInventoryStockDTO = $this
+            ->buildRemoveWarehouseInventoryStockDTO(
+                $request,
+                $userId,
+                $movementType
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setRack($request->new_rack_r);
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setLevel(
+                $request->new_level_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setModule(
+                $request->new_module_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setBay(
+                $request->new_bay_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setPlatform(
+                $request->new_platform_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setReason(
+                $request->reason
+            );
+
+        $result = $this->warehouseInventoryService
+            ->processInventoryOutput(
+                $this->removeWarehouseInventoryStockDTO
+            );
+
+        if ($result->isFailure()) {
+            return back()->withErrors(
+                $result->getError()
+            )->withInput();
+        }
+
+        return redirect()
+            ->route('output.get')
+            ->with(
+                'success',
+                '¡Reubicación en la misma 
+                 bodega registrada correctamente!');
     }
 }

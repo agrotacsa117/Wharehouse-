@@ -35,4 +35,20 @@ interface WarehouseMovementsRepositoryI
     public function isReversed(string $folio): bool;
 
     public function findByFolio(string $folio): ?WarehouseInventoryMovements;
+
+    public function findByWarehouseInventoryIdAndFolioNot(
+        int $warehouseInventoryId,
+        string $folio
+    ): array;
+
+    public function findIdByFolio(string $folio): int;
+
+    public function setReversedByFolio(
+        string $folio,
+        int $reversedBy): bool;
+
+    public function updateIsReversedStatus(
+        string $folio,
+        bool $status
+    ): bool;
 }

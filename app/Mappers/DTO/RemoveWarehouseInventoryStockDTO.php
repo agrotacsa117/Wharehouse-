@@ -30,6 +30,8 @@ class RemoveWarehouseInventoryStockDTO
 
     private ?int $platform;
 
+    private bool $forceNegativeStock;
+
     public function __construct(
         int $warehouseInventoryId,
         int $quantity,
@@ -38,6 +40,7 @@ class RemoveWarehouseInventoryStockDTO
         $this->warehouseInventoryId = $warehouseInventoryId;
         $this->quantity = $quantity;
         $this->reason = $reason;
+        $this->forceNegativeStock = false;
     }
 
     // Getter y Setter para $module
@@ -46,7 +49,7 @@ class RemoveWarehouseInventoryStockDTO
         return $this->module;
     }
 
-    public function setModule(int $module): void
+    public function setModule(?int $module): void
     {
         $this->module = $module;
     }
@@ -57,7 +60,7 @@ class RemoveWarehouseInventoryStockDTO
         return $this->bay;
     }
 
-    public function setBay(int $bay): void
+    public function setBay(?int $bay): void
     {
         $this->bay = $bay;
     }
@@ -68,7 +71,7 @@ class RemoveWarehouseInventoryStockDTO
         return $this->platform;
     }
 
-    public function setPlatform(int $platform): void
+    public function setPlatform(?int $platform): void
     {
         $this->platform = $platform;
     }
@@ -143,12 +146,12 @@ class RemoveWarehouseInventoryStockDTO
         $this->warehouseId = $warehouseId;
     }
 
-    public function getRack(): int
+    public function getRack(): ?int
     {
         return $this->rack;
     }
 
-    public function setRack(int $rack): void
+    public function setRack(?int $rack): void
     {
         $this->rack = $rack;
     }
@@ -171,5 +174,21 @@ class RemoveWarehouseInventoryStockDTO
     public function setInvoiceId(int $invoiceId): void
     {
         $this->invoiceId = $invoiceId;
+    }
+
+    /**
+     * Obtiene el valor de forceNegativeStock.
+     */
+    public function isForceNegativeStock(): bool
+    {
+        return $this->forceNegativeStock;
+    }
+
+    /**
+     * Establece el valor de forceNegativeStock.
+     */
+    public function setForceNegativeStock(bool $forceNegativeStock): void
+    {
+        $this->forceNegativeStock = $forceNegativeStock;
     }
 }

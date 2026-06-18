@@ -16,6 +16,8 @@ class ResultPattern
     /** @var T|null */
     private $value;
 
+    private bool $warningStatus;
+
     protected function __construct(
         bool $isSuccess,
         string $error,
@@ -72,5 +74,32 @@ class ResultPattern
             $failureMessage,
             null
         );
+    }
+
+    public static function warning(
+        string $message,
+        $value
+    ): ResultPattern {
+
+        $result = new ResultPattern(
+            false,
+            $message,
+            $value
+        );
+
+        $result->setWarningStatus(true);
+
+        return $result;
+    }
+
+    public function setWarningStatus(
+        bool $satus
+    ): void {
+        $this->warningStatus = $satus;
+    }
+
+    public function isWarning(): bool
+    {
+        return $this->warningStatus;
     }
 }

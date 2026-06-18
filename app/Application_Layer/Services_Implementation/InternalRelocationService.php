@@ -49,6 +49,7 @@ class InternalRelocationService extends BaseOutputService
             ->getWarehouseNameById(
                 $removeWarehouseInventoryStockDTO->getWarehouseId()
             );
+
         $this->result = $this->validateStockAvailability(
             $removeWarehouseInventoryStockDTO
         );
@@ -87,13 +88,6 @@ class InternalRelocationService extends BaseOutputService
 
         $this->warehouseInventoryOutDetailDTO = $this->result->getValue();
 
-        $hasChange =
-        $this->warehouseInventoryOutDetailDTO
-            ->getLevel() !== $removeWarehouseInventoryStockDTO
-            ->getLevel()
-        || $this->warehouseInventoryOutDetailDTO->getRack()
-        !== $removeWarehouseInventoryStockDTO->getRack();
-
         $successfulReduction = $this->reduceStock(
             $this->warehouseInventoryOutDetailDTO->getQuantity(),
             $removeWarehouseInventoryStockDTO
@@ -101,12 +95,6 @@ class InternalRelocationService extends BaseOutputService
 
         if ($successfulReduction->isFailure()) {
             return $successfulReduction;
-        }
-
-        if (! $hasChange) {
-            return ResultPattern::success(
-                '¡No hay cambios detectados!'
-            );
         }
 
         try {
@@ -135,7 +123,7 @@ class InternalRelocationService extends BaseOutputService
                 $this->getType(),
                 $removeWarehouseInventoryStockDTO->getQuantity(), // Cantidad 0 porque solo es cambio de ubicación
                 sprintf(
-                    'Reubicación: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
+                    'Reubicación por bodega: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
                     $removeWarehouseInventoryStockDTO->getReason(),
                     $inventoryDTO->getRack(),
                     $removeWarehouseInventoryStockDTO->getRack(),
@@ -153,6 +141,10 @@ class InternalRelocationService extends BaseOutputService
             $this->warehouseMovementsService->saveWarehouseMovement(
                 $movementDTO
             );
+
+            if ($this->result->isFailure()) {
+                return $this->result;
+            }
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());

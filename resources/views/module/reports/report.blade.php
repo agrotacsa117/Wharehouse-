@@ -934,7 +934,7 @@
                     </div>
 
                     {{-- Header bodega --}}
-                    <div class="reporte-card mb-3">
+                    <div class="reporte-card mb-3" id="header_kpis">
                         <div
                             style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
                             <div style="display: flex; align-items: center; gap: 12px;">
@@ -998,7 +998,7 @@
                     </div>
 
                     {{-- Filtros --}}
-                    <div class="reporte-filter-bar">
+                    <div class="reporte-filter-bar" id="secondary_saerch">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label class="form-label small fw-medium">Buscar producto</label>
@@ -1042,6 +1042,7 @@
                             <table class="table table-hover table-semaforo mb-0">
                                 <thead>
                                     <tr>
+                                        <th style="display: none;" id="warehouse_column">Bodega</th>
                                         <th>Código</th>
                                         <th>Producto</th>
                                         <th class="text-center">Cantidad</th>
@@ -1665,6 +1666,7 @@
         // ✅ Movimientos del mes desde el controller
         const movimientosData = {!! json_encode($movimientos ?? []) !!};
 
+        let isGeneralSaerch = false;
         // =============================================
         //   CHART.JS
         // =============================================
@@ -2155,16 +2157,24 @@
         let warehouseName = "";
         let productosDetalleBodegaFiltrados = [];
 
-        function buscarProducto() {
+        async function buscarProducto() {
+            isGeneralSaerch = true;
             const producto = document.getElementById('prodProducto').value;
             const almacen = document.getElementById('prodAlmacen').value;
             const periodo = document.getElementById('prodPeriodo').value;
             const estado = document.getElementById('prodEstado').value;
 
+            document.getElementById('productos-grid-view').style.display = 'none';
+            document.getElementById('header_kpis').style.display = 'none';
+            document.getElementById('secondary_saerch').style.display = 'none';
+
+            document.getElementById('productos-detalle-bodega').style.display = 'block';
+
             if (!producto.trim()) {
                 alert('Por favor ingresa un nombre de producto');
                 return;
             }
+
 
             // TODO: Aquí harías un fetch al backend para obtener análisis del producto
             console.log('Buscando producto:', {
@@ -2174,9 +2184,25 @@
                 estado
             });
 
-            alert(
-                `Funcionalidad en desarrollo.\nProducto: ${producto}\nBodega: ${almacen || 'Todas'}\nPeríodo: ${periodo} meses`
-            );
+
+            try {
+                const response = await fetch(`/inventory/search/${producto}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                document.getElementById('warehouse_column').style.display = 'block';
+                const data = await response.json();
+                
+                renderTablaDetalleBodega(data.products);
+            } catch (error) {
+                console.log(
+                    "Has been ocurred one error " +
+                    error.message);
+            }
         }
 
         function limpiarBusquedaProducto() {
@@ -2197,6 +2223,15 @@
             expiringSoon,
             expired
         ) {
+
+            if (isGeneralSaerch) {
+                document.getElementById('warehouse_column').style.display = 'none';
+                document.getElementById('header_kpis').style.display = 'block';
+                document.getElementById('secondary_saerch').style.display = 'block';
+
+                isGeneralSaerch = false;
+            }
+
             try {
                 // Mostrar loading
                 document.getElementById('tableDetalleBodegaBody').innerHTML = `
@@ -2294,6 +2329,10 @@
 
                 return `
             <tr>
+                <td class="warehouse-column" style="display: ${isGeneralSaerch ? 'table-cell' : 'none'};">
+                    ${p.warehouse_name || 'N/A'}
+                </td>
+
                 <td>
                     <div style="font-weight: 500; margin-bottom: 2px;">${p.product_id || 'N/A'}</div>
                     <div style="font-size: 11px; color: #64748b;">${p.product_name || ''}</div>
@@ -2302,7 +2341,7 @@
                 <td class="text-center" style="font-weight: 700;">${formatNumber(p.stock || 0)}</td>
                 
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}','${p.product_id}','${warehouseId}','${warehouseName}', '${p.stock}')">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}','${p.product_id}','${isGeneralSaerch ? p.warehouse_id:warehouseId}','${isGeneralSaerch ? p.warehouse_name : warehouseName}', '${p.stock}')">
                         Ver detalle ↗
                     </button>
                 </td>
@@ -2502,7 +2541,7 @@
             if (countEl) countEl.textContent = `${lotes.length} lote${lotes.length !== 1 ? 's' : ''}`;
         }
 
-        
+
 
         function limpiarFiltrosLotes() {
             console.log("Entered in this method !");

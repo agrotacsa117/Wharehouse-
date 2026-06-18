@@ -5,9 +5,11 @@ namespace App\Application_Layer\Services_Implementation;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
+use App\Contracts\WarehouseInventoryServiceI;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
@@ -16,12 +18,16 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
 
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 
+    private WarehouseInventoryServiceI $warehouseInventoryService;
+
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
-        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
+        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper,
+        WarehouseInventoryServiceI $warehouseInventoryService
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+        $this->warehouseInventoryService = $warehouseInventoryService;
     }
 
     public function getInventoryById(int $id): ResultPattern
@@ -158,5 +164,29 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         }
 
         return ResultPattern::success(true);
+    }
+
+    public function saveInventory(
+        WarehouseInventoryRequestDTO $warehouseInventoryDTO): ResultPattern
+    {
+        $result = $this
+            ->warehouseInventoryService
+            ->saveInventory(
+                $warehouseInventoryDTO);
+
+        if ($result->isFailure()) {
+            return $result;
+        }
+
+        return ResultPattern::success($result->getValue());
+    }
+
+    public function desactiveInventory(
+        int $warehouseInventoryId): void
+    {
+        $this->warehouseInventoryRepository
+            ->updateActiveInventory(
+                $warehouseInventoryId
+            );
     }
 }

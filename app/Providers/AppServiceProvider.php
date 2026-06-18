@@ -16,6 +16,7 @@ use App\Application_Layer\Services_Implementation\LocationServiceImplementation;
 use App\Application_Layer\Services_Implementation\ProductServiceImplementation;
 use App\Application_Layer\Services_Implementation\RoleService;
 use App\Application_Layer\Services_Implementation\WarehouseInventoryQueryService;
+use App\Application_Layer\Services_Implementation\WarehouseInventoryService;
 use App\Application_Layer\Services_Implementation\WarehouseInventoryServiceImplementation;
 use App\Application_Layer\Services_Implementation\WarehouseMovementsService;
 use App\Application_Layer\Services_Implementation\WarehouseSalesService;
@@ -30,6 +31,7 @@ use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Contracts\LocationServiceInterface;
 use App\Contracts\ProductRepositoryInterface;
 use App\Contracts\ProductServiceInterface;
+use App\Contracts\ReversalStrategyFactoryInterface;
 use App\Contracts\RoleRepositoryI;
 use App\Contracts\RoleServiceI;
 use App\Contracts\UserFinderRepositoryInterface;
@@ -43,6 +45,7 @@ use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
+use App\Contracts\WarehouseInventoryServiceI;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseMovementMapperI;
@@ -61,6 +64,7 @@ use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
 use App\Contracts\WarehouseTypeRepositoryInterface;
 use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 use App\Contracts\WarehouseTypeServiceInterface;
+use App\Infrastructure\Factories\ReversalStrategyFactory;
 use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
 use App\Mappers\LocationEntityToLocationDetailDTO;
 use App\Mappers\LocationEntityToLocationModel;
@@ -291,6 +295,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseSalesEntityToModelMapperI::class,
             WarehouseSalesEntityToModelMapper::class
+        );
+
+        $this->app->bind(
+            ReversalStrategyFactoryInterface::class,
+            ReversalStrategyFactory::class
+        );
+
+        $this->app->bind(
+            WarehouseInventoryServiceI::class,
+            WarehouseInventoryService::class
         );
     }
 

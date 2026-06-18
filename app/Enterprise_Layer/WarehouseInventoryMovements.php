@@ -20,6 +20,8 @@ class WarehouseInventoryMovements
 
     public const TYPE_RELOCATION = 'RELOCATION';
 
+    public const LOCATION_UPDATE = 'LOCATION_UPDATE';
+
     // enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION')
     private $id;
 
@@ -47,9 +49,9 @@ class WarehouseInventoryMovements
 
     private bool $iSReversed;
 
-    private ?int $reversedBy;
+    private ?int $reversedBy = null;
 
-    private ?int $reversalOf;
+    private ?int $reversalOf = null;
 
     public function __construct(
         string $folio,
@@ -97,6 +99,7 @@ class WarehouseInventoryMovements
             self::TYPE_TRANSFER,
             self::TYPE_RELOCATION,
             self::TYPE_SALE,
+            self::LOCATION_UPDATE,
         ];
 
         if (! in_array($type, $allowed, true)) {

@@ -4,6 +4,7 @@ namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 interface WarehouseInventoryQueryServiceI
@@ -23,4 +24,10 @@ interface WarehouseInventoryQueryServiceI
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO,
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern;
+
+    public function saveInventory(
+        WarehouseInventoryRequestDTO $warehouseInventoryRequestDTO): ResultPattern;
+
+    public function desactiveInventory(
+        int $warehouseInventoryId): void;
 }

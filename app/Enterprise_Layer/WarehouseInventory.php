@@ -30,7 +30,7 @@ class WarehouseInventory
 
     private string $reason;
 
-    private DateTime $expirationDate;
+    private ?DateTime $expirationDate;
 
     private ?int $module;
 
@@ -41,6 +41,8 @@ class WarehouseInventory
     private ?int $transferFolio;
 
     private ?DateTime $manufacturingDate;
+
+    private bool $activeInventory;
 
     public function __construct(
         int $warehouseId,
@@ -53,7 +55,7 @@ class WarehouseInventory
         int $quantity,
         string $lotNumber,
         string $reason,
-        DateTime $expirationDate,
+        ?DateTime $expirationDate,
         ?int $transferFolio
     ) {
         $this->warehouseId = $warehouseId;
@@ -269,5 +271,15 @@ class WarehouseInventory
     public function setReason(string $reason): void
     {
         $this->reason = $reason;
+    }
+
+    public function isActiveInventory(): bool
+    {
+        return $this->activeInventory;
+    }
+
+    public function setActiveInventory(bool $activeInventory): void
+    {
+        $this->activeInventory = $activeInventory;
     }
 }

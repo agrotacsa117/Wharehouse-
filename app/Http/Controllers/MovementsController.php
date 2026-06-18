@@ -63,9 +63,7 @@ class MovementsController extends Controller
             );
 
         $movementsTotalRELOCATION = $this->warehouseMovementsService
-            ->countByMovementType(
-                'RELOCATION'
-            );
+            ->getTotalOfRelocation();
 
         $movementsTotalSALE = $this->warehouseMovementsService
             ->countByMovementType(
@@ -177,5 +175,43 @@ class MovementsController extends Controller
             'success' => true,
             'message' => 'Productos obtenidos exitosamente',
         ], 200);
+    }
+
+    public function createReversal(
+        string $folio,
+        string $reason): JsonResponse
+    {
+
+        $resutl = $this->warehouseInventoryService
+            ->revertMovement(
+                $folio,
+                $reason,
+                auth()->id()
+            );
+
+        if ($resutl->isWarning()) {
+            $negativeStockWarningDTO = $resutl->getValue();
+
+            return response()->json([
+                'success' => false,
+                'requires_confirm' => true,
+                'actual_stock' => $negativeStockWarningDTO->getCurrentStock(),
+                'resulting_stock' => $negativeStockWarningDTO->getResultingStock(),
+                'posterior_movements' => $negativeStockWarningDTO->getDependentMovements(),
+                'message' => $resutl->getError(),
+            ], 200);
+        }
+
+        if ($resutl->isFailure()) {
+            return response()->json([
+                'status' => 400,
+                'details' => $resutl->getError(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contramovimiento ',
+        ]);
     }
 }

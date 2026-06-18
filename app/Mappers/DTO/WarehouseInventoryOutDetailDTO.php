@@ -30,6 +30,12 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
 
     private ?string $manufacturingDate;
 
+    private bool $activeInventory;
+
+    private string $reason;
+
+    private ?string $transferFolio;
+
     public function __construct(
         int $inventoryId,
         int $warehouseId,
@@ -95,12 +101,12 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         $this->rack = $rack;
     }
 
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }
 
-    public function setLevel(int $level): void
+    public function setLevel(?int $level): void
     {
         $this->level = $level;
     }
@@ -155,6 +161,21 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         $this->expirationDate = $expirationDate;
     }
 
+    public function getModule(): ?int
+    {
+        return $this->module;
+    }
+
+    public function getBay(): ?int
+    {
+        return $this->bay;
+    }
+
+    public function getPlatform(): ?int
+    {
+        return $this->platform;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -171,5 +192,48 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
             'bay' => $this->bay,
             'platform' => $this->platform,
         ];
+    }
+
+    public function isActiveInventory(): bool
+    {
+        return $this->activeInventory;
+    }
+
+    public function setActiveInventory(bool $activeInventory): void
+    {
+        $this->activeInventory = $activeInventory;
+    }
+
+    /**
+     * Obtiene el valor de reason.
+     */
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+
+    /**
+     * Establece el valor de reason.
+     */
+    public function setReason(string $reason): void
+    {
+        $this->reason = $reason;
+    }
+
+    /**
+     * Obtiene el valor de transferFolio.
+     */
+    public function getTransferFolio(): ?string
+    {
+        return $this->transferFolio;
+    }
+
+    /**
+     * Establece el valor de transferFolio.
+     */
+    public function setTransferFolio(
+        ?string $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Infrastructure\Factories;
 use App\Application_Layer\Services_Implementation\InternalRelocationService;
 use App\Application_Layer\Services_Implementation\SaleOutputService;
 use App\Application_Layer\Services_Implementation\SimpleOutputService;
+use App\Application_Layer\Strategies\IntraWarehouseTransferStrategy;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
@@ -63,6 +64,14 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                     $this->warehouseMovementsService,
                     $this->warehouseSalesService
                 );
+
+            case 'LOCATION_UPDATE':
+                return new IntraWarehouseTransferStrategy(
+                    $this->warehouseInventoryQueryService,
+                    $this->warehouseMovementsService,
+                    $this->inventoryRepository
+                );
+                break;
 
             default:
                 throw new \InvalidArgumentException(

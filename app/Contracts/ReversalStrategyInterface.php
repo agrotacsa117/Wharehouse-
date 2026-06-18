@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Contracts;
+
+use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 
 interface ReversalStrategyInterface
@@ -10,6 +12,5 @@ interface ReversalStrategyInterface
 
     // Ejecuta la lógica matemática en la base de datos
     public function processCountermovement(
-        WarehouseMovementsDTO $warehouseMovementsDTO,
-        string $reason): void;
+        WarehouseMovementsDTO $warehouseMovementsDTO): ResultPattern;
 }

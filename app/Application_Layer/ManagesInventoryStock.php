@@ -6,17 +6,22 @@ use App\Contracts\WarehouseInventoryRepositoryInterface;
 
 class ManagesInventoryStock
 {
+    public static int $currentQuantity;
+
     public static function validateStockAvailability(
         WarehouseInventoryRepositoryInterface $inventoryRepository,
         int $warehouseInventoryId,
-        int $amountToWithdraw
+        int $amountToWithdraw,
+        bool $forceNegativeStock
     ): ResultPattern {
 
-        $currentQuantity = $inventoryRepository->findQuantityByIdWithLock(
-            $warehouseInventoryId
-        );
+        $currentQuantity = $inventoryRepository
+            ->findQuantityByIdWithLock(
+                $warehouseInventoryId
+            );
 
-        if ($amountToWithdraw > $currentQuantity) {
+        if ($amountToWithdraw > $currentQuantity
+        && ! $forceNegativeStock) {
             return ResultPattern::failure(
                 '¡Error! No puede retirar cantidad mayor al stock disponible.'
             );
@@ -27,8 +32,8 @@ class ManagesInventoryStock
 
     public static function reduceStock(
         int $warehouseInventoryId,
-        int $currentQuantity,
         int $amountToWithdraw,
+        int $currentQuantity,
         WarehouseInventoryRepositoryInterface $inventoryRepository
     ): ResultPattern {
 
@@ -40,7 +45,8 @@ class ManagesInventoryStock
         );
 
         if (! $updated) {
-            return ResultPattern::failure('Error al actualizar el inventario');
+            return ResultPattern::failure(
+                'Error al actualizar el inventario');
         }
 
         if ($newQuantity === 0) {

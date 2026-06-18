@@ -397,7 +397,8 @@
                                             <option value="OUT">Salida Simple</option>
                                             <option value="SALE">Venta</option>
                                             <option value="TRANSFER">Traslado</option>
-                                            <option value="RELOCATION">Reubicación Interna</option>
+                                            <option value="RELOCATION">Reubicación de Bodega</option>
+                                            <option value="LOCATION_UPDATE">Reubicación Interna</option>
                                         </select>
                                     </div>
 
@@ -507,10 +508,69 @@
                                         </div>
                                     </div>
 
+                                    <!-- Campos para ACTUALIZAR UBICACIÓN (misma bodega) ✅ NUEVO -->
+                                    <div id="fields-location-update" class="d-none col-12">
+                                        <div class="alert alert-primary">
+                                            <i class="bi bi-pin-map"></i> Actualizar ubicación del lote en la misma
+                                            bodega
+                                        </div>
+
+                                        {{-- Ubicación actual (referencia) --}}
+                                        <div class="mb-3 p-3"
+                                            style="background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+                                            <p class="small fw-bold text-secondary mb-2">
+                                                <i class="bi bi-geo-alt me-1"></i>Ubicación actual del lote:
+                                            </p>
+                                            <div class="d-flex gap-3 flex-wrap">
+                                                <span class="badge-info">Rack: <strong
+                                                        id="current-rack">-</strong></span>
+                                                <span class="badge-info">Nivel: <strong
+                                                        id="current-level">-</strong></span>
+                                                <span class="badge-info">Módulo: <strong
+                                                        id="current-module">-</strong></span>
+                                                <span class="badge-info">Bahía: <strong
+                                                        id="current-bay">-</strong></span>
+                                                <span class="badge-info">Tarima: <strong
+                                                        id="current-platform">-</strong></span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Nueva ubicación --}}
+                                        <p class="small fw-bold text-secondary mb-2">Nueva ubicación:</p>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Rack</label>
+                                                <input type="text" name="new_rack_r" id="input-new-rack"
+                                                    class="form-control" placeholder="Ej: A-01">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Nuevo Nivel</label>
+                                                <input type="number" name="new_level_r" id="input-new-level"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">Módulo</label>
+                                                <input type="number" name="new_module_r" id="input-new-module"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">Bahía</label>
+                                                <input type="number" name="new_bay_r" id="input-new-bay"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">Tarima</label>
+                                                <input type="number" name="new_platform_r" id="input-new-platform"
+                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-12">
                                         <label class="form-label small fw-bold" for="input-reason">Motivo /
                                             Observaciones</label>
-                                        <input type="text" name="reason" id="input-reason" class="form-control" placeholder="Descripción del movimiento...">
+                                        <input type="text" name="reason" id="input-reason" class="form-control"
+                                            placeholder="Descripción del movimiento...">
                                     </div>
 
                                     <div class="col-12 d-flex gap-2 justify-content-end mt-4">
@@ -577,19 +637,23 @@
             const fieldsSale = document.getElementById('fields-sale');
             const fieldsTransfer = document.getElementById('fields-transfer');
             const fieldsRelocation = document.getElementById('fields-relocation');
+            const fieldsLocationUpdate = document.getElementById('fields-location-update');
             const btnSubmit = document.getElementById('btn-submit');
 
             // Hide all fields first
             fieldsSale.classList.add('d-none');
             fieldsTransfer.classList.add('d-none');
             fieldsRelocation.classList.add('d-none');
+            fieldsLocationUpdate.classList.add('d-none');
 
             // Reset required attributes
-
             document.getElementById('input-destination-warehouse').required = false;
-
+            document.getElementById('input-relocation-destination').required = false;
             // Show relevant fields and update button text
 
+            // Reset cantidad
+            document.getElementById('input-quantity').disabled = false;
+            document.getElementById('input-quantity').value = '';
             switch (movementType) {
                 case 'SALE':
                     fieldsSale.classList.remove('d-none');
@@ -615,6 +679,18 @@
 
                     btnSubmit.textContent = 'Registrar Reubicación';
                     loadRelocationWarehouses();
+                    break;
+
+                case 'LOCATION_UPDATE': // ✅ NUEVO
+                    fieldsLocationUpdate.classList.remove('d-none');
+                    document.getElementById('input-quantity').disabled = true;
+                    document.getElementById('input-quantity').value = 0;
+                    document.getElementById('input-new-rack').required = false;
+                    document.getElementById('input-new-level').required = false;
+                    document.getElementById('input-new-module').required = true;
+                    document.getElementById('input-new-bay').required = true;
+                    document.getElementById('input-new-platform').required = true;
+                    btnSubmit.textContent = 'Actualizar Ubicación';
                     break;
                 default:
                     btnSubmit.textContent = 'Registrar Salida';
@@ -765,6 +841,14 @@
             document.getElementById('form-prod-stock').innerText = product.quantity;
             document.getElementById('warehouseInventoryId').value = product.inventoryId;
             //document.getElementById('input-qty').max = product.stock;
+
+            // ✅ NUEVO — poblar ubicación actual para LOCATION_UPDATE
+            document.getElementById('current-rack').textContent = product.rack ?? 'SR';
+            document.getElementById('current-level').textContent = product.level ?? 'SN';
+            document.getElementById('current-module').textContent = product.module ?? 'SM';
+            document.getElementById('current-bay').textContent = product.bay ?? 'SB';
+            document.getElementById('current-platform').textContent = product.platform ?? 'ST';
+
             showStep(3);
         }
 

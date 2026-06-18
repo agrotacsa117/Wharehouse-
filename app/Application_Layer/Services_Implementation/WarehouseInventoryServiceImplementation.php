@@ -4,6 +4,7 @@ namespace App\Application_Layer\Services_Implementation;
 
 use App\Application_Layer\ResultPattern;
 use App\Contracts\ProductServiceInterface;
+use App\Contracts\ReversalStrategyFactoryInterface;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
 use App\Contracts\WarehouseInventoryServiceInterface;
@@ -50,6 +51,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     private WarehouseOutputStrategy $warehouseOutputStrategy;
 
+    private ReversalStrategyFactoryInterface $reversalStrategyFactory;
+
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
         WarehouseInventoryRequestDTOToWarehouseInventoryMapperI $warehouseInventoryRequestDTOToWarehouseInventory,
@@ -57,7 +60,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         WarehouseStorageServiceInterface $warehouseStorageService,
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper,
-        WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory
+        WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory,
+        ReversalStrategyFactoryInterface $reversalStrategyFactoryInterface
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryRequestDTOToWarehouseInventory = $warehouseInventoryRequestDTOToWarehouseInventory;
@@ -66,6 +70,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
         $this->warehouseOutputStrategyFactory = $warehouseOutputStrategyFactory;
+        $this->reversalStrategyFactory = $reversalStrategyFactoryInterface;
     }
 
     public function getAllWarehouseInventories(): array
@@ -135,6 +140,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $result = $this->saveInventory($warehouseInventoryDTO);
 
                 if ($result->isFailure()) {
+
                     return $result;
                 }
 
@@ -142,6 +148,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
                 $folio = $this->warehouseMovementsService
                     ->generateMovementFolio();
+
                 $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                     $folio,
                     $this->warehouseInventory->getId(),
@@ -154,6 +161,10 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $resultMovement = $this->warehouseMovementsService->saveWarehouseMovement(
                     $this->warehouseMovementsDTO
                 );
+
+                if ($resultMovement->isFailure()) {
+                    return $resultMovement;
+                }
 
                 return ResultPattern::success($warehouseInventoryDTO);
             }
@@ -669,7 +680,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $existences[$i] = new WarehouseStockDTO(
                 (string) ($row['product_id']),
                 (string) ($row['warehouse_name']),
-                (int) ($row['stock'])
+                (int) ($row['stock']),
+                null,
+                null
             );
         }
 
@@ -721,7 +734,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function revertMovement(
         string $folio,
-        string $reason
+        string $reason,
+        int $responsableUserId
     ): ResultPattern {
 
         $warehouseMovementsDTO = $this
@@ -737,6 +751,95 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
         }
 
-        return ResultPattern::success(true);
+        $reversalStrategy = $this
+            ->reversalStrategyFactory->make(
+                $warehouseMovementsDTO
+                    ->getMovementType());
+
+        $movementType = $reversalStrategy->getInverseType();
+        $result = $reversalStrategy->processCountermovement(
+            $warehouseMovementsDTO
+        );
+
+        if ($result->isFailure()) {
+            return $result;
+        }
+
+        $revFolio = 'REV-'.$warehouseMovementsDTO
+            ->getFolio();
+
+        $reversalOf = $this->warehouseMovementsService
+            ->getIdByFolio(
+                $warehouseMovementsDTO->getFolio()
+            );
+
+        $revertMovement = $this
+            ->generateWarehouseMovementsDTO(
+                $revFolio,
+                $warehouseMovementsDTO->getWarehouseInventoryId(),
+                $movementType,
+                $warehouseMovementsDTO->getQuantity(),
+                $reason,
+                $responsableUserId
+            );
+
+        $revertMovement->setReversedOf(
+            $reversalOf);
+
+        $result = $this->warehouseMovementsService
+            ->saveWarehouseMovement(
+                $revertMovement
+            );
+
+        if ($result->isFailure()) {
+            return $result;
+        }
+
+        $contramovementId = $this->warehouseMovementsService
+            ->getIdByFolio(
+                $revFolio
+            );
+
+        $this->warehouseMovementsService
+            ->reserveAMovementFolio(
+                $warehouseMovementsDTO->getFolio(),
+                $contramovementId
+            );
+
+        return ResultPattern::success($revFolio);
+    }
+
+    public function getListFilteredByProductCodeOrName(
+        string $product
+    ): array {
+
+        Log::info(
+            'Consulting to the WarehouseInventoryServiceImplementation
+            in method getListFilteredByProductCodeOrName
+            with param', ['Product' => $product]);
+
+        $products = $this->warehouseInventoryRepository
+            ->findByProductIdOrName(
+                $product
+            );
+
+        Log::info('The result of consulting from 
+        getListFilteredByProductCodeOrName method is: ',
+            [
+                'ProductsFiltered' => $products,
+            ]);
+
+        for ($i = 0; $i < count($products); $i++) {
+            $product = $products[$i];
+            $products[$i] = new WarehouseStockDTO(
+                $product['product_id'],
+                $product['product_name'],
+                $product['stock'],
+                $product['warehouse_id'],
+                $product['warehouses_name']
+            );
+        }
+
+        return $products;
     }
 }

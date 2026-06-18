@@ -26,8 +26,26 @@ class WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper implements Wareho
             $warehouseInventory->getModule(),
             $warehouseInventory->getBay(),
             $warehouseInventory->getPlatform(),
-            $warehouseInventory->getManufacturingDate()->format('Y-m-d')
+            $warehouseInventory->getManufacturingDate()?->format('Y-m-d') ?? null
         );
+
+        $warehouseInventoryOutDetailDTO
+            ->setActiveInventory(
+                $warehouseInventory
+                    ->isActiveInventory()
+            );
+
+        $warehouseInventoryOutDetailDTO
+            ->setReason(
+                $warehouseInventory
+                    ->getReason()
+            );
+
+        $warehouseInventoryOutDetailDTO
+            ->setTransferFolio(
+                $warehouseInventory
+                    ->getTransferFolio()
+            );
 
         return $warehouseInventoryOutDetailDTO;
     }

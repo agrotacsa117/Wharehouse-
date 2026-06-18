@@ -1913,8 +1913,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                         MODAL: NUEVA ENTRADA
-                                                                                                                                    ══════════════════════════════════════════════ -->
+                                                                                                                                                                     MODAL: NUEVA ENTRADA
+                                                                                                                                                                ══════════════════════════════════════════════ -->
             <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -1947,8 +1947,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                         MODAL: NUEVA SALIDA
-                                                                                                                                    ══════════════════════════════════════════════ -->
+                                                                                                                                                                     MODAL: NUEVA SALIDA
+                                                                                                                                                                ══════════════════════════════════════════════ -->
             <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2032,8 +2032,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                         MODAL: VER DETALLE
-                                                                                                                                     ══════════════════════════════════════════════ -->
+                                                                                                                                                                     MODAL: VER DETALLE
+                                                                                                                                                                 ══════════════════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2058,8 +2058,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                         MODAL: ELIMINAR
-                                                                                                                                    ══════════════════════════════════════════════ -->
+                                                                                                                                                                     MODAL: ELIMINAR
+                                                                                                                                                                ══════════════════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -2146,6 +2146,107 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Modal Advertencia Movimientos Posteriores --}}
+            {{-- Modal Advertencia Movimientos Posteriores --}}
+            <div class="modal fade" id="modalReversalWarning" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header"
+                            style="background: linear-gradient(135deg, #fefce8, #fef08a); border-left: 5px solid #ca8a04;">
+                            <h5 class="modal-title fw-bold" style="color: #a16207;">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Advertencia — Movimientos Posteriores Detectados
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            {{-- Alerta principal --}}
+                            <div class="alert alert-warning d-flex gap-3 align-items-start">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Este movimiento tiene transacciones posteriores.</strong>
+                                    <p class="mb-0 mt-1 small">
+                                        Existen movimientos realizados después de esta entrada que consumieron
+                                        parte o todas sus unidades. Revertirlo puede generar <strong>stock
+                                            negativo</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {{-- Stock resultante --}}
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center;">
+                                        <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Cantidad a
+                                            revertir</div>
+                                        <div style="font-size: 24px; font-weight: 700; color: #dc2626;"
+                                            id="warnCantidadRevertir">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center;">
+                                        <div class="text-muted" style="font-size: 11px; margin-bottom: 4px;">Stock actual
+                                            del lote</div>
+                                        <div style="font-size: 24px; font-weight: 700; color: #1e293b;"
+                                            id="warnStockActual">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div id="warnStockResultanteCard"
+                                        style="border-radius: 8px; padding: 14px; text-align: center;">
+                                        <div style="font-size: 11px; margin-bottom: 4px;">Stock resultante</div>
+                                        <div style="font-size: 24px; font-weight: 700;" id="warnStockResultante">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Movimientos posteriores --}}
+                            <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px;">
+                                <i class="bi bi-list-ul me-1"></i>
+                                Movimientos posteriores afectados:
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0" style="font-size: 13px;">
+                                    <thead style="background: #f1f5f9;">
+                                        <tr>
+                                            <th>Folio</th>
+                                            <th>Tipo</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="warnMovimientosPosteriores"></tbody>
+                                </table>
+                            </div>
+
+                            {{-- Checkbox confirmación --}}
+                            <div class="form-check mt-4 p-3"
+                                style="background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                                <input class="form-check-input" type="checkbox" id="checkConfirmarRiesgo"
+                                    onchange="document.getElementById('btnConfirmarConRiesgo').disabled = !this.checked">
+                                <label class="form-check-label fw-medium" for="checkConfirmarRiesgo"
+                                    style="color: #991b1b;">
+                                    Entiendo que esta acción puede generar stock negativo y acepto la responsabilidad
+                                </label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-warning fw-bold" id="btnConfirmarConRiesgo" disabled
+                                onclick="confirmarReversalForzado()">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Confirmar de todas formas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TOAST -->
             <div class="tacsa-toast" id="toast">
                 <div class="toast-icon success" id="toastIcon">
@@ -2278,11 +2379,15 @@
                 } else if (m.movementType === 'RELOCATION') {
                     badgeClass = 'badge-transferencia';
                     badgeIcon = 'bi-arrow-left-right';
-                    badgeLabel = 'Reubicación';
+                    badgeLabel = 'Reubicación Bodega';
                 } else if (m.movementType === 'SALE') {
                     badgeClass = 'bi-cart-check';
                     badgeIcon = 'bi-cash-stack';
                     badgeLabel = 'Venta';
+                } else if (m.movementType === 'LOCATION_UPDATE') {
+                    badgeClass = 'badge-transferencia';
+                    badgeIcon = 'bi-arrow-left-right';
+                    badgeLabel = 'Reubicación Interna';
                 } else {
                     badgeClass = 'badge-ajuste';
                     badgeIcon = 'bi-arrow-repeat';
@@ -2305,6 +2410,9 @@
                     warehouseDisplay = m.reason;
                 }
 
+                if (m.movementType === 'LOCATION_UPDATE' && m.reason) {
+                    warehouseDisplay = m.reason + "\nBodega: "+m.warehousesName;
+                }
                 const tr = document.createElement('tr');
 
                 tr.innerHTML = `
@@ -3121,72 +3229,136 @@
         }
 
         async function confirmarReversal() {
-            const btn = document.getElementById('btnConfirmarReversal');
+            await ejecutarReversal(false);
+        }
+
+        async function confirmarReversalForzado() {
+            await ejecutarReversal(true);
+        }
+
+        async function ejecutarReversal(forceConfirm) {
+            const btnNormal = document.getElementById('btnConfirmarReversal');
+            const btnForzado = document.getElementById('btnConfirmarConRiesgo');
+            const btn = forceConfirm ? btnForzado : btnNormal;
+
             btn.disabled = true;
             btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Procesando...';
 
-            // try {
-            //     const response = await fetch(`/reportes/movimientos/${reversalMovementId}/revertir`, {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //             'Accept': 'application/json',
-            //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            //         }
-            //     });
+            try {
+                const response = await fetch(`/warehouse-movements/movements/${reversalMovementId}/reason/${reason}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        force_confirm: forceConfirm
+                    })
+                });
 
-            //     const data = await response.json();
+                const data = await response.json();
 
-            //     if (data.success) {
-            //         // Cerrar modal de confirmación
-            //         bootstrap.Modal.getInstance(
-            //             document.getElementById('modalReversalConfirm')
-            //         ).hide();
+                // ── Caso: requiere confirmación por movimientos posteriores
+                if (data.requires_confirm) {
+                    // Cerrar modal actual
+                    document.querySelectorAll('.modal.show').forEach(m =>
+                        bootstrap.Modal.getInstance(m)?.hide()
+                    );
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
 
-            //         // Mostrar éxito
-            //         mostrarToastReversal(
-            //             'success',
-            //             `Contramovimiento ${data.reversal_folio} creado correctamente`
-            //         );
+                    setTimeout(() => abrirModalWarning(data), 200);
+                    return;
+                }
 
-            //         // Refrescar tabla de movimientos
-            //         filtrarMovimientos();
+                // ── Caso: éxito
+                if (data.success) {
+                    // Cerrar todos los modales abiertos
+                    document.querySelectorAll('.modal.show').forEach(m =>
+                        bootstrap.Modal.getInstance(m)?.hide()
+                    );
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
 
-            //     } else {
-            //         mostrarToastReversal('error', data.message);
-            //     }
+                    const msg = data.stock_negativo ?
+                        `${data.reversal_folio} creado. ⚠️ Stock resultante negativo — revisa el inventario.` :
+                        `Contramovimiento ${data.reversal_folio} creado correctamente.`;
 
-            // } catch (error) {
-            //     mostrarToastReversal('error', 'Error de conexión. Intenta nuevamente.');
-            //     console.error(error);
-            // } finally {
-            //     btn.disabled = false;
-            //     btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i> Confirmar Contramovimiento';
-            //     reversalMovementId = null;
-            // }
+                    mostrarToastReversal(data.stock_negativo ? 'warning' : 'success', msg);
+                    filtrarMovimientos(); // Refrescar tabla
+
+                } else {
+                    mostrarToastReversal('error', data.message);
+                }
+
+            } catch (error) {
+                mostrarToastReversal('error', 'Error de conexión. Intenta nuevamente.');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = forceConfirm ?
+                    '<i class="bi bi-exclamation-triangle me-1"></i> Confirmar de todas formas' :
+                    '<i class="bi bi-arrow-counterclockwise me-1"></i> Confirmar Contramovimiento';
+            }
+        }
+
+        function abrirModalWarning(data) {
+            // Stock resultante — color según positivo/negativo
+            const resultante = data.stock_resultante;
+            const esNegativo = resultante < 0;
+            const cardResultante = document.getElementById('warnStockResultanteCard');
+
+            cardResultante.style.background = esNegativo ? '#FCEBEB' : '#EAF3DE';
+            cardResultante.style.border = `1px solid ${esNegativo ? '#dc2626' : '#16a34a'}`;
+
+            document.getElementById('warnCantidadRevertir').textContent = formatNumber(reversalCantidad);
+            document.getElementById('warnStockActual').textContent = formatNumber(data.stock_actual);
+            document.getElementById('warnStockResultante').textContent = formatNumber(resultante);
+            document.getElementById('warnStockResultante').style.color = esNegativo ? '#dc2626' : '#16a34a';
+
+            // Tabla de movimientos posteriores
+            const tbody = document.getElementById('warnMovimientosPosteriores');
+            tbody.innerHTML = data.movimientos_posteriores.map(m => `
+        <tr>
+            <td style="font-weight:600; color:var(--tacsa-red);">${m.folio}</td>
+            <td><span class="badge ${tipoBadge[m.movement_type] || 'bg-secondary'}">${tipoLabels[m.movement_type] || m.movement_type}</span></td>
+            <td class="text-center fw-bold">${formatNumber(m.quantity)}</td>
+            <td style="font-size:12px;">${m.created_at}</td>
+        </tr>`).join('');
+
+            // Reset checkbox
+            const check = document.getElementById('checkConfirmarRiesgo');
+            check.checked = false;
+            document.getElementById('btnConfirmarConRiesgo').disabled = true;
+
+            new bootstrap.Modal(document.getElementById('modalReversalWarning')).show();
         }
 
         function mostrarToastReversal(tipo, mensaje) {
-            // Toast temporal en pantalla
             const toastId = 'toastReversal_' + Date.now();
-            const bgClass = tipo === 'success' ? 'bg-success' : 'bg-danger';
-            const icon = tipo === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+            const bgClass = tipo === 'success' ? 'bg-success' : tipo === 'warning' ? 'bg-warning text-dark' : 'bg-danger';
+            const icon = tipo === 'success' ? 'bi-check-circle-fill' : tipo === 'warning' ? 'bi-exclamation-triangle-fill' :
+                'bi-x-circle-fill';
 
-            const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 position-fixed bottom-0 end-0 m-3" 
-             role="alert" style="z-index: 9999; min-width: 300px;">
+            document.body.insertAdjacentHTML('beforeend', `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 position-fixed bottom-0 end-0 m-3"
+             role="alert" style="z-index:9999; min-width:320px;">
             <div class="d-flex">
                 <div class="toast-body">
                     <i class="bi ${icon} me-2"></i>${mensaje}
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
-        </div>`;
+        </div>`);
 
-            document.body.insertAdjacentHTML('beforeend', toastHtml);
             const toastEl = document.getElementById(toastId);
             new bootstrap.Toast(toastEl, {
-                delay: 4000
+                delay: 5000
             }).show();
             toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
         }
