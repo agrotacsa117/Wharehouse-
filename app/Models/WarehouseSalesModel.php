@@ -2,26 +2,23 @@
 
 namespace App\Models;
 
-use App\Models\WarehouseInventoryMovementsModel;
 use Illuminate\Database\Eloquent\Model;
 
 class WarehouseSalesModel extends Model
 {
-    protected $table = "warehouse_sales";
+    protected $table = 'warehouse_sales';
 
     protected $fillable = [
-        "movement_id",
-        "invoice_sap",
+        'movement_id',
+        'invoice_sap',
     ];
 
     public function movement()
     {
-        return  $this->belongsTo(
+        return $this->belongsTo(
             WarehouseInventoryMovementsModel::class,
-            "movement_id",
+            'movement_id',
             'folio'
         );
     }
-
-     
 }

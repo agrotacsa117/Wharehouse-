@@ -3,9 +3,10 @@
 namespace App\Mappers;
 
 use App\Contracts\EntityToModelMapperInterface;
-use App\Models\WarehouseModel;
-use App\Enterprise_Layer\Warehouse;
 use App\Contracts\WarehouseEntityToWarehouseModelMapperI;
+use App\Enterprise_Layer\Warehouse;
+use App\Models\WarehouseModel;
+
 /**
  * @implements EntityToModelMapperInterface<Warehouse, WarehouseModel>
  */
@@ -24,7 +25,7 @@ class WarehouseToWarehouseModelMapper implements WarehouseEntityToWarehouseModel
                 'phone_number' => $tEntity->getPhoneNumber(),
                 'email' => $tEntity->getEmail(),
                 'warehouse_type_id' => $tEntity->getWarehouseTypeId(),
-                'location_id' => $tEntity->getLocationId()
+                'location_id' => $tEntity->getLocationId(),
             ]
         );
     }

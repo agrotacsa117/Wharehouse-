@@ -5,8 +5,11 @@ namespace App\Mappers\DTO;
 class WarehouseWithLocationResponseDTO implements \JsonSerializable
 {
     private int $id;
+
     private string $warehouseName;
+
     private string $headquartersName;
+
     private ?int $locationId;
 
     public function __construct(
@@ -49,10 +52,10 @@ class WarehouseWithLocationResponseDTO implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'id'               => $this->id,
-            'warehouseName'    => $this->warehouseName,
+            'id' => $this->id,
+            'warehouseName' => $this->warehouseName,
             'headquartersName' => $this->headquartersName,
-            'locationId'       => $this->locationId,
+            'locationId' => $this->locationId,
         ];
     }
 }

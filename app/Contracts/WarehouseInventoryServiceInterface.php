@@ -3,9 +3,11 @@
 namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
-use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
+use App\Mappers\DTO\InventoryExpirationMetricsDataDTO;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
-use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
+use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
+use App\Mappers\DTO\TransferInventoryDTO;
+use App\Mappers\DTO\UpdateInventoryDTO;
 
 interface WarehouseInventoryServiceInterface
 {
@@ -36,7 +38,6 @@ interface WarehouseInventoryServiceInterface
         RemoveWarehouseInventoryStockDTO $output
     ): ResultPattern;
 
-
     public function getInventoryStatsByState(): array;
 
     public function getInventoryStatsByStateAndWarehouse(): array;
@@ -47,9 +48,9 @@ interface WarehouseInventoryServiceInterface
 
     public function getAllInventoryForManagement(): array;
 
-    public function updateInventory(\App\Mappers\DTO\UpdateInventoryDTO $dto): \App\Application_Layer\ResultPattern;
+    public function updateInventory(UpdateInventoryDTO $dto): ResultPattern;
 
-    public function transferInventory(\App\Mappers\DTO\TransferInventoryDTO $dto): \App\Application_Layer\ResultPattern;
+    public function transferInventory(TransferInventoryDTO $dto): ResultPattern;
 
     public function getExpiredInventory(): array;
 
@@ -61,7 +62,16 @@ interface WarehouseInventoryServiceInterface
 
     public function getExpiredInventoryRanking(): array;
 
-    function getStockSummaryPerWarehouse() : array;
+    public function getStockSummaryPerWarehouse(): array;
 
-    function getStockByWarehouse(int $warehouseId) : array;
+    public function getStockByWarehouse(int $warehouseId): array;
+
+    public function getProductInventory(
+        int $warehouseId,
+        string $productId): array;
+
+    public function getProductExpirationMetrics(
+        int $warehouseId,
+        string $productId
+    ): InventoryExpirationMetricsDataDTO;
 }

@@ -4,15 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
-use App\Enterprise_Layer\WarehouseInventory;
 use App\Contracts\WarehouseStorageServiceInterface;
-use Illuminate\Http\Request;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use Illuminate\Http\Request;
 
 class MovementsController extends Controller
 {
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
+
     private WarehouseMovementsServiceI $warehouseMovementsService;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
 
     public function __construct(
@@ -34,48 +35,44 @@ class MovementsController extends Controller
         $movementsResult = $this->warehouseMovementsService->listAllMovementsPaginated($page, $perPage);
 
         $warehouses = $this->warehouseStorageService->getWarehouseIdAndName();
-        $inventories  =  $this->warehouseInventoryService
-         ->getAllWarehouseInventories();
+        $inventories = $this->warehouseInventoryService
+            ->getAllWarehouseInventories();
 
-       
         $movementsTotal = $this->warehouseMovementsService
-        ->getTotalOfMovements();
+            ->getTotalOfMovements();
 
         $movementsTotalIN = $this->warehouseMovementsService
-        ->countByMovementType(
-            "IN"
-        );
+            ->countByMovementType(
+                'IN'
+            );
 
         $movementsTotalOUT = $this->warehouseMovementsService
-        ->countByMovementType(
-            "OUT"
-        );
+            ->countByMovementType(
+                'OUT'
+            );
 
         $movementsTotalTRANSFER = $this->warehouseMovementsService
-        ->countByMovementType(
-            "TRANSFER"
-        );
+            ->countByMovementType(
+                'TRANSFER'
+            );
 
         $movementsTotalADJUSTMENT = $this->warehouseMovementsService
-        ->countByMovementType(
-            "ADJUSTMENT"
-        );
+            ->countByMovementType(
+                'ADJUSTMENT'
+            );
 
-        $movementsTotalRELOCATION =  $this->warehouseMovementsService
-        ->countByMovementType(
-            "RELOCATION"
-        );
+        $movementsTotalRELOCATION = $this->warehouseMovementsService
+            ->getTotalOfRelocation();
 
-        $movementsTotalSALE =  $this->warehouseMovementsService
-               ->countByMovementType(
-                   "SALE"
-               );
+        $movementsTotalSALE = $this->warehouseMovementsService
+            ->countByMovementType(
+                'SALE'
+            );
 
         $movements = $this->warehouseMovementsService->listAllMovements();
 
         $expiredProducts = $this->warehouseInventoryService
-        ->getExpiredInventory();
-
+            ->getExpiredInventory();
 
         if ($request->ajax()) {
             return response()->json([
@@ -84,8 +81,8 @@ class MovementsController extends Controller
                     'total' => $movementsResult['total'],
                     'per_page' => $movementsResult['per_page'],
                     'current_page' => $movementsResult['current_page'],
-                    'last_page' => $movementsResult['last_page']
-                ]
+                    'last_page' => $movementsResult['last_page'],
+                ],
             ]);
         }
 
@@ -93,7 +90,7 @@ class MovementsController extends Controller
             'total' => $movementsResult['total'],
             'per_page' => $movementsResult['per_page'],
             'current_page' => $movementsResult['current_page'],
-            'last_page' => $movementsResult['last_page']
+            'last_page' => $movementsResult['last_page'],
         ];
 
         return view(
@@ -117,12 +114,11 @@ class MovementsController extends Controller
     public function reportByPeriod(Request $request)
     {
         $data = $request->validate([
-        'fecha_inicio' => 'required|date',
-        'fecha_fin' => 'required|date',
-        'tipo_movimiento' => 'nullable|string',
-        'warehouse_id' => 'nullable|integer'
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date',
+            'tipo_movimiento' => 'nullable|string',
+            'warehouse_id' => 'nullable|integer',
         ]);
-
 
         $startDate = $data['fecha_inicio'];
         $endDate = $data['fecha_fin'];
@@ -144,17 +140,17 @@ class MovementsController extends Controller
         $movements = $result->getValue();
 
         return response()->json([
-            'data' => $movements
+            'data' => $movements,
         ]);
     }
 
     public function expirationReport(Request $request)
     {
         $expiredInventory = $this->warehouseInventoryService->getExpiredInventory();
-        //$ranking = $this->warehouseInventoryService->getExpiredInventoryRanking();
+        // $ranking = $this->warehouseInventoryService->getExpiredInventoryRanking();
 
         return response()->json([
-            'data' => $expiredInventory
+            'data' => $expiredInventory,
         ]);
     }
 
@@ -165,7 +161,7 @@ class MovementsController extends Controller
 
         return response()->json([
             'data' => $expiredInventory,
-            'ranking' => $ranking
+            'ranking' => $ranking,
         ]);
     }
 }

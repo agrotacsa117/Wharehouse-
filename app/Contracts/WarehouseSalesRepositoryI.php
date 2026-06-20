@@ -16,8 +16,4 @@ interface WarehouseSalesRepositoryI
         string $startDate,
         string $endDate
     ): array;
-
-
-
-
 }

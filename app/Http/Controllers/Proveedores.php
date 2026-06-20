@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
+
 use App\Models\Proveedor;
+use Illuminate\Http\Request;
+
 class Proveedores extends Controller
 {
     /**
@@ -12,7 +14,8 @@ class Proveedores extends Controller
     {
         $titulo = 'Proveedores';
         $items = Proveedor::all();
-        return view('module.proveedores.index',compact('items', 'titulo'));
+
+        return view('module.proveedores.index', compact('items', 'titulo'));
     }
 
     /**
@@ -20,7 +23,8 @@ class Proveedores extends Controller
      */
     public function create()
     {
-        $titulo ='Agregar proveedor';
+        $titulo = 'Agregar proveedor';
+
         return view('module.proveedores.create', compact('titulo'));
     }
 
@@ -30,17 +34,18 @@ class Proveedores extends Controller
     public function store(Request $request)
     {
         try {
-            $items = new Proveedor();
+            $items = new Proveedor;
             $items->nombre = $request->nombre;
             $items->comp_domicilio = $request->comp_domicilio;
             $items->ine = $request->ine;
             $items->acta_constitutiva = $request->acta_constitutiva;
-            $items->rfc = $request->rfc;    
+            $items->rfc = $request->rfc;
             $items->direccion = $request->direccion;
             $items->save();
-            return redirect()->route('proveedores')->with("success", "Proveedor agregado con exito!!");
+
+            return redirect()->route('proveedores')->with('success', 'Proveedor agregado con exito!!');
         } catch (\Throwable $th) {
-            return redirect()->route('proveedores')->with("error", "Fallo al agregar Proveedor !!".$th->getMessage());
+            return redirect()->route('proveedores')->with('error', 'Fallo al agregar Proveedor !!'.$th->getMessage());
         }
     }
 
@@ -49,8 +54,9 @@ class Proveedores extends Controller
      */
     public function show(string $id)
     {
-        $titulo = "Eliminar un Proveedor";
+        $titulo = 'Eliminar un Proveedor';
         $items = Proveedor::find($id);
+
         return view('module.proveedores.show', compact('items', 'titulo'));
     }
 
@@ -61,6 +67,7 @@ class Proveedores extends Controller
     {
         $items = Proveedor::find($id);
         $titulo = 'Editar proveedor';
+
         return view('module.proveedores.edit', compact('items', 'titulo'));
     }
 
@@ -76,11 +83,12 @@ class Proveedores extends Controller
             $items->ine = $request->ine;
             $items->acta_constitutiva = $request->acta_constitutiva;
             $items->rfc = $request->rfc;
-            $items->direccion = $request->direccion;    
+            $items->direccion = $request->direccion;
             $items->save();
-        return redirect()->route('proveedores')->with("success", "Actualizado con exito!!");
+
+            return redirect()->route('proveedores')->with('success', 'Actualizado con exito!!');
         } catch (\Throwable $th) {
-            return redirect()->route('proveedores')->with("error", "Fallo no se puedo Actualizar !!".$th->getMessage());
+            return redirect()->route('proveedores')->with('error', 'Fallo no se puedo Actualizar !!'.$th->getMessage());
         }
     }
 
@@ -89,12 +97,13 @@ class Proveedores extends Controller
      */
     public function destroy(string $id)
     {
-        try{
+        try {
             $items = Proveedor::find($id);
-        $items->delete();
-         return redirect()->route('proveedores')->with('success', 'Proveedor Eliminado!');
-        }catch(\Throwable $th){
-            return redirect()->route('proveedores')->with('error', 'FALLO AL ELIMINAR!' . $th->getMessage());
+            $items->delete();
+
+            return redirect()->route('proveedores')->with('success', 'Proveedor Eliminado!');
+        } catch (\Throwable $th) {
+            return redirect()->route('proveedores')->with('error', 'FALLO AL ELIMINAR!'.$th->getMessage());
         }
     }
 }

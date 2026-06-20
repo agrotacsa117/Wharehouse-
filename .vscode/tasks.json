@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Formatear Proyecto",
+            "type": "shell",
+            "command": "C:\\Tools\\Pint\\vendor\\bin\\pint",
+            "args": ["${workspaceFolder}"],
+            "group": "none",
+            "presentation": { "reveal": "silent" }
+        }
+    ]
+}

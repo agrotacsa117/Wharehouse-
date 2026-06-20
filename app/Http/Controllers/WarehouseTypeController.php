@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\WarehouseTypeServiceInterface;
-use Illuminate\Http\Request;
 use App\Mappers\DTO\Requests\WarehouseTypeRequestDTO;
+use Illuminate\Http\Request;
 
 class WarehouseTypeController extends Controller
 {
@@ -32,9 +32,9 @@ class WarehouseTypeController extends Controller
         );
 
         $result = $this->warehouseTypeServiceInterface
-        ->createWarehouseType(
-            $warehouseTypeRequestDTO
-        );
+            ->createWarehouseType(
+                $warehouseTypeRequestDTO
+            );
 
         if ($result->isFailure()) {
             return back()
@@ -43,7 +43,7 @@ class WarehouseTypeController extends Controller
         }
 
         return redirect()
-        ->route('warehouse-type.get')
-        ->with('success', 'Tipo de almacén creado correctamente');
+            ->route('warehouse-type.get')
+            ->with('success', 'Tipo de almacén creado correctamente');
     }
 }

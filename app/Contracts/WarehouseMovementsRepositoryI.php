@@ -18,7 +18,6 @@ interface WarehouseMovementsRepositoryI
 
     public function countFolio(): int;
 
-
     public function countByMovementType(string $movementType): int;
 
     public function findByDateRange(

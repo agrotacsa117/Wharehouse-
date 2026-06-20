@@ -10,12 +10,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 interface EntityToModelMapperInterface
 {
-
-
     /**
-     * @param TEntity $tEntity
-     * @param TModel $tModel
-     * @return  Model
+     * @param  TEntity  $tEntity
+     * @param  TModel  $tModel
+     * @return Model
      */
     public function convertDomainEntityToModel($tEntity);
 }

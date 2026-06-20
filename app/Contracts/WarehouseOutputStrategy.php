@@ -10,6 +10,6 @@ interface WarehouseOutputStrategy
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern;
-    
+
     public function getType(): string;
 }

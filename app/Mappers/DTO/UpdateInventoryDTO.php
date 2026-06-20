@@ -5,11 +5,17 @@ namespace App\Mappers\DTO;
 class UpdateInventoryDTO
 {
     private int $id;
+
     private string $rack;
+
     private int $level;
+
     private string $lotNumber;
+
     private int $quantity;
+
     private string $expirationDate;
+
     private string $reason;
 
     public function __construct(

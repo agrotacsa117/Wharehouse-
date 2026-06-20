@@ -9,9 +9,8 @@ namespace App\Contracts;
 interface WarehouseEntityToWarehouseModelMapperI
 {
     /**
-     * @param TEntity $tEntity
-     * @return  Model
+     * @param  TEntity  $tEntity
+     * @return Model
      */
-
     public function convertDomainEntityToModel($warehouseEntity);
 }

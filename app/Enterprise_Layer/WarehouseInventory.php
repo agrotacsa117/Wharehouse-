@@ -9,22 +9,40 @@ use DateTime;
 class WarehouseInventory
 {
     private int $id;
+
     private int $warehouseId;
+
     private string $productId;
+
     private ?int $rack;
+
     private ?int $level;
+
     private DateTime $createdAt;
+
     private DateTime $updatedAt;
+
     private $warehouseName;
+
     private int $quantity;
+
     private string $lotNumber;
+
     private string $reason;
-    private \DateTime $expirationDate;
+
+    private ?DateTime $expirationDate;
+
     private ?int $module;
+
     private ?int $bay;
+
     private ?int $platform;
+
     private ?int $transferFolio;
-    private \DateTime $manufacturingDate;
+
+    private ?DateTime $manufacturingDate;
+
+    private bool $activeInventory;
 
     public function __construct(
         int $warehouseId,
@@ -37,7 +55,7 @@ class WarehouseInventory
         int $quantity,
         string $lotNumber,
         string $reason,
-        \DateTime $expirationDate,
+        ?DateTime $expirationDate,
         ?int $transferFolio
     ) {
         $this->warehouseId = $warehouseId;
@@ -48,33 +66,32 @@ class WarehouseInventory
         $this->updatedAt = $updatedAt;
         $this->warehouseName = $warehouseName;
         $this->quantity = $quantity;
-        $this->lotNumber =  $lotNumber;
+        $this->lotNumber = $lotNumber;
         $this->reason = $reason;
         $this->expirationDate = $expirationDate;
         $this->transferFolio = $transferFolio;
     }
 
-    public function getManufacturingDate(): \DateTime
+    public function getManufacturingDate(): ?DateTime
     {
         return $this->manufacturingDate;
     }
 
     /**
      * Establece la fecha de fabricación.
-     * * @param \DateTime $manufacturingDate
-     * @return self
      */
-    public function setManufacturingDate(\DateTime $manufacturingDate): self
+    public function setManufacturingDate(?DateTime $manufacturingDate): self
     {
         $this->manufacturingDate = $manufacturingDate;
 
         return $this;
     }
-    
+
     public function getTransferFolio(): ?int
     {
         return $this->transferFolio;
     }
+
     /**
      * Get the value of module
      */
@@ -123,12 +140,12 @@ class WarehouseInventory
         $this->platform = $platform;
     }
 
-    public function getExpirationDate(): \DateTime
+    public function getExpirationDate(): DateTime
     {
         return $this->expirationDate;
     }
 
-    public function setExpirationDate(\DateTime $expirationDate): void
+    public function setExpirationDate(DateTime $expirationDate): void
     {
         $this->expirationDate = $expirationDate;
     }
@@ -165,7 +182,6 @@ class WarehouseInventory
     {
         $this->productId = $productId;
     }
-
 
     // Rack
     public function getRack(): ?int
@@ -255,5 +271,15 @@ class WarehouseInventory
     public function setReason(string $reason): void
     {
         $this->reason = $reason;
+    }
+
+    public function isActiveInventory(): bool
+    {
+        return $this->activeInventory;
+    }
+
+    public function setActiveInventory(bool $activeInventory): void
+    {
+        $this->activeInventory = $activeInventory;
     }
 }

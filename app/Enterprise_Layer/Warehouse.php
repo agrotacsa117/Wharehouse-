@@ -4,30 +4,38 @@ declare(strict_types=1);
 
 namespace App\Enterprise_Layer;
 
-use App\Enterprise_Layer\WarehouseBuilder;
 use DateTime;
 
 class Warehouse
 {
     private int $warehouseId;
+
     private string $warehouseName;
+
     private DateTime $creationDate;
+
     private DateTime $lastUpdateDate;
+
     private int $userLastUpdate;
+
     private string $warehouseKey;
+
     private string $warehouseManager;
+
     private string $phoneNumber;
+
     private string $email;
+
     private int $warehouseTypeId;
+
     private int $locationId;
-    
 
     public function __construct(
         WarehouseBuilder $warehouseBuilder
     ) {
         $this->warehouseName = $warehouseBuilder->getWarehousesName();
-        $this->creationDate = new DateTime();
-        $this->lastUpdateDate = new DateTime();
+        $this->creationDate = new DateTime;
+        $this->lastUpdateDate = new DateTime;
         $this->userLastUpdate = $warehouseBuilder->getUserLastUpdate();
         $this->warehouseKey = $warehouseBuilder->getWarehouseKey();
         $this->warehouseManager = $warehouseBuilder->getWarehouseManager();
@@ -37,10 +45,9 @@ class Warehouse
         $this->locationId = $warehouseBuilder->getLocationId();
     }
 
-
     public static function builder(): WarehouseBuilder
     {
-        return new WarehouseBuilder();
+        return new WarehouseBuilder;
     }
 
     // Getters
@@ -58,26 +65,32 @@ class Warehouse
     {
         return $this->creationDate;
     }
+
     public function getLastUpdateDate(): DateTime
     {
         return $this->lastUpdateDate;
     }
+
     public function getUserLastUpdate(): int
     {
         return $this->userLastUpdate;
     }
+
     public function getWarehousesKey(): string
     {
         return $this->warehouseKey;
     }
+
     public function getWarehouseManager(): string
     {
         return $this->warehouseManager;
     }
+
     public function getPhoneNumber(): string
     {
         return $this->phoneNumber;
     }
+
     public function getEmail(): string
     {
         return $this->email;
@@ -103,30 +116,37 @@ class Warehouse
     {
         $this->creationDate = $creationDate;
     }
+
     public function setLastUpdateDate(DateTime $lastUpdateDate): void
     {
         $this->lastUpdateDate = $lastUpdateDate;
     }
+
     public function setUserLastUpdate(int $userLastUpdate): void
     {
         $this->userLastUpdate = $userLastUpdate;
     }
+
     public function setWarehousesKey(string $warehousesKey): void
     {
         $this->warehouseKey = $warehousesKey;
     }
+
     public function setWarehouseManager(string $warehouseManager): void
     {
         $this->warehouseManager = $warehouseManager;
     }
+
     public function setPhoneNumber(string $phoneNumber): void
     {
         $this->phoneNumber = $phoneNumber;
     }
+
     public function setEmail(string $email): void
     {
         $this->email = $email;
     }
+
     public function setWarehouseTypeId(int $warehouseTypeId): void
     {
         $this->warehouseTypeId = $warehouseTypeId;
@@ -141,5 +161,4 @@ class Warehouse
     {
         $this->locationId = $locationId;
     }
-
 }

@@ -3,9 +3,6 @@
 namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
-use App\Mappers\DTO\WarehouseDTO;
-use App\Mappers\DTO\WarehouseTypeListDTO;
-use App\Mappers\DTO\WarehouseTypeDetailDTO;
 use App\Mappers\DTO\Requests\WarehouseTypeRequestDTO;
 
 interface WarehouseTypeServiceInterface

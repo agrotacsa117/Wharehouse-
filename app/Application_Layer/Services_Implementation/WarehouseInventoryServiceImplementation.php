@@ -4,42 +4,50 @@ namespace App\Application_Layer\Services_Implementation;
 
 use App\Application_Layer\ResultPattern;
 use App\Contracts\ProductServiceInterface;
-use App\Contracts\WarehouseInventoryServiceInterface;
-use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
+use App\Contracts\WarehouseInventoryServiceInterface;
+use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseMovementsServiceI;
+use App\Contracts\WarehouseOutputStrategy;
+use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Enterprise_Layer\WarehouseInventory;
-use App\Enterprise_Layer\WarehouseInventoryMovements;
 use App\Mappers\DTO\ExpiredInventoryDTO;
+use App\Mappers\DTO\InventoryExpirationMetricsDataDTO;
+use App\Mappers\DTO\InventoryStatsByStateDTO;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
+use App\Mappers\DTO\TransferInventoryDTO;
+use App\Mappers\DTO\UpdateInventoryDTO;
 use App\Mappers\DTO\WarehouseInventoryDetailDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
-use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
-use App\Mappers\DTO\InventoryStatsByStateDTO;
-use App\Mappers\DTO\TransferInventoryDTO;
-use App\Mappers\DTO\UpdateInventoryDTO;
-use LDAP\Result;
-use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
-use App\Contracts\WarehouseOutputStrategyFactoryInterface;
-use App\Contracts\WarehouseOutputStrategy;
-use Illuminate\Support\Facades\DB;
-use App\Mappers\DTO\WarehouseSummaryDTO;
 use App\Mappers\DTO\WarehouseStockDTO;
-
+use App\Mappers\DTO\WarehouseSummaryDTO;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
     private WarehouseInventoryRepositoryInterface $warehouseInventoryRepository;
+
     private WarehouseInventoryRequestDTOToWarehouseInventoryMapperI $warehouseInventoryRequestDTOToWarehouseInventory;
+
     private ProductServiceInterface $productService;
+
     private WarehouseInventory $warehouseInventory;
+
     private WarehouseStorageServiceInterface $warehouseStorageService;
+
     private WarehouseMovementsServiceI $warehouseMovementsService;
+
     private WarehouseMovementsDTO $warehouseMovementsDTO;
+
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+
     private WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory;
+
     private WarehouseOutputStrategy $warehouseOutputStrategy;
 
     public function __construct(
@@ -63,6 +71,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getAllWarehouseInventories(): array
     {
         $inventory = $this->warehouseInventoryRepository->findAll();
+
         return $this->generateWarehouseInventoryDetailDTO($inventory);
     }
 
@@ -73,10 +82,10 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function saveInventory(WarehouseInventoryRequestDTO $warehouseInventoryDTO): ResultPattern
     {
-        $warehouseName =  $this->warehouseStorageService
-        ->getWarehouseNameById(
-            $warehouseInventoryDTO->getWarehouseId()
-        );
+        $warehouseName = $this->warehouseStorageService
+            ->getWarehouseNameById(
+                $warehouseInventoryDTO->getWarehouseId()
+            );
 
         // if ($this->existProductInInventory(
         //     $warehouseInventoryDTO->getWarehouseId(),
@@ -88,22 +97,20 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         //     );
         // }
 
-
         $this->warehouseInventory = $this->warehouseInventoryRequestDTOToWarehouseInventory
-        ->convertWarehouseInventoryRequestDTOToWarehouseInventory(
-            $warehouseInventoryDTO
-        );
+            ->convertWarehouseInventoryRequestDTOToWarehouseInventory(
+                $warehouseInventoryDTO
+            );
 
-
-        $productName =  $this->productService
-        ->getProductNameById(
-            $this->warehouseInventory->getProductId()
-        )->getValue();
+        $productName = $this->productService
+            ->getProductNameById(
+                $this->warehouseInventory->getProductId()
+            )->getValue();
 
         $this->warehouseInventory->setWarehouseName($productName);
-        $ok = "";
+        $ok = '';
         try {
-            $ok .= "Passed here!";
+            $ok .= 'Passed here!';
             $this->warehouseInventory = $this->warehouseInventoryRepository->save(
                 $this->warehouseInventory
             );
@@ -134,17 +141,17 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $this->warehouseInventory = $result->getValue();
 
                 $folio = $this->warehouseMovementsService
-                ->generateMovementFolio();
+                    ->generateMovementFolio();
                 $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                     $folio,
                     $this->warehouseInventory->getId(),
-                    "IN",
+                    'IN',
                     $warehouseInventoryDTO->getQuantity(),
                     $warehouseInventoryDTO->getReason(),
                     auth()->id()
                 );
 
-                $resultMovement =  $this->warehouseMovementsService->saveWarehouseMovement(
+                $resultMovement = $this->warehouseMovementsService->saveWarehouseMovement(
                     $this->warehouseMovementsDTO
                 );
 
@@ -166,35 +173,32 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return ResultPattern::success(null);
     }
 
-
     public function existProductInInventory(
         int $warehouseId,
         string $productId
     ): bool {
         return $this->warehouseInventoryRepository
-        ->existById(
-            $warehouseId,
-            $productId
-        );
+            ->existById(
+                $warehouseId,
+                $productId
+            );
     }
 
     public function getWarehouseIdsWithInventory(): array
     {
         return $this->warehouseInventoryRepository
-        ->countDistinctByWarehouseId();
+            ->countDistinctByWarehouseId();
     }
-
 
     public function getWarehouseInventoryByWarehouseId(
         int $warehouseId
     ): array {
-        $inventory =  $this->warehouseInventoryRepository
-        ->findInventoryByWarehouseId(
-            $warehouseId
-        );
+        $inventory = $this->warehouseInventoryRepository
+            ->findInventoryByWarehouseId(
+                $warehouseId
+            );
 
-
-        for ($i = 0; $i < count($inventory) ; $i++) {
+        for ($i = 0; $i < count($inventory); $i++) {
             $inventory[$i] = new WarehouseInventoryOutDetailDTO(
                 $inventory[$i]['id'],
                 $inventory[$i]['warehouse_id'],
@@ -207,7 +211,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['expiration_date'],
                 $inventory[$i]['module'],
                 $inventory[$i]['bay'],
-                $inventory[$i]['platform']
+                $inventory[$i]['platform'],
+                $inventory[$i]['manufacturing_date'] ?? null
             );
         }
 
@@ -226,65 +231,64 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 );
 
                 $result = $this->warehouseOutputStrategy
-                ->processOutput(
-                    $output
-                );
+                    ->processOutput(
+                        $output
+                    );
 
                 if ($result->isFailure()) {
                     return $result;
                 }
 
+                return $result;
             });
 
-
         } catch (\Throwable $th) {
-            ResultPattern::failure($th->getMessage());
+            return ResultPattern::failure($th->getMessage());
         }
-
-
 
         return ResultPattern::success($output);
     }
 
     public function getInventoryStatsByState(): array
     {
-        $stats  = $this->warehouseInventoryRepository->getInventoryStatsByState();
+        $stats = $this->warehouseInventoryRepository->getInventoryStatsByState();
 
         foreach ($stats as $key => $stat) {
             $stats[$key] = new InventoryStatsByStateDTO(
-                (int)($stat['state']),
-                (int)($stat['total_stock'])
+                (int) ($stat['state']),
+                (int) ($stat['total_stock'])
             );
         }
+
         return $stats;
     }
 
     public function getInventoryStatsByStateAndWarehouse(): array
     {
-        $stats  = $this->warehouseInventoryRepository->getInventoryStatsByStateAndWarehouse();
-        
+        $stats = $this->warehouseInventoryRepository->getInventoryStatsByStateAndWarehouse();
+
         $groupedStats = [
             1 => [],
             2 => [],
-            3 => []
+            3 => [],
         ];
 
         foreach ($stats as $stat) {
-            $state = (int)($stat['state']);
+            $state = (int) ($stat['state']);
             $groupedStats[$state][$stat['warehouse_id']] = new InventoryStatsByStateDTO(
                 $state,
-                (int)($stat['total_stock']),
+                (int) ($stat['total_stock']),
                 $stat['warehouses_name'] ?? ''
             );
         }
 
-        
         return $groupedStats;
     }
 
     public function getInventoryByState(int $state): array
     {
         $inventory = $this->warehouseInventoryRepository->getInventoryByState($state);
+
         return $this->generateWarehouseInventoryDetailDTO($inventory);
     }
 
@@ -296,9 +300,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $updateInventoryDTO->getId()
         );
 
-        if (!$currentInventory) {
+        if (! $currentInventory) {
             return ResultPattern::failure(
-                "Inventario no encontrado."
+                'Inventario no encontrado.'
             );
         }
 
@@ -316,8 +320,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $updateInventoryDTO->getExpirationDate()
             !== $currentInventory->getExpirationDate();
 
-        if (!$hasChanges) {
-            ResultPattern::failure("No se realizó ningun cambio");
+        if (! $hasChanges) {
+            ResultPattern::failure('No se realizó ningun cambio');
         }
 
         try {
@@ -327,16 +331,16 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 'lot_number' => $updateInventoryDTO->getLotNumber(),
                 'quantity' => $updateInventoryDTO->getQuantity(),
                 'expiration_date' => $updateInventoryDTO->getExpirationDate(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
-            if (!$updated) {
-                return ResultPattern::failure("No se pudo actualizar el inventario.");
+            if (! $updated) {
+                return ResultPattern::failure('No se pudo actualizar el inventario.');
             }
 
             if ($hasChanges) {
                 $folio = $this->warehouseMovementsService->generateMovementFolio();
-                $reason = "Edición: " . $updateInventoryDTO->getReason();
+                $reason = 'Edición: '.$updateInventoryDTO->getReason();
 
                 $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                     $folio,
@@ -363,22 +367,20 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         TransferInventoryDTO $transferInventoryDTO
     ): ResultPattern {
 
-
         if (
             $transferInventoryDTO->getFromWarehouseId()
             === $transferInventoryDTO->getToWarehouseId()) {
             return ResultPattern::failure(
-                "No se puede transferir al mismo almacén."
+                'No se puede transferir al mismo almacén.'
             );
         }
 
         $fromWarehouseName = $this->warehouseStorageService
-        ->getWarehouseNameById(
-            $transferInventoryDTO->getFromWarehouseId()
-        );
+            ->getWarehouseNameById(
+                $transferInventoryDTO->getFromWarehouseId()
+            );
 
-        $toWarehouseName =  $transferInventoryDTO->getToWarehouseId();
-
+        $toWarehouseName = $transferInventoryDTO->getToWarehouseId();
 
         try {
             $result = $this->warehouseInventoryRepository->transferInventory(
@@ -388,45 +390,44 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $transferInventoryDTO->getQuantity()
             );
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return ResultPattern::failure($result['error']);
             }
 
             $folio = $this->warehouseMovementsService->generateMovementFolio();
-            //die($folio);
+            // die($folio);
 
             $this->warehouseMovementsDTO = $this->generateWarehouseMovementsDTO(
                 $folio,
                 $transferInventoryDTO->getInventoryId(),
                 'TRANSFER',
                 $transferInventoryDTO->getQuantity(),
-                "Traslado de {$fromWarehouseName} a {$toWarehouseName}: " . $transferInventoryDTO->getReason(),
+                "Traslado de {$fromWarehouseName} a {$toWarehouseName}: ".$transferInventoryDTO->getReason(),
                 auth()->id()
             );
 
             $this->warehouseMovementsDTO
-            ->setTransferFolio(
-                $transferInventoryDTO->getTransferFolio()
-            );
+                ->setTransferFolio(
+                    $transferInventoryDTO->getTransferFolio()
+                );
 
             $this->warehouseMovementsDTO->setSourceWarehouseId(
                 0
             );
 
-
-            $saveResult =  $this->warehouseMovementsService->saveWarehouseMovement(
+            $saveResult = $this->warehouseMovementsService->saveWarehouseMovement(
                 $this->warehouseMovementsDTO
             );
 
             if ($saveResult->isFailure()) {
-                return  $saveResult;
+                return $saveResult;
             }
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
 
         return ResultPattern::success([
-            'remainingQuantity' => $result['remainingQuantity'] ?? 0
+            'remainingQuantity' => $result['remainingQuantity'] ?? 0,
         ]);
 
     }
@@ -454,14 +455,14 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         array $inventory
     ): array {
 
-        for ($i = 0; $i < count($inventory) ; $i++) {
+        for ($i = 0; $i < count($inventory); $i++) {
             $inventory[$i] = new WarehouseInventoryDetailDTO(
                 $inventory[$i]['id'],
                 $inventory[$i]['warehouse_name'],
                 $inventory[$i]['product_id'],
                 $inventory[$i]['warehouse_id'],
                 $inventory[$i]['warehouse']['warehouses_name']
-                ??  $inventory[$i]['warehouses_name'] ?? null,
+                ?? $inventory[$i]['warehouses_name'] ?? null,
                 $inventory[$i]['_level'],
                 $inventory[$i]['rack'],
                 $inventory[$i]['quantity'],
@@ -471,11 +472,13 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $inventory[$i]['obsolescence'] ?? null,
                 $inventory[$i]['module'],
                 $inventory[$i]['bay'],
-                $inventory[$i]['platform']
+                $inventory[$i]['platform'],
+                $inventory[$i]['manufacturing_date'] ?? null,
+                $inventory[$i]['state'] ?? null
             );
         }
 
-        return  $inventory;
+        return $inventory;
     }
 
     public function getExpiredInventory(): array
@@ -486,16 +489,16 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $inventory = $expiratedProducts[$i];
 
             $expiratedProducts[$i] = new ExpiredInventoryDTO(
-                $inventory["product_id"],
-                $inventory["warehouse_id"],
-                $inventory["product_name"],
-                $inventory["warehouse_name"],
-                $inventory["quantity"],
-                $inventory["lot_number"],
-                $inventory["expiration_date"],
-                $inventory["rack"],
-                $inventory["_level"],
-                $inventory["expired_days"]
+                $inventory['product_id'],
+                $inventory['warehouse_id'],
+                $inventory['product_name'],
+                $inventory['warehouse_name'],
+                $inventory['quantity'],
+                $inventory['lot_number'],
+                $inventory['expiration_date'],
+                $inventory['rack'],
+                $inventory['_level'],
+                $inventory['expired_days']
             );
         }
 
@@ -515,10 +518,10 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $level
             );
 
-            if (!$updated) {
+            if (! $updated) {
                 ResultPattern::failure(
-                    "¡Error: no fue posible "
-                    ."modificar campos de ubicación!"
+                    '¡Error: no fue posible '
+                    .'modificar campos de ubicación!'
                 );
             }
 
@@ -533,18 +536,18 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     {
         $warehouseInventory = $this->warehouseInventoryRepository->findById($id);
 
-        if (!$warehouseInventory) {
+        if (! $warehouseInventory) {
             return ResultPattern::failure(
-                "¡No se encontro ningun inventario "
-                ."registrado con este id ".$id
+                '¡No se encontro ningun inventario '
+                .'registrado con este id '.$id
             );
         }
 
         $warehouseInventoryOutDetailDTO =
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
-        ->convertToOutDetailDTO(
-            $warehouseInventory
-        );
+            ->convertToOutDetailDTO(
+                $warehouseInventory
+            );
 
         return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
@@ -553,32 +556,31 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     {
         $rawResults = $this->warehouseInventoryRepository->findExpiredRanking();
 
-
         $groupedByWarehouse = [];
 
         foreach ($rawResults as $row) {
             $warehouseId = $row['warehouse_id'];
 
-            if (!isset($groupedByWarehouse[$warehouseId])) {
+            if (! isset($groupedByWarehouse[$warehouseId])) {
                 $groupedByWarehouse[$warehouseId] = [
                     'warehouseId' => $warehouseId,
                     'warehouseName' => $row['warehouse_name'],
-                    'items' => []
+                    'items' => [],
                 ];
             }
 
             if ($row['row_num'] <= 3) {
                 $groupedByWarehouse[$warehouseId]['items'][] = [
-                    'id' => (int)$row['id'],
-                    'warehouseId' => (int)$row['warehouse_id'],
+                    'id' => (int) $row['id'],
+                    'warehouseId' => (int) $row['warehouse_id'],
                     'productId' => $row['product_id'],
                     'productName' => $row['product_name'] ?? '',
                     'rack' => $row['rack'],
-                    'level' => (int)$row['level'],
-                    'quantity' => (int)$row['quantity'],
+                    'level' => (int) $row['level'],
+                    'quantity' => (int) $row['quantity'],
                     'lotNumber' => $row['lot_number'],
-                    'remainingDays' => (int)$row['remaining_days'],
-                    'rank' => (int)$row['row_num']
+                    'remainingDays' => (int) $row['remaining_days'],
+                    'rank' => (int) $row['row_num'],
                 ];
             }
         }
@@ -588,13 +590,12 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $result[] = [
                 'warehouseId' => $warehouse['warehouseId'],
                 'warehouseName' => $warehouse['warehouseName'],
-                'expiredItems' => $warehouse['items']
+                'expiredItems' => $warehouse['items'],
             ];
         }
 
         return $result;
     }
-
 
     private function runInTransaction(callable $operation): ResultPattern
     {
@@ -605,55 +606,59 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 // Si el resultado es failure, forzamos rollback lanzando excepción
                 if ($result instanceof ResultPattern && $result->isFailure()) {
                     DB::rollBack();
+
                     return $result;
                 }
 
                 DB::commit();
+
                 return $result;
             });
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return ResultPattern::failure(
-                "Error inesperado: "
-                . $e->getMessage()
+                'Error inesperado: '
+                .$e->getMessage()
             );
         }
     }
 
-    function getStockSummaryPerWarehouse() : array {
+    public function getStockSummaryPerWarehouse(): array
+    {
         $stockSummary = $this->warehouseInventoryRepository
-        ->findStockAndProductCountGroupedByWarehouse();
-        
-        $quantityExpiredByWarehouse = $this->warehouseInventoryRepository
-        ->sumQuantityOfExpiredByWarehouse();
-        
-        
-        $stockSummaryReport = array();
+            ->findStockAndProductCountGroupedByWarehouse();
 
-        for ($i=0; $i <count($stockSummary) ; $i++) { 
+        $quantityExpiredByWarehouse = $this->warehouseInventoryRepository
+            ->sumQuantityOfExpiredByWarehouse();
+
+        $stockSummaryReport = [];
+
+        for ($i = 0; $i < count($stockSummary); $i++) {
             $statics = $stockSummary[$i];
-            
-            $stockSummaryReport[$statics["warehouse_id"]] 
+
+            $stockSummaryReport[$statics['warehouse_id']]
             = new WarehouseSummaryDTO(
-                $statics["stock"],
-                $statics["products"],
+                $statics['stock'],
+                $statics['products'],
                 isset(
-                    $quantityExpiredByWarehouse[$statics["warehouse_id"]]) 
-                    ? $quantityExpiredByWarehouse[$statics["warehouse_id"]]["total_quantity"] : 0
+                    $quantityExpiredByWarehouse[$statics['warehouse_id']])
+                    ? $quantityExpiredByWarehouse[$statics['warehouse_id']]['total_quantity'] : 0
             );
         }
-        
+
         return $stockSummaryReport;
     }
 
-    public function getStockByWarehouse(int $warehouseId) : array{
+    public function getStockByWarehouse(int $warehouseId): array
+    {
         $existences = $this->warehouseInventoryRepository
-        ->getStockByWarehouseId(
-            $warehouseId
-        );
+            ->getStockByWarehouseId(
+                $warehouseId
+            );
 
         $total = count($existences);
-        for ($i=0; $i <$total ; $i++) { 
+        for ($i = 0; $i < $total; $i++) {
             $row = $existences[$i];
             $existences[$i] = new WarehouseStockDTO(
                 (string) ($row['product_id']),
@@ -662,6 +667,49 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             );
         }
 
-       return $existences;
+        return $existences;
+    }
+
+    public function getProductInventory(
+        int $warehouseId,
+        string $productId): array
+    {
+
+        $inventory = $this
+            ->warehouseInventoryRepository
+            ->findByProductIdAndWarehouseId(
+                $warehouseId,
+                $productId
+            );
+
+        $inventory = $this
+            ->generateWarehouseInventoryDetailDTO(
+                $inventory);
+
+        return $inventory;
+    }
+
+    public function getProductExpirationMetrics(
+        int $warehouseId,
+        string $productId
+    ): InventoryExpirationMetricsDataDTO {
+
+        $metrics = $this->warehouseInventoryRepository
+            ->getExpirationMetrics(
+                $warehouseId,
+                $productId
+            );
+
+        Log::info('The size array is: '.count($metrics));
+        Log::info('The array is: ', ['kpis' => $metrics]);
+
+        $inventoryExpirationMetricsDataDTO =
+           new InventoryExpirationMetricsDataDTO(
+               $metrics['expired'],
+               $metrics['expired_soon'],
+               $metrics['endangered']
+           );
+
+        return $inventoryExpirationMetricsDataDTO;
     }
 }

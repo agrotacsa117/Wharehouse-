@@ -5,14 +5,23 @@ namespace App\Mappers\DTO;
 class SalesDTO implements \JsonSerializable
 {
     private string $movementId;
+
     private int $invoiceSap;
+
     private string $createdAt;
+
     private string $updatedAt;
+
     private string $productCode;
+
     private string $productName;
+
     private string $warehouseOrigin;
+
     private string $lotNumber;
+
     private int $quantity;
+
     private string $user;
 
     public function __construct(
@@ -29,8 +38,8 @@ class SalesDTO implements \JsonSerializable
     ) {
         $this->movementId = $movementId;
         $this->invoiceSap = $invoiceSap;
-        $this->createdAt  = $createdAt;
-        $this->updatedAt  = $updatedAt;
+        $this->createdAt = $createdAt;
+        $this->updatedAt = $updatedAt;
         $this->productCode = $productCode;
         $this->productName = $productName;
         $this->warehouseOrigin = $warehouseOrigin;
@@ -66,26 +75,32 @@ class SalesDTO implements \JsonSerializable
     {
         return $this->productCode;
     }
+
     public function getProductName(): string
     {
         return $this->productName;
     }
+
     public function getWarehouseOrigin(): string
     {
         return $this->warehouseOrigin;
     }
+
     public function getLotNumber(): string
     {
         return $this->lotNumber;
     }
+
     public function getQuantity(): int
     {
         return $this->quantity;
     }
+
     public function getUser(): string
     {
         return $this->user;
     }
+
     /**
      * Implementación de JsonSerializable
      */
@@ -94,14 +109,14 @@ class SalesDTO implements \JsonSerializable
         return [
             'movementId' => $this->movementId,
             'invoiceSap' => $this->invoiceSap,
-            'createdAt'  => $this->createdAt,
-            'updatedAt'  => $this->updatedAt,
-            'productCode'     => $this->productCode,
-            'productName'     => $this->productName,
+            'createdAt' => $this->createdAt,
+            'updatedAt' => $this->updatedAt,
+            'productCode' => $this->productCode,
+            'productName' => $this->productName,
             'warehouseOrigin' => $this->warehouseOrigin,
-            'lotNumber'       => $this->lotNumber,
-            'quantity'        => $this->quantity,
-            'user'            => $this->user
+            'lotNumber' => $this->lotNumber,
+            'quantity' => $this->quantity,
+            'user' => $this->user,
         ];
     }
 }

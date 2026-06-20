@@ -3,8 +3,8 @@
 namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
-use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
+use App\Mappers\DTO\WarehouseMovementsDTO;
 
 interface WarehouseMovementsServiceI
 {
@@ -26,7 +26,5 @@ interface WarehouseMovementsServiceI
         MovementsByPeriodFilterDTO $movementsByPeriodFilterDTO
     ): ResultPattern;
 
-
-    
-   
+    public function getTotalOfRelocation(): int;
 }

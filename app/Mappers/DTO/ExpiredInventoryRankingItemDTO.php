@@ -5,14 +5,23 @@ namespace App\Mappers\DTO;
 class ExpiredInventoryRankingItemDTO
 {
     private int $id;
+
     private int $warehouseId;
+
     private string $productId;
+
     private string $rack;
+
     private int $level;
+
     private int $quantity;
+
     private string $lotNumber;
+
     private int $remainingDays;
+
     private int $rank;
+
     private string $warehouseName;
 
     public function __construct(
@@ -101,7 +110,7 @@ class ExpiredInventoryRankingItemDTO
             'lotNumber' => $this->lotNumber,
             'remainingDays' => $this->remainingDays,
             'rank' => $this->rank,
-            'warehouseName' => $this->warehouseName
+            'warehouseName' => $this->warehouseName,
         ];
     }
 }

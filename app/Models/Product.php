@@ -14,7 +14,7 @@ class Product extends Model
         'precio',
         'fecha_ingreso',
         'fecha_caducidad',
-        'activo'
+        'activo',
     ];
 
     public function category()

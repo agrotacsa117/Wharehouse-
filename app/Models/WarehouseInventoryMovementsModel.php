@@ -3,24 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\WarehouseSalesModel;
 
 class WarehouseInventoryMovementsModel extends Model
 {
-    protected $table = "warehouse_inventory_movements";
+    protected $table = 'warehouse_inventory_movements';
 
     protected $fillable = [
-       'folio',
-       'warehouse_inventory_id',
-       'movement_type',
-       'quantity',
-       'reason',
-       'user_id',
+        'folio',
+        'warehouse_inventory_id',
+        'movement_type',
+        'quantity',
+        'reason',
+        'user_id',
         'operation_date',
         'source_warehouse_id',
         'created_at',
         'updated_at',
-        'transfer_folio'
+        'transfer_folio',
     ];
 
     public function inventory()
@@ -40,6 +39,7 @@ class WarehouseInventoryMovementsModel extends Model
             'id'                    // La llave primaria en la tabla warehouses
         );
     }
+
     public function user()
     {
         return $this->belongsTo(

@@ -2,18 +2,19 @@
 
 namespace App\Application_Layer\Repository_Implementation;
 
-use App\Contracts\LocationRepositoryInterface;
-use App\Models\LocationModel;
-use App\Enterprise_Layer\Location;
-use App\Contracts\LocationModelToLocationEntityMapperI;
 use App\Contracts\LocationEntityToLocationModelMapperI;
-use App\Infrastructure\Exception\CouldNotPersistLocationException;
+use App\Contracts\LocationModelToLocationEntityMapperI;
+use App\Contracts\LocationRepositoryInterface;
+use App\Enterprise_Layer\Location;
 use App\Infrastructure\Exception\CouldNotDeleteLocationException;
+use App\Infrastructure\Exception\CouldNotPersistLocationException;
+use App\Models\LocationModel;
 use Illuminate\Database\QueryException;
 
 class LocationRepositoryImplementation implements LocationRepositoryInterface
 {
     private LocationModelToLocationEntityMapperI $locationModelToEntityMapper;
+
     private LocationEntityToLocationModelMapperI $locationEntityToLocationModelMapper;
 
     public function __construct(
@@ -29,14 +30,14 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
 
         $model = LocationModel::find($id);
 
-        if (!$model) {
+        if (! $model) {
             return null;
         }
 
-        return  $this->locationModelToEntityMapper
-        ->convertModelToEntity(
-            $model
-        );
+        return $this->locationModelToEntityMapper
+            ->convertModelToEntity(
+                $model
+            );
     }
 
     public function getAllHeadquartersName(): array
@@ -53,10 +54,10 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
     {
 
         try {
-            $locationModel =  $this->locationEntityToLocationModelMapper
-            ->convertDomainEntityToModel(
-                $location
-            );
+            $locationModel = $this->locationEntityToLocationModelMapper
+                ->convertDomainEntityToModel(
+                    $location
+                );
 
             $locationModel->save();
         } catch (\Throwable $e) {
@@ -88,9 +89,9 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
     {
 
         $locationModelUpdated = $this->locationEntityToLocationModelMapper
-        ->convertDomainEntityToModel(
-            $location
-        );
+            ->convertDomainEntityToModel(
+                $location
+            );
 
         try {
             $locationModelUpdated->save();
@@ -104,7 +105,8 @@ class LocationRepositoryImplementation implements LocationRepositoryInterface
 
     }
 
-    public function count(): int{
+    public function count(): int
+    {
         return LocationModel::count();
     }
 }

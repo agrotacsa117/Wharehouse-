@@ -33,18 +33,16 @@ class LocationRegistrationController extends Controller
 
         $locationDTO = new LocationRequestDTO(
             $validated['headquartersName'],
-            (int)$validated['postalCode'],
+            (int) $validated['postalCode'],
             $validated['state'],
             $validated['city'],
             $validated['address']
         );
 
-        
         $result = $this->locationService->createLocation(
             $locationDTO
         );
 
-        
         if ($result->isFailure()) {
             return back()
                 ->withErrors($result->getError())

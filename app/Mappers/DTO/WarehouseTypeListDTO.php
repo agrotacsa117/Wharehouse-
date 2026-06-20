@@ -5,8 +5,8 @@ namespace App\Mappers\DTO;
 class WarehouseTypeListDTO
 {
     private int $id;
-    private string $categoryWarehouse;
 
+    private string $categoryWarehouse;
 
     public function __construct(
         int $id,
@@ -35,5 +35,4 @@ class WarehouseTypeListDTO
     {
         $this->categoryWarehouse = $categoryWarehouse;
     }
-
 }

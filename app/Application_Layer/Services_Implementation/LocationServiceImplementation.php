@@ -2,15 +2,14 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\LocationServiceInterface;
 use App\Application_Layer\ResultPattern;
-use App\Contracts\LocationRepositoryInterface;
-use App\Mappers\DTO\Requests\LocationRequestDTO;
-use App\Mappers\DTO\LocationListDTO;
-use LDAP\Result;
-use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
-use App\Enterprise_Layer\Location;
 use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
+use App\Contracts\LocationRepositoryInterface;
+use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
+use App\Contracts\LocationServiceInterface;
+use App\Enterprise_Layer\Location;
+use App\Mappers\DTO\LocationListDTO;
+use App\Mappers\DTO\Requests\LocationRequestDTO;
 
 class LocationServiceImplementation implements LocationServiceInterface
 {
@@ -36,19 +35,20 @@ class LocationServiceImplementation implements LocationServiceInterface
     {
         if ($id <= 0) {
             return ResultPattern::failure(
-                "¡Error: id invalido!"
+                '¡Error: id invalido!'
             );
         }
 
         $locationEntity = $this->locationRepository->findById($id);
 
-        if (!$locationEntity) {
+        if (! $locationEntity) {
             return ResultPattern::failure(
-                "Error: ubicación no encontrada"
+                'Error: ubicación no encontrada'
             );
         }
 
         $locationEntity = $this->entityToDTOMapper->convertEntityToDTO($locationEntity);
+
         return ResultPattern::success($locationEntity);
     }
 
@@ -63,17 +63,17 @@ class LocationServiceImplementation implements LocationServiceInterface
             );
         }
 
-        return  $locations;
+        return $locations;
     }
 
     public function createLocation(LocationRequestDTO $locationRequestDTO): ResultPattern
     {
 
         try {
-            $locationEntity =  $this->locationRequestDTOToLocation
-            ->convertDTOToEntity(
-                $locationRequestDTO
-            );
+            $locationEntity = $this->locationRequestDTOToLocation
+                ->convertDTOToEntity(
+                    $locationRequestDTO
+                );
 
             $createdAt = new \DateTime(
                 'now',
@@ -92,7 +92,6 @@ class LocationServiceImplementation implements LocationServiceInterface
                 $locationEntity
             );
 
-
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
@@ -107,16 +106,16 @@ class LocationServiceImplementation implements LocationServiceInterface
 
         if ($this->getLocationById($id)->isFailure()) {
             return ResultPattern::failure(
-                "¡Error: no es posible actualizar "
-                ."la ubicación porque no existe!"
+                '¡Error: no es posible actualizar '
+                .'la ubicación porque no existe!'
             );
         }
 
         try {
-            $this->updatedLocationEntity =  $this->locationRequestDTOToLocation
-            ->convertDTOToEntity(
-                $updatedLocationRequestDTO
-            );
+            $this->updatedLocationEntity = $this->locationRequestDTOToLocation
+                ->convertDTOToEntity(
+                    $updatedLocationRequestDTO
+                );
 
             $this->updatedLocationEntity->setId($id);
 
@@ -138,8 +137,8 @@ class LocationServiceImplementation implements LocationServiceInterface
 
         if ($this->getLocationById($id)->isFailure()) {
             return ResultPattern::failure(
-                "¡Error: no es posible eliminar "
-                ."la ubicación porque no existe!"
+                '¡Error: no es posible eliminar '
+                .'la ubicación porque no existe!'
             );
         }
 
@@ -148,10 +147,12 @@ class LocationServiceImplementation implements LocationServiceInterface
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
+
         return ResultPattern::success(null);
     }
 
-    function getTotalLocation() : int{
+    public function getTotalLocation(): int
+    {
         return $this->locationRepository->count();
     }
 }

@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use App\Contracts\LocationServiceInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Contracts\WarehouseTypeServiceInterface;
-use App\Enterprise_Layer\Warehouse;
-use App\Enterprise_Layer\WarehouseType;
+use App\Mappers\DTO\WarehouseDTO;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseManagmentController extends Controller
 {
     private WarehouseStorageServiceInterface $warehouseStorageService;
+
     private LocationServiceInterface $locationService;
+
     private WarehouseTypeServiceInterface $warehouseTypeService;
 
     public function __construct(
@@ -30,17 +32,17 @@ class WarehouseManagmentController extends Controller
         $warehouses = $this->warehouseStorageService->listAllWarehouses();
 
         $totalWarehouses = $this->warehouseStorageService
-        ->getTotalWarehouse();
+            ->getTotalWarehouse();
 
         $totalLocation = $this->locationService->getTotalLocation();
 
         $allLocation = $this->locationService
-        ->listHeadquartersNames();
+            ->listHeadquartersNames();
 
         $allWarehouseType = $this->warehouseTypeService
-        ->listWarehouseTypesNames();
+            ->listWarehouseTypesNames();
 
-        $warehousesJson = array_map(function($w) {
+        $warehousesJson = array_map(function ($w) {
             return [
                 'id' => $w->getId(),
                 'key' => $w->getWarehouseKey(),
@@ -55,15 +57,15 @@ class WarehouseManagmentController extends Controller
                 'type' => $w->getCategoryWarehouse() ?? '',
                 'typeId' => $w->getWarehouseTypeId(),
                 'locationId' => $w->getLocationId(),
-                'active' => true
+                'active' => true,
             ];
         }, $warehouses);
 
-        $allLocationJson = array_map(function($loc) {
+        $allLocationJson = array_map(function ($loc) {
             return ['id' => $loc->getId(), 'name' => $loc->getHeadquartersName()];
         }, $allLocation);
 
-        $allWarehouseTypeJson = array_map(function($wt) {
+        $allWarehouseTypeJson = array_map(function ($wt) {
             return ['id' => $wt->getId(), 'name' => $wt->getCategoryWarehouse()];
         }, $allWarehouseType);
 
@@ -84,9 +86,9 @@ class WarehouseManagmentController extends Controller
 
     public function update(Request $request, int $id)
     {
-        \Illuminate\Support\Facades\Log::info('Update warehouse request:', [
+        Log::info('Update warehouse request:', [
             'id' => $id,
-            'request' => $request->all()
+            'request' => $request->all(),
         ]);
 
         $request->validate([
@@ -99,51 +101,50 @@ class WarehouseManagmentController extends Controller
             'type' => 'required|integer',
         ]);
 
-        \Illuminate\Support\Facades\Log::info('DTO being created:', [
+        Log::info('DTO being created:', [
             'key' => $request->key,
             'name' => $request->name,
             'responsable' => $request->responsable,
-            'type' => (int)$request->type,
-            'location' => (int)$request->location,
-            'dto_id' => $id
+            'type' => (int) $request->type,
+            'location' => (int) $request->location,
+            'dto_id' => $id,
         ]);
 
-        $dto = new \App\Mappers\DTO\WarehouseDTO(
+        $dto = new WarehouseDTO(
             $request->key,
             $request->name,
             $request->responsable ?? '',
             $request->phone ?? '',
             $request->email ?? '',
-            (int)$request->type,
-            (int)$request->location,
+            (int) $request->type,
+            (int) $request->location,
             auth()->id(),
             $id
         );
 
         $result = $this->warehouseStorageService->updateWarehouse($dto);
 
-
         return response()->json([
             'success' => true,
-            'message' => $result->isFailure()
+            'message' => $result->isFailure(),
         ]);
 
-        \Illuminate\Support\Facades\Log::info('Update result:', [
+        Log::info('Update result:', [
             'isFailure' => $result->isFailure(),
             'getValue' => $result->getValue(),
-            'getError' => $result->getError()
+            'getError' => $result->getError(),
         ]);
 
         if ($result->isFailure()) {
             return response()->json([
                 'success' => false,
-                'message' => $result->getError()
+                'message' => $result->getError(),
             ], 422);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Almacén actualizado correctamente.'
+            'message' => 'Almacén actualizado correctamente.',
         ]);
     }
 }

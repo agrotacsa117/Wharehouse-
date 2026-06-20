@@ -3,17 +3,16 @@
 namespace App\Mappers;
 
 use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
-use App\Models\WarehouseTypeModel;
 use App\Enterprise_Layer\WarehouseType;
-
+use App\Models\WarehouseTypeModel;
 
 class WarehouseTypeModelToWarehouseTypeEntityMapper implements WarehouseTypeModelToWarehouseTypeEntityMapperI
 {
     public function convertWarehouseTypeModelToWarehouseTypeEntity(WarehouseTypeModel $model): WarehouseType
     {
-        if (!$model instanceof WarehouseTypeModel) {
+        if (! $model instanceof WarehouseTypeModel) {
             throw new \InvalidArgumentException(
-                "Expected instance of WarehouseTypeModel"
+                'Expected instance of WarehouseTypeModel'
             );
         }
 
@@ -27,7 +26,7 @@ class WarehouseTypeModelToWarehouseTypeEntityMapper implements WarehouseTypeMode
             $entity->setCreatedAt(
                 new \DateTime(
                     $model->created_at
-                    ->toDateTimeString()
+                        ->toDateTimeString()
                 )
             );
         }
@@ -36,12 +35,11 @@ class WarehouseTypeModelToWarehouseTypeEntityMapper implements WarehouseTypeMode
             $entity->setUpdatedAt(
                 new \DateTime(
                     $model->updated_at
-                    ->toDateTimeString()
+                        ->toDateTimeString()
                 )
             );
         }
 
         return $entity;
     }
-
 }

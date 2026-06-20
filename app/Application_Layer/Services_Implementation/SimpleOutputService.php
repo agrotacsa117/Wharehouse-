@@ -2,12 +2,10 @@
 
 namespace App\Application_Layer\Services_Implementation;
 
-use App\Contracts\WarehouseOutputStrategy;
-use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
-use App\Mappers\DTO\WarehouseMovementsDTO;
+use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 
 class SimpleOutputService extends BaseOutputService
 {
@@ -26,9 +24,9 @@ class SimpleOutputService extends BaseOutputService
     ): ResultPattern {
         // 1. Validar stock disponible
         $result = $this
-        ->validateStockAvailability(
-            $dto
-        );
+            ->validateStockAvailability(
+                $dto
+            );
 
         if ($result->isFailure()) {
             return $result;
@@ -55,9 +53,9 @@ class SimpleOutputService extends BaseOutputService
             );
 
             $result = $this->warehouseMovementsService
-            ->saveWarehouseMovement(
-                $movementDTO
-            );
+                ->saveWarehouseMovement(
+                    $movementDTO
+                );
 
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
@@ -67,12 +65,12 @@ class SimpleOutputService extends BaseOutputService
             'message' => 'Salida registrada exitosamente',
             'previous_quantity' => $currentQuantity,
             'new_quantity' => $newQuantity,
-            'removed' => $dto->getQuantity()
+            'removed' => $dto->getQuantity(),
         ]);
     }
 
     public function getType(): string
     {
-        return "OUT";
+        return 'OUT';
     }
 }

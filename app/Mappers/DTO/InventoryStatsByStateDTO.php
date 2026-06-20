@@ -5,7 +5,9 @@ namespace App\Mappers\DTO;
 class InventoryStatsByStateDTO implements \JsonSerializable
 {
     private int $state;
+
     private int $totalStock;
+
     private string $warehouseName;
 
     public function __construct(
@@ -38,7 +40,7 @@ class InventoryStatsByStateDTO implements \JsonSerializable
         return [
             'state' => $this->state,
             'totalStock' => $this->totalStock,
-            'warehouseName' => $this->warehouseName
+            'warehouseName' => $this->warehouseName,
         ];
     }
 }

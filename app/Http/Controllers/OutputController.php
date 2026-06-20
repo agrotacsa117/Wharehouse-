@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
-use Symfony\Component\HttpFoundation\Request;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Request;
 
 class OutputController extends Controller
 {
     private WarehouseStorageServiceInterface $warehouseStorageService;
+
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
+
     private RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO;
 
     public function __construct(
@@ -25,11 +27,11 @@ class OutputController extends Controller
 
     public function processOutput(Request $request)
     {
-        $movementType =  $request->movement_type;
+        $movementType = $request->movement_type;
         $userId = auth()->id();
 
         switch ($movementType) {
-            case "RELOCATION":
+            case 'RELOCATION':
                 return $this->processRelocation(
                     $request,
                     $userId
@@ -54,15 +56,20 @@ class OutputController extends Controller
                     $movementType
                 );
 
+            case 'LOCATION_UPDATE':
+                return $this->processLocationUpdate(
+                    $request,
+                    $userId,
+                    $movementType
+                );
             default:
                 return back()->withErrors('Tipo de movimiento no válido.');
         }
 
-
-        $result =  $this->warehouseInventoryService
-        ->processInventoryOutput(
-            $this->removeWarehouseInventoryStockDTO
-        );
+        $result = $this->warehouseInventoryService
+            ->processInventoryOutput(
+                $this->removeWarehouseInventoryStockDTO
+            );
 
         if ($result->isFailure()) {
             return back()
@@ -71,25 +78,24 @@ class OutputController extends Controller
         }
 
         return redirect()
-          ->route('output.get')
-          ->with('success', 'Salida registrada correctamente');
+            ->route('output.get')
+            ->with('success', 'Salida registrada correctamente');
     }
 
     public function getView()
     {
-        //DB::enableQueryLog();
+        // DB::enableQueryLog();
         $warehousesId = $this->warehouseInventoryService
-        ->getWarehouseIdsWithInventory();
+            ->getWarehouseIdsWithInventory();
 
-
-        $warehousesWithLocationsDTO =  $this->warehouseStorageService->getListAllWarehousesWithLocation(
+        $warehousesWithLocationsDTO = $this->warehouseStorageService->getListAllWarehousesWithLocation(
             $warehousesId
         );
 
-
         // ✅ AGREGAR LISTA DE TODOS LOS ALMACENES PARA EL SELECT DE TRANSFER
         $allWarehouses = $this->warehouseStorageService->listAllWarehouses();
-        //dd(DB::getQueryLog());
+
+        // dd(DB::getQueryLog());
         return view(
             'module.output.create',
             compact('warehousesWithLocationsDTO', 'allWarehouses')
@@ -100,10 +106,10 @@ class OutputController extends Controller
     {
 
         $inventory = $this->warehouseInventoryService
-        ->getWarehouseInventoryByWarehouseId(
-            $id
-        );
-        
+            ->getWarehouseInventoryByWarehouseId(
+                $id
+            );
+
         return response()->json($inventory);
     }
 
@@ -112,6 +118,7 @@ class OutputController extends Controller
         $coLocatedWarehouses = $this->warehouseStorageService->getWarehousesByLocationId(
             $locationId
         );
+
         return response()->json($coLocatedWarehouses);
     }
 
@@ -122,14 +129,13 @@ class OutputController extends Controller
 
         $movementType = $request->movement_type;
         $request->validate([
-                    'new_rack' => 'required|string|max:50',
-                    'new_level' => 'required|integer|min:1',
-                    'quantity' => 'required|integer|min:1',
-                    'module' => 'required|integer|min:1',
-                    'bay' => 'required|integer|min:1',
-                    'platform' => 'required|integer|min:1'
-
-                ]);
+            'new_rack' => 'nullable|integer|max:50',
+            'new_level' => 'nullable|integer|min:1',
+            'quantity' => 'required|integer|min:1',
+            'module' => 'nullable|integer|min:1',
+            'bay' => 'nullable|integer|min:1',
+            'platform' => 'nullable|integer|min:1',
+        ]);
 
         $this->removeWarehouseInventoryStockDTO =
         $this->buildRemoveWarehouseInventoryStockDTO(
@@ -139,48 +145,59 @@ class OutputController extends Controller
         );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setQuantity(
-            $request->quantity
-        );
+            ->setQuantity(
+                $request->quantity
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setRack(
-            $request->new_rack
-        );
+            ->setRack(
+                $request->new_rack
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setLevel(
-            (int)$request->new_level
-        );
+            ->setLevel(
+                (int) $request->new_level
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setOperationDate(
-            $request->operation_date
-        );
+            ->setOperationDate(
+                $request->operation_date
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setWarehouseId(
-            $request->destination_warehouse_id
-        );
+            ->setWarehouseId(
+                $request->destination_warehouse_id
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setBay(
-            $request->bay
-        );
+            ->setBay(
+                $request->bay
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setModule(
-            $request->module
-        );
+            ->setModule(
+                $request->module
+            );
 
         $this->removeWarehouseInventoryStockDTO
-        ->setPlatform(
-            $request->platform
-        );
-        $this->warehouseInventoryService
-        ->processInventoryOutput(
-            $this->removeWarehouseInventoryStockDTO
-        );
+            ->setPlatform(
+                $request->platform
+            );
+
+        $result = $this->warehouseInventoryService
+            ->processInventoryOutput(
+                $this->removeWarehouseInventoryStockDTO
+            );
+
+        if ($result->isFailure()) {
+            return back()
+                ->withErrors($result->getError())
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('output.get')
+            ->with('success', 'Reubicación registrada correctamente');
 
     }
 
@@ -190,7 +207,9 @@ class OutputController extends Controller
         string $movementType
     ): RemoveWarehouseInventoryStockDTO {
 
-        $quantity = ($movementType === 'RELOCATION') ? 0 : (int) $request->quantity;
+        $quantity = (
+            $movementType === 'RELOCATION'
+        || $movementType === 'LOCATION_UPDATE') ? 0 : (int) $request->quantity;
         $dto = new RemoveWarehouseInventoryStockDTO(
             $request->warehouseInventoryId,
             $quantity,
@@ -203,7 +222,6 @@ class OutputController extends Controller
         return $dto;
     }
 
-
     // ═══════════════════════════════════════════════════════════
     // SALE (Venta)
     // ═══════════════════════════════════════════════════════════
@@ -213,7 +231,7 @@ class OutputController extends Controller
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'invoice_sap' => 'nullable|integer',
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
         ]);
 
         $this->removeWarehouseInventoryStockDTO = $this->buildRemoveWarehouseInventoryStockDTO(
@@ -228,7 +246,6 @@ class OutputController extends Controller
         }
 
         $this->removeWarehouseInventoryStockDTO->setOperationDate($request->operation_date ?? now()->format('Y-m-d'));
-
 
         $result = $this->warehouseInventoryService->processInventoryOutput(
             $this->removeWarehouseInventoryStockDTO
@@ -253,7 +270,7 @@ class OutputController extends Controller
         $request->validate([
             'warehouseInventoryId' => 'required|integer',
             'quantity' => 'required|integer|min:1',
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
         ]);
 
         $this->removeWarehouseInventoryStockDTO = $this->buildRemoveWarehouseInventoryStockDTO(
@@ -292,7 +309,7 @@ class OutputController extends Controller
             'quantity' => 'required|integer|min:1',
             'reason' => 'required|string|max:255',
             'destination_warehouse' => 'required|string|max:255',
-            'folio_transfer' => 'required|integer|min:1'
+            'folio_transfer' => 'required|integer|min:1',
         ]);
 
         // Obtener inventario actual
@@ -321,7 +338,7 @@ class OutputController extends Controller
             $inventory->getLotNumber(),
             (int) $request->quantity,
             $request->reason,
-            (int)$request->folio_transfer
+            (int) $request->folio_transfer
         );
 
         $this->removeWarehouseInventoryStockDTO
@@ -331,12 +348,11 @@ class OutputController extends Controller
             $movementType
         );
 
-
         // Ejecutar transferencia
         $result = $this->warehouseInventoryService
-        ->transferInventory(
-            $transferDTO
-        );
+            ->transferInventory(
+                $transferDTO
+            );
 
         if ($result->isFailure()) {
             return back()->withErrors(
@@ -344,8 +360,74 @@ class OutputController extends Controller
             )->withInput();
         }
 
-
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
     }
 
+    public function processLocationUpdate(
+        Request $request,
+        int $userId,
+        string $movementType
+    ) {
+        $request->validate([
+            'new_rack_r' => 'nullable|integer|max:50',
+            'new_level_r' => 'nullable|integer|min:1',
+            'new_module_r' => 'nullable|integer|min:1',
+            'new_bay_r' => 'nullable|integer|min:1',
+            'new_platform_r' => 'nullable|integer|min:1',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $this->removeWarehouseInventoryStockDTO = $this
+            ->buildRemoveWarehouseInventoryStockDTO(
+                $request,
+                $userId,
+                $movementType
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setRack($request->new_rack_r);
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setLevel(
+                $request->new_level_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setModule(
+                $request->new_module_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setBay(
+                $request->new_bay_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setPlatform(
+                $request->new_platform_r
+            );
+
+        $this->removeWarehouseInventoryStockDTO
+            ->setReason(
+                $request->reason
+            );
+
+        $result = $this->warehouseInventoryService
+            ->processInventoryOutput(
+                $this->removeWarehouseInventoryStockDTO
+            );
+
+        if ($result->isFailure()) {
+            return back()->withErrors(
+                $result->getError()
+            )->withInput();
+        }
+
+        return redirect()
+            ->route('output.get')
+            ->with(
+                'success',
+                '¡Reubicación en la misma 
+                 bodega registrada correctamente!');
+    }
 }

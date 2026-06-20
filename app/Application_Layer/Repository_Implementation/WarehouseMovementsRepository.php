@@ -2,16 +2,18 @@
 
 namespace App\Application_Layer\Repository_Implementation;
 
-use App\Contracts\WarehouseMovementsRepositoryI;
-use App\Models\WarehouseInventoryMovementsModel;
-use App\Enterprise_Layer\WarehouseInventoryMovements;
-use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
-use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Contracts\WarehouseInventoryMovementModelMapperI;
+use App\Contracts\WarehouseInventoryMovementsEntityToModelMapperI;
+use App\Contracts\WarehouseMovementsRepositoryI;
+use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Infrastructure\Exception\CouldNotPersistLocationException;
+use App\Models\WarehouseInventoryMovementsModel;
 use Illuminate\Support\Facades\DB;
+
 class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 {
     private WarehouseInventoryMovementsEntityToModelMapperI $warehouseInventoryMovementsEntityToModelMapperI;
+
     private WarehouseInventoryMovementModelMapperI $warehouseInventoryMovementModelMapper;
 
     public function __construct(
@@ -26,9 +28,10 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     {
         $movements = WarehouseInventoryMovementsModel::with(
             ['inventory.warehouse',
-            'user']
-        )->orderBy('created_at', 'asc')
-        ->get();
+                'user',
+                'sale']
+        )->orderBy('created_at', 'desc')
+            ->get();
 
         $movements = $movements->toArray();
 
@@ -39,10 +42,10 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     {
         $paginator = WarehouseInventoryMovementsModel::with(
             ['inventory.warehouse',
-            'user']
+                'user']
         )
-        ->orderBy('created_at', 'asc')
-        ->paginate($perPage);
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage);
 
         $items = collect($paginator->items())->map(function ($item) {
             return $item->toArray();
@@ -53,7 +56,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
             'total' => $paginator->total(),
             'per_page' => $paginator->perPage(),
             'current_page' => $paginator->currentPage(),
-            'last_page' => $paginator->lastPage()
+            'last_page' => $paginator->lastPage(),
         ];
     }
 
@@ -66,7 +69,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
     {
         $warehouseInventoryMovementsModel =
         $this->warehouseInventoryMovementsEntityToModelMapperI
-        ->mapToInventoryMovementsModel($warehouseMovements);
+            ->mapToInventoryMovementsModel($warehouseMovements);
 
         try {
             $warehouseInventoryMovementsModel->save();
@@ -89,8 +92,8 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         $maxFolio = WarehouseInventoryMovementsModel::max(
             DB::raw("CAST(REGEXP_REPLACE(folio, '[^0-9]', '') AS UNSIGNED)")
         );
-        
-        return (int)$maxFolio;
+
+        return (int) $maxFolio;
     }
 
     public function countByMovementType(string $movementType): int
@@ -109,16 +112,17 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         ?string $movementType = null
     ): array {
 
-        $filteredMovements =  WarehouseInventoryMovementsModel::query()
-        ->with([
-            'inventory.warehouse',
-            'user',
-            'sourceWarehouse' => function ($q) {
-                $q->select('id', 'warehouses_name');
-            }])
-        ->whereBetween('created_at', [
+        $filteredMovements = WarehouseInventoryMovementsModel::query()
+            ->with([
+                'inventory.warehouse',
+                'user',
+                'sale',
+                'sourceWarehouse' => function ($q) {
+                    $q->select('id', 'warehouses_name');
+                }])
+            ->whereBetween('created_at', [
                 $startDate,
-                $endDate
+                $endDate,
             ]);
 
         if ($warehouseId) {
@@ -154,7 +158,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         $movementCounts = WarehouseInventoryMovementsModel::whereBetween(
             'created_at',
             [$startDate,
-            $endDate]
+                $endDate]
         )->groupBy('movement_type')->selectRaw(
             'movement_type, COUNT(movement_type) as count'
         )->pluck(

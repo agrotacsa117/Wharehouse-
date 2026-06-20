@@ -2,8 +2,8 @@
 
 namespace App\Contracts;
 
-use App\Models\LocationModel;
 use App\Enterprise_Layer\Location;
+use App\Models\LocationModel;
 
 interface LocationEntityToLocationModelMapperI
 {

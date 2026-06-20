@@ -4,7 +4,4 @@ namespace App\Enterprise_Layer\Exception;
 
 use RuntimeException;
 
-class InvalidCityNameException extends RuntimeException
-{
-    
-}
+class InvalidCityNameException extends RuntimeException {}

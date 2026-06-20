@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
+use App\Contracts\RoleServiceI;
 use App\Models\User;
 use Exception;
-use App\Contracts\RoleServiceI;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class Usuarios extends Controller
 {
@@ -17,13 +17,15 @@ class Usuarios extends Controller
     ) {
         $this->roleService = $roleService;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $titulo = "Usuarios";
+        $titulo = 'Usuarios';
         $items = User::all();
+
         return view('module.usuarios.index', compact('items', 'titulo'));
     }
 
@@ -34,6 +36,7 @@ class Usuarios extends Controller
     {
         $rols = $this->roleService->getRolesList();
         $titulo = 'Usuario Nuevo';
+
         return view('module.usuarios.create', compact(
             'titulo',
             'rols'
@@ -60,7 +63,7 @@ class Usuarios extends Controller
             'rol.required' => 'El rol es obligatorio.',
         ]);
 
-        //rol-name
+        // rol-name
         $rolJson = $request->input('rol');
         $rolData = json_decode($rolJson, true);
 
@@ -74,11 +77,12 @@ class Usuarios extends Controller
                 'password' => Hash::make($request->password),
                 'activo' => true,
                 'rol' => $name,
-                'rol_id'  => $id
+                'rol_id' => $id,
             ]);
+
             return redirect()->route('usuarios')->with('success', 'Usuario Guardado con Éxito!');
         } catch (Exception $e) {
-            return redirect()->route('usuarios')->with('error', 'Error al guardar usuario: '. $e->getMessage());
+            return redirect()->route('usuarios')->with('error', 'Error al guardar usuario: '.$e->getMessage());
         }
     }
 
@@ -96,7 +100,8 @@ class Usuarios extends Controller
     public function edit(string $id)
     {
         $items = User::find($id);
-        $titulo = "Editar usuario";
+        $titulo = 'Editar usuario';
+
         return view('module.usuarios.edit', compact('items', 'titulo'));
 
     }
@@ -108,13 +113,14 @@ class Usuarios extends Controller
     {
         try {
             $items = User::find($id);
-            $items ->name = $request->name;
-            $items ->email = $request->email;
-            $items ->rol = $request->rol;
+            $items->name = $request->name;
+            $items->email = $request->email;
+            $items->rol = $request->rol;
             $items->save();
+
             return redirect()->route('usuarios')->with('success', 'Usuario Actualizado con Exito!');
         } catch (Exception $e) {
-            return redirect()->route('usuarios')->with('error', 'Error al actualizar Usiario!'. $e->getMessage());
+            return redirect()->route('usuarios')->with('error', 'Error al actualizar Usiario!'.$e->getMessage());
         }
     }
 
@@ -125,15 +131,18 @@ class Usuarios extends Controller
     {
         //
     }
+
     public function tbody()
     {
         $items = User::all();
+
         return view('modules.usuarios.tbody', compact('items'));
     }
+
     public function estado($id, $estado)
     {
         $usuario = User::find($id);
-        if (!$usuario) {
+        if (! $usuario) {
             return 0;
         }
         $usuario->activo = $estado;
@@ -143,10 +152,12 @@ class Usuarios extends Controller
             return 0;
         }
     }
+
     public function cambio_password($id, $password)
     {
         $items = User::find($id);
         $items->password = Hash::make($password);
+
         return $items->save();
     }
 }

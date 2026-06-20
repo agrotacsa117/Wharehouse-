@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
-use App\Models\WarehouseInventoryModel;
 use App\Enterprise_Layer\WarehouseInventory;
+use App\Models\WarehouseInventoryModel;
 
 interface WarehouseInventoryEntityToWarehouseInventoryModelMapperI
 {

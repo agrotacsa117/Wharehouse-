@@ -2,8 +2,8 @@
 
 namespace App\Contracts;
 
-use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 use App\Application_Layer\ResultPattern;
+use App\Mappers\DTO\Requests\WarehouseSalesRequestDTO;
 
 interface WarehouseSalesServiceI
 {
@@ -16,6 +16,4 @@ interface WarehouseSalesServiceI
     public function filterSales(
         string $searchParam
     ): array;
-
-
 }

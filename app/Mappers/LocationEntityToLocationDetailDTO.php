@@ -6,7 +6,6 @@ use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
 use App\Enterprise_Layer\Location;
 use App\Mappers\DTO\LocationDetailDTO;
 
-
 class LocationEntityToLocationDetailDTO implements LocationEntityToLocationDetailDTOMapperI
 {
     public function convertEntityToDTO(Location $location): LocationDetailDTO

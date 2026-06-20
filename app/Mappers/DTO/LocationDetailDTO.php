@@ -5,12 +5,19 @@ namespace App\Mappers\DTO;
 class LocationDetailDTO
 {
     public int $id;
+
     public string $headquartersName;
+
     public int $postalCode;
+
     public string $state;
+
     public string $city;
+
     public string $address;
+
     public \DateTime $createdAt;
+
     public \DateTime $updatedAt;
 
     public function __construct(

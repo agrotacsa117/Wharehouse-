@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Producto;
+
 use App\Models\Categoria;
 use App\Models\Models\Salida;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 
 class Reportes_productos extends Controller
 {
     public function index(Request $request)
     {
-        $titulo = "Reporte de Productos";
+        $titulo = 'Reporte de Productos';
         // Filtros para Listado General
         $fechaInicioListado = $request->input('fecha_inicio_listado');
         $fechaFinListado = $request->input('fecha_fin_listado');
@@ -27,9 +28,9 @@ class Reportes_productos extends Controller
             'users.rol as rol_user',
             'proveedores.nombre as nombre_proveedores'
         )
-        ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
-        ->join('users', 'productos.user_id', '=', 'users.id')
-        ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
+            ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->join('users', 'productos.user_id', '=', 'users.id')
+            ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
 
         if ($fechaInicioListado && $fechaFinListado) {
             $queryListado->whereBetween('productos.fecha_ingreso', [$fechaInicioListado, $fechaFinListado]);
@@ -51,9 +52,9 @@ class Reportes_productos extends Controller
             'users.rol as rol_user',
             'proveedores.nombre as nombre_proveedores'
         )
-        ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
-        ->join('users', 'productos.user_id', '=', 'users.id')
-        ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
+            ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->join('users', 'productos.user_id', '=', 'users.id')
+            ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
 
         if ($fechaInicioResumen && $fechaFinResumen) {
             $queryResumen->whereBetween('productos.fecha_ingreso', [$fechaInicioResumen, $fechaFinResumen]);

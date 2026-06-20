@@ -16,7 +16,8 @@ class Categorias extends Controller
     {
         $titulo = 'Administrar categorias';
         $items = Categoria::all();
-        return view('module.categorias.index', compact('titulo','items'));
+
+        return view('module.categorias.index', compact('titulo', 'items'));
     }
 
     /**
@@ -26,6 +27,7 @@ class Categorias extends Controller
     {
         $titulo = 'Crear Categoria';
         $items = Categoria::all();
+
         return view('module.categorias.create', compact('titulo', 'items'));
     }
 
@@ -42,17 +44,18 @@ class Categorias extends Controller
             'clave.unique' => 'La clave de la categoría ya existe.',
             'nombre.required' => 'El nombre de la categoría es obligatorio.',
         ]);
-        try{
-            $item = new Categoria();
-        $item->user_id = Auth::user()->id;
-        $item ->clave =$request->clave;
-        $item ->nombre =$request->nombre;
-        $item->save(); 
-        return redirect()->route('categorias.index')->with('success', 'Categoria agregada!');
-        }catch(Exception $e){
-            return redirect()->route('categorias.index')->with('error', 'No se pudo guardar!' . $e->getMessage());
+        try {
+            $item = new Categoria;
+            $item->user_id = Auth::user()->id;
+            $item->clave = $request->clave;
+            $item->nombre = $request->nombre;
+            $item->save();
+
+            return redirect()->route('categorias.index')->with('success', 'Categoria agregada!');
+        } catch (Exception $e) {
+            return redirect()->route('categorias.index')->with('error', 'No se pudo guardar!'.$e->getMessage());
         }
-        
+
     }
 
     /**
@@ -71,6 +74,7 @@ class Categorias extends Controller
     {
         $titulo = 'Actualizar categoria';
         $items = Categoria::find($id);
+
         return view('module.categorias.edit', compact('items', 'titulo'));
     }
 
@@ -79,27 +83,30 @@ class Categorias extends Controller
      */
     public function update(Request $request, string $id)
     {
-        try{
+        try {
             $items = Categoria::find($id);
-        $items ->clave =$request->clave;
-        $items ->nombre =$request->nombre;
-        $items->save();
-        return redirect()->route('categorias.index')->with('success', 'Categoria Actualizada!');
-        }catch(Exception $e){
-            return redirect()->route('categorias.index')->with('error', 'No se pudo Actualizar!' . $e->getMessage());
+            $items->clave = $request->clave;
+            $items->nombre = $request->nombre;
+            $items->save();
+
+            return redirect()->route('categorias.index')->with('success', 'Categoria Actualizada!');
+        } catch (Exception $e) {
+            return redirect()->route('categorias.index')->with('error', 'No se pudo Actualizar!'.$e->getMessage());
         }
     }
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        try{
+        try {
             $items = Categoria::find($id);
-        $items->delete();
-         return redirect()->route('categorias.index')->with('success', 'Categoria Eliminada!');
-        }catch(Exception $e){
-            return redirect()->route('categorias.index')->with('error', 'No se pudo Eliminar!' . $e->getMessage());
+            $items->delete();
+
+            return redirect()->route('categorias.index')->with('success', 'Categoria Eliminada!');
+        } catch (Exception $e) {
+            return redirect()->route('categorias.index')->with('error', 'No se pudo Eliminar!'.$e->getMessage());
         }
     }
 }

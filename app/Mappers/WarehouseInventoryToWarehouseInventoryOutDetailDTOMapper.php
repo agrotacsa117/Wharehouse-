@@ -10,20 +10,43 @@ class WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper implements Wareho
 {
     public function convertToOutDetailDTO(WarehouseInventory $warehouseInventory): WarehouseInventoryOutDetailDTO
     {
-        return new WarehouseInventoryOutDetailDTO(
+
+        // $warehouseInventory->getManufacturingDate()->format('Y-m-d')
+        $warehouseInventoryOutDetailDTO
+        = new WarehouseInventoryOutDetailDTO(
             $warehouseInventory->getId(),
             $warehouseInventory->getWarehouseId(),
             $warehouseInventory->getRack(),
             $warehouseInventory->getLevel(),
-            (string)$warehouseInventory->getProductId(),
+            (string) $warehouseInventory->getProductId(),
             $warehouseInventory->getWarehouseName(),
             $warehouseInventory->getQuantity(),
             $warehouseInventory->getLotNumber(),
             $warehouseInventory->getExpirationDate()->format('Y-m-d'),
             $warehouseInventory->getModule(),
             $warehouseInventory->getBay(),
-            $warehouseInventory->getPlatform()
+            $warehouseInventory->getPlatform(),
+            $warehouseInventory->getManufacturingDate() ? $warehouseInventory->getManufacturingDate()->format('Y-m-d') : null
         );
-    }
 
+        $warehouseInventoryOutDetailDTO
+            ->setActiveInventory(
+                $warehouseInventory
+                    ->isActiveInventory()
+            );
+
+        $warehouseInventoryOutDetailDTO
+            ->setReason(
+                $warehouseInventory
+                    ->getReason()
+            );
+
+        $warehouseInventoryOutDetailDTO
+            ->setTransferFolio(
+                $warehouseInventory
+                    ->getTransferFolio()
+            );
+
+        return $warehouseInventoryOutDetailDTO;
+    }
 }

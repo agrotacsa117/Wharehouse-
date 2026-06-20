@@ -12,7 +12,7 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         WarehouseInventoryMovements $warehouseInventoryMovements
     ): WarehouseInventoryMovementsModel {
 
-        $model = new WarehouseInventoryMovementsModel();
+        $model = new WarehouseInventoryMovementsModel;
 
         $model->folio = $warehouseInventoryMovements->getFolio();
         $model->warehouse_inventory_id = $warehouseInventoryMovements->getWarehouseInventoryId();

@@ -5,6 +5,7 @@ namespace App\Mappers\DTO;
 class RoleDTO
 {
     private int $id;
+
     private string $roleName;
 
     public function __construct(
@@ -14,6 +15,7 @@ class RoleDTO
         $this->id = $id;
         $this->roleName = $roleName;
     }
+
     // Getter para id
     public function getId(): int
     {

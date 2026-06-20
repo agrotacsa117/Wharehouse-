@@ -5,6 +5,7 @@ namespace App\Mappers\DTO\Requests;
 class WarehouseSalesRequestDTO
 {
     private string $movementId;
+
     private int $invoiceSap;
 
     public function __construct(
@@ -21,8 +22,6 @@ class WarehouseSalesRequestDTO
         return $this->movementId;
     }
 
-    
-
     public function getInvoiceSap(): int
     {
         return $this->invoiceSap;
@@ -33,8 +32,6 @@ class WarehouseSalesRequestDTO
     {
         $this->movementId = $movementId;
     }
-
-    
 
     public function setInvoiceSap(int $invoiceSap): void
     {

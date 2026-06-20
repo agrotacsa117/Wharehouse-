@@ -20,7 +20,7 @@ interface WarehouseStorageServiceInterface
     public function deleteByWarehouseId(int $warehouseId): ResultPattern;
 
     public function updateFieldsByWarehouseId(
-        int   $warehouseId,
+        int $warehouseId,
         array $fields
     ): ResultPattern;
 
@@ -36,5 +36,4 @@ interface WarehouseStorageServiceInterface
         array $warehouseIds): array;
 
     public function getWarehousesByLocationId(int $locationId): array;
-
 }

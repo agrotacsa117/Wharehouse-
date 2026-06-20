@@ -9,8 +9,8 @@ namespace App\Contracts;
 interface ModelMapperToEntityInterface
 {
     /**
-      * @param TModel $model
-      * @return TEntity
-      */
+     * @param  TModel  $model
+     * @return TEntity
+     */
     public function convertModelToEntity($model);
 }

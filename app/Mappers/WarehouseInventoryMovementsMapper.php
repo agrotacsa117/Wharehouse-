@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Mappers;
 
-use App\Mappers\DTO\WarehouseMovementsDTO;
-use App\Enterprise_Layer\WarehouseInventoryMovements;
 use App\Contracts\WarehouseInventoryMovementsMapperI;
+use App\Enterprise_Layer\WarehouseInventoryMovements;
+use App\Mappers\DTO\WarehouseMovementsDTO;
 
 class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMapperI
 {
@@ -25,18 +25,15 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
 
         if ($warehouseMovementsDTO->getTransferFolio()) {
             $warehouseInventoryMovements
-            ->setTransferFolio(
-                $warehouseMovementsDTO->getTransferFolio()
-            );
+                ->setTransferFolio(
+                    $warehouseMovementsDTO->getTransferFolio()
+                );
         }
         if ($warehouseMovementsDTO->getSourceWarehouseId() !== null) {
             $warehouseInventoryMovements->setSourceWarehouseId(
                 $warehouseMovementsDTO->getSourceWarehouseId()
             );
         }
-
-
-
 
         if ($warehouseMovementsDTO->getOperationDate() !== null) {
             $warehouseInventoryMovements->setOperationDate(

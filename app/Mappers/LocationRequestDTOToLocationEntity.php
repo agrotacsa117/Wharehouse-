@@ -6,10 +6,8 @@ use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Enterprise_Layer\Location;
 use App\Mappers\DTO\Requests\LocationRequestDTO;
 
-
 class LocationRequestDTOToLocationEntity implements LocationRequestDTOToLocationEntityMapperI
 {
-
     public function convertDTOToEntity(LocationRequestDTO $tDTO): Location
     {
         return new Location(

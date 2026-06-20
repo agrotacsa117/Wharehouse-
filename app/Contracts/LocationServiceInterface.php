@@ -4,7 +4,6 @@ namespace App\Contracts;
 
 use App\Application_Layer\ResultPattern;
 use App\Mappers\DTO\Requests\LocationRequestDTO;
-use App\Mappers\DTO\LocationDetailDTO;
 
 interface LocationServiceInterface
 {
@@ -21,5 +20,5 @@ interface LocationServiceInterface
 
     public function deleteLocation(int $id): ResultPattern;
 
-    function getTotalLocation() : int;
+    public function getTotalLocation(): int;
 }

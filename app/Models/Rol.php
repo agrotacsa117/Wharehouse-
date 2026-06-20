@@ -8,17 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Rol extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'roles';
-    
+
     protected $fillable = [
         'name',
         'description',
-        'permissions'
+        'permissions',
     ];
 
     protected $casts = [
-        'permissions' => 'array'
+        'permissions' => 'array',
     ];
 
     // Relación con usuarios

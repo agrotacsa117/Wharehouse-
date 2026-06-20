@@ -5,9 +5,13 @@ namespace App\Mappers\DTO\Requests;
 class LocationRequestDTO
 {
     private string $headquartersName;
+
     private int $postalCode;
+
     private string $state;
+
     private string $city;
+
     private string $address;
 
     public function __construct(

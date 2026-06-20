@@ -9,25 +9,49 @@ use DateTime;
 class WarehouseInventoryMovements
 {
     public const TYPE_IN = 'IN';
+
     public const TYPE_OUT = 'OUT';
+
     public const TYPE_ADJUSTMENT = 'ADJUSTMENT';
+
     public const TYPE_TRANSFER = 'TRANSFER';
+
     public const TYPE_SALE = 'SALE';
+
     public const TYPE_RELOCATION = 'RELOCATION';
 
-    //enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION')
+    public const LOCATION_UPDATE = 'LOCATION_UPDATE';
+
+    // enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION')
     private $id;
+
     private $folio;
+
     private $warehouseInventoryId;
+
     private $movementType;
+
     private $quantity;
+
     private $reason;
+
     private $userId;
+
     private $createdAt;
+
     private $updatedAt;
+
     private ?int $sourceWarehouseId = null;
-    private ?\DateTime $operationDate = null;
+
+    private ?DateTime $operationDate = null;
+
     private ?int $transferFolio = null;
+
+    private bool $iSReversed;
+
+    private ?int $reversedBy = null;
+
+    private ?int $reversalOf = null;
 
     public function __construct(
         string $folio,
@@ -49,6 +73,7 @@ class WarehouseInventoryMovements
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
+        $this->iSReversed = false;
     }
 
     public function getTransferFolio(): ?int
@@ -73,11 +98,12 @@ class WarehouseInventoryMovements
             self::TYPE_ADJUSTMENT,
             self::TYPE_TRANSFER,
             self::TYPE_RELOCATION,
-            self::TYPE_SALE
+            self::TYPE_SALE,
+            self::LOCATION_UPDATE,
         ];
 
-        if (!in_array($type, $allowed, true)) {
-            throw new \InvalidArgumentException("Invalid movement type.");
+        if (! in_array($type, $allowed, true)) {
+            throw new \InvalidArgumentException('Invalid movement type.');
         }
     }
 
@@ -87,9 +113,7 @@ class WarehouseInventoryMovements
         return $this->sourceWarehouseId;
     }
 
-
-
-    public function getOperationDate(): ?\DateTime
+    public function getOperationDate(): ?DateTime
     {
         return $this->operationDate;
     }
@@ -98,13 +122,14 @@ class WarehouseInventoryMovements
     public function setSourceWarehouseId(int $sourceWarehouseId): self
     {
         $this->sourceWarehouseId = $sourceWarehouseId;
+
         return $this;
     }
 
-
-    public function setOperationDate(\DateTime $operationDate): self
+    public function setOperationDate(DateTime $operationDate): self
     {
         $this->operationDate = $operationDate;
+
         return $this;
     }
 
@@ -113,7 +138,7 @@ class WarehouseInventoryMovements
         string $movementType
     ): void {
         if ($quantity <= 0 && $movementType !== self::TYPE_RELOCATION) {
-            throw new \InvalidArgumentException("Quantity must be greater than zero.");
+            throw new \InvalidArgumentException('Quantity must be greater than zero.');
         }
     }
 
@@ -181,5 +206,33 @@ class WarehouseInventoryMovements
         $this->updatedAt = $updatedAt;
     }
 
+    public function isReversed(): bool
+    {
+        return $this->iSReversed;
+    }
 
+    public function setIsReversed(bool $iSReversed): void
+    {
+        $this->iSReversed = $iSReversed;
+    }
+
+    public function getReversedBy(): ?int
+    {
+        return $this->reversedBy;
+    }
+
+    public function setReversedBy(?int $reversedBy): void
+    {
+        $this->reversedBy = $reversedBy;
+    }
+
+    public function getReversalOf(): ?int
+    {
+        return $this->reversalOf;
+    }
+
+    public function setReversalOf(?int $reversalOf): void
+    {
+        $this->reversalOf = $reversalOf;
+    }
 }

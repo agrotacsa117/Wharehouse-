@@ -5,18 +5,30 @@ namespace App\Mappers\DTO\Requests;
 class WarehouseInventoryRequestDTO
 {
     private string $productId;
+
     private int $warehouseId;
+
     private ?int $rack;
+
     private ?int $level;
+
     private ?int $module;
+
     private ?int $bay;
+
     private ?int $platform;
+
     private int $quantity;
+
     private ?\DateTime $expirationDate;
+
     private string $reason;
+
     private ?string $loteNumber;
+
     private ?int $transferFolio;
-    //manufacturing_date
+
+    // manufacturing_date
     private ?\DateTime $manufacturingDate;
 
     public function __construct(
@@ -48,8 +60,6 @@ class WarehouseInventoryRequestDTO
 
     /**
      * Establece la fecha de fabricación.
-     * * @param \DateTime $manufacturingDate
-     * @return self
      */
     public function setManufacturingDate(\DateTime $manufacturingDate): self
     {
@@ -57,11 +67,12 @@ class WarehouseInventoryRequestDTO
 
         return $this;
     }
-    
+
     public function getTransferFolio(): ?int
     {
         return $this->transferFolio;
     }
+
     /**
      * Get the value of module
      */
@@ -180,7 +191,7 @@ class WarehouseInventoryRequestDTO
         $this->reason = $reason;
     }
 
-    //$LoteNumber
+    // $LoteNumber
     public function setLoteNumber(string $loteNumber): void
     {
         $this->loteNumber = $loteNumber;

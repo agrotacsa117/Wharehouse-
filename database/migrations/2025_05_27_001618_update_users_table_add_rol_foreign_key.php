@@ -17,7 +17,7 @@ return new class extends Migration
         // Primero, asegurarse de que la tabla roles existe
         if (Schema::hasTable('roles')) {
             // Agregar la columna rol_id si no existe
-            if (!Schema::hasColumn('users', 'rol_id')) {
+            if (! Schema::hasColumn('users', 'rol_id')) {
                 Schema::table('users', function (Blueprint $table) {
                     $table->unsignedBigInteger('rol_id')->nullable()->after('rol');
                 });
@@ -26,9 +26,9 @@ return new class extends Migration
             // Crear la restricción de clave foránea
             Schema::table('users', function (Blueprint $table) {
                 $table->foreign('rol_id')
-                      ->references('id')
-                      ->on('roles')
-                      ->onDelete('set null');
+                    ->references('id')
+                    ->on('roles')
+                    ->onDelete('set null');
             });
         }
     }

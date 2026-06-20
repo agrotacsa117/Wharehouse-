@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\WarehouseInventoryServiceInterface;
-use App\Mappers\DTO\UpdateInventoryDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
+use App\Mappers\DTO\UpdateInventoryDTO;
 use App\Models\WarehouseModel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class InventoryManagementController extends Controller
 {
@@ -21,11 +20,11 @@ class InventoryManagementController extends Controller
 
     public function index()
     {
-        $titulo = "Gestión de Inventario";
+        $titulo = 'Gestión de Inventario';
         $almacenes = WarehouseModel::select('id', 'warehouses_name')->get();
         $inventory = $this->warehouseInventoryService->getAllWarehouseInventories();
 
-        //$inventory = $this->warehouseInventoryService->getAllInventoryForManagement();
+        // $inventory = $this->warehouseInventoryService->getAllInventoryForManagement();
 
         return view('module.inventory-management.index', compact(
             'titulo',
@@ -38,7 +37,7 @@ class InventoryManagementController extends Controller
     {
         $inventory = $this->warehouseInventoryService->getInventoryById($id);
 
-        if (!$inventory) {
+        if (! $inventory) {
             return response()->json(['error' => 'Inventario no encontrado'], 404);
         }
 
@@ -54,15 +53,15 @@ class InventoryManagementController extends Controller
             'lot_number' => 'required|string|max:100',
             'quantity' => 'required|integer|min:0',
             'expiration_date' => 'required|date',
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
         ]);
 
         $dto = new UpdateInventoryDTO(
-            (int)$request->id,
+            (int) $request->id,
             $request->rack,
-            (int)$request->level,
+            (int) $request->level,
             $request->lot_number,
-            (int)$request->quantity,
+            (int) $request->quantity,
             $request->expiration_date,
             $request->reason
         );
@@ -72,13 +71,13 @@ class InventoryManagementController extends Controller
         if ($result->isFailure()) {
             return response()->json([
                 'success' => false,
-                'message' => $result->getError()
+                'message' => $result->getError(),
             ], 400);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Inventario actualizado correctamente'
+            'message' => 'Inventario actualizado correctamente',
         ]);
     }
 
@@ -92,23 +91,23 @@ class InventoryManagementController extends Controller
             'level' => 'required|integer|min:1',
             'lot_number' => 'required|string|max:100',
             'quantity' => 'required|integer|min:1',
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
         ]);
 
         $dto = new TransferInventoryDTO(
-            (int)$request->inventory_id,
-            (int)$request->from_warehouse_id,
-            (int)$request->to_warehouse_id,
+            (int) $request->inventory_id,
+            (int) $request->from_warehouse_id,
+            (int) $request->to_warehouse_id,
             $request->rack,
-            (int)$request->level,
+            (int) $request->level,
             $request->lot_number,
-            (int)$request->quantity,
+            (int) $request->quantity,
             $request->reason
         );
 
-         return response()->json([
+        return response()->json([
             'success' => true,
-            'message' =>  $dto
+            'message' => $dto,
         ]);
 
         $result = $this->warehouseInventoryService->transferInventory($dto);
@@ -116,13 +115,13 @@ class InventoryManagementController extends Controller
         if ($result->isFailure()) {
             return response()->json([
                 'success' => false,
-                'message' => $result->getError()
+                'message' => $result->getError(),
             ], 400);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Transferencia realizada correctamente'
+            'message' => 'Transferencia realizada correctamente',
         ]);
     }
 }

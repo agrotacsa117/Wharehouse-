@@ -5,18 +5,36 @@ namespace App\Mappers\DTO;
 class WarehouseInventoryOutDetailDTO implements \JsonSerializable
 {
     private int $inventoryId;
+
     private int $warehouseId;
+
     private ?int $rack;
+
     private ?int $level;
+
     private string $productCode;
+
     private string $productName;
+
     private int $quantity;
+
     private string $lotNumber;
+
     private string $expirationDate;
+
     private ?int $module;
+
     private ?int $bay;
+
     private ?int $platform;
 
+    private ?string $manufacturingDate;
+
+    private bool $activeInventory;
+
+    private string $reason;
+
+    private ?string $transferFolio;
 
     public function __construct(
         int $inventoryId,
@@ -30,7 +48,8 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         string $expirationDate,
         ?int $module,
         ?int $bay,
-        ?int $platform
+        ?int $platform,
+        ?string $manufacturingDate
     ) {
         $this->inventoryId = $inventoryId;
         $this->warehouseId = $warehouseId;
@@ -44,6 +63,12 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         $this->module = $module;
         $this->bay = $bay;
         $this->platform = $platform;
+        $this->manufacturingDate = $manufacturingDate;
+    }
+
+    public function getManufacturingDate(): ?string
+    {
+        return $this->manufacturingDate;
     }
 
     public function getInventoryId(): int
@@ -76,12 +101,12 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         $this->rack = $rack;
     }
 
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }
 
-    public function setLevel(int $level): void
+    public function setLevel(?int $level): void
     {
         $this->level = $level;
     }
@@ -136,6 +161,21 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
         $this->expirationDate = $expirationDate;
     }
 
+    public function getModule(): ?int
+    {
+        return $this->module;
+    }
+
+    public function getBay(): ?int
+    {
+        return $this->bay;
+    }
+
+    public function getPlatform(): ?int
+    {
+        return $this->platform;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -150,7 +190,50 @@ class WarehouseInventoryOutDetailDTO implements \JsonSerializable
             'expirationDate' => $this->expirationDate,
             'module' => $this->module,
             'bay' => $this->bay,
-            'platform' => $this->platform
+            'platform' => $this->platform,
         ];
+    }
+
+    public function isActiveInventory(): bool
+    {
+        return $this->activeInventory;
+    }
+
+    public function setActiveInventory(bool $activeInventory): void
+    {
+        $this->activeInventory = $activeInventory;
+    }
+
+    /**
+     * Obtiene el valor de reason.
+     */
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+
+    /**
+     * Establece el valor de reason.
+     */
+    public function setReason(string $reason): void
+    {
+        $this->reason = $reason;
+    }
+
+    /**
+     * Obtiene el valor de transferFolio.
+     */
+    public function getTransferFolio(): ?string
+    {
+        return $this->transferFolio;
+    }
+
+    /**
+     * Establece el valor de transferFolio.
+     */
+    public function setTransferFolio(
+        ?string $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 }

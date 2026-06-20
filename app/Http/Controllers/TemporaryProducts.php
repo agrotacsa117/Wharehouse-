@@ -2,11 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
-use App\Models\Producto;    
-use App\Models\Proveedor;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Producto;
 
 class TemporaryProducts extends Controller
 {
@@ -15,7 +11,7 @@ class TemporaryProducts extends Controller
      */
     public function index()
     {
-        $titulo = "Productos";
+        $titulo = 'Productos';
         $query = Producto::select(
             'productos.*',
             'categorias.clave as clave_categorias',
@@ -23,9 +19,9 @@ class TemporaryProducts extends Controller
             'users.rol as rol_user',
             'proveedores.nombre as nombre_proveedores'
         )
-        ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
-        ->join('users', 'productos.user_id', '=', 'users.id')
-        ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
+            ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->join('users', 'productos.user_id', '=', 'users.id')
+            ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id');
 
         // Si el usuario no es admin, filtrar por su rol
         if (auth()->user()->rol !== 'admin') {
@@ -42,7 +38,7 @@ class TemporaryProducts extends Controller
 
     public function vencer()
     {
-        $titulo = "Productos Vencidos";
+        $titulo = 'Productos Vencidos';
         $query = Producto::select(
             'productos.*',
             'categorias.clave as clave_categorias',
@@ -50,10 +46,10 @@ class TemporaryProducts extends Controller
             'users.rol as rol_user',
             'proveedores.nombre as nombre_proveedores'
         )
-        ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
-        ->join('users', 'productos.user_id', '=', 'users.id')
-        ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id')
-        ->whereRaw('DATEDIFF(fecha_caducidad, CURDATE()) <= 7');
+            ->join('categorias', 'productos.categoria_id', '=', 'categorias.id')
+            ->join('users', 'productos.user_id', '=', 'users.id')
+            ->join('proveedores', 'productos.proveedor_id', '=', 'proveedores.id')
+            ->whereRaw('DATEDIFF(fecha_caducidad, CURDATE()) <= 7');
 
         // Si el usuario no es admin, filtrar por su rol
         if (auth()->user()->rol !== 'admin') {
@@ -62,8 +58,9 @@ class TemporaryProducts extends Controller
             // El admin ve todos los productos de todos los roles
             $query->whereIn('productos.rol', ['tapachula', 'bodega_dorado']);
         }
-    
+
         $items = $query->get();
+
         return view('module.productos.vencer', compact('titulo', 'items'));
     }
 

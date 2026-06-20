@@ -78,7 +78,7 @@ return [
             'sslmode' => 'prefer',
         ],
 
-      'sqlsrv' => [
+        'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
             'host' => env('SQLSRV_HOST'),
@@ -91,12 +91,12 @@ return [
             'prefix_indexes' => true,
 
             // ESTA ES LA PARTE IMPORTANTE
-    'encrypt' => 'yes',
-    'trust_server_certificate' => true,
-    'options' => [
-        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
-        'TrustServerCertificate' => true,
-    ],
+            'encrypt' => 'yes',
+            'trust_server_certificate' => true,
+            'options' => [
+                PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
+                'TrustServerCertificate' => true,
+            ],
         ],
 
     ],

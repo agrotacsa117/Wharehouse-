@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Producto;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
-
+use App\Models\Producto;
+use App\Models\Rack;
+use App\Models\WarehouseModel;
+use Carbon\Carbon;
 
 class Dashboard extends Controller
 {
@@ -22,7 +21,7 @@ class Dashboard extends Controller
 
     public function index()
     {
-        $titulo = "Panel de Control";
+        $titulo = 'Panel de Control';
         $hoy = Carbon::now();
         $sieteDiasDespues = $hoy->copy()->addDays(7);
         $user = auth()->user();
@@ -41,7 +40,7 @@ class Dashboard extends Controller
 
         // Si es admin o tiene rol de tapachula
         if ($esAdmin || $esTapachula) {
-            $totalTapachula = (int)Producto::where('rol', 'tapachula')
+            $totalTapachula = (int) Producto::where('rol', 'tapachula')
                 ->where('activo', true)
                 ->sum('cantidad');
 
@@ -56,7 +55,7 @@ class Dashboard extends Controller
 
         // Si es admin o tiene rol de dorado
         if ($esAdmin || $esDorado) {
-            $totalDorado = (int)Producto::where('rol', 'bodega_dorado')
+            $totalDorado = (int) Producto::where('rol', 'bodega_dorado')
                 ->where('activo', true)
                 ->sum('cantidad');
 
@@ -78,7 +77,7 @@ class Dashboard extends Controller
             ->where('fecha_caducidad', '<=', $sieteDiasDespues)
             ->where('activo', true);
 
-        if (!$esAdmin) {
+        if (! $esAdmin) {
             $queryProximos->where('rol', $user->rol);
         }
 
@@ -87,11 +86,12 @@ class Dashboard extends Controller
             ->get()
             ->map(function ($producto) use ($hoy) {
                 $diasRestantes = $hoy->diffInDays(Carbon::parse($producto->fecha_caducidad));
+
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre ?? 'Sin nombre',
                     'bodega' => ucfirst($producto->rol === 'bodega_dorado' ? 'dorado' : $producto->rol),
-                    'cantidad' => $producto->cantidad . ' unidades',
+                    'cantidad' => $producto->cantidad.' unidades',
                     'fecha_vencimiento' => Carbon::parse($producto->fecha_caducidad)->format('d/m/Y'),
                     'dias_restantes' => $diasRestantes,
                     'categoria' => $producto->categoria->nombre ?? 'Sin categoría',
@@ -104,7 +104,7 @@ class Dashboard extends Controller
         $precioTotalGeneral = Producto::where('cantidad', '>', 0)->sum('precio_total');
 
         // NUEVO: Totales de racks, capacidad máxima y ocupación por bodega
-        $racksTapachula = \App\Models\Rack::where('bodega', 'tapachula')->get();
+        $racksTapachula = Rack::where('bodega', 'tapachula')->get();
         $totalRacksTapachula = $racksTapachula->count();
         $capacidadMaxTapachula = $racksTapachula->sum('cantidad_max');
         $ocupacionTapachula = 0;
@@ -113,7 +113,7 @@ class Dashboard extends Controller
         }
         $porcentajeOcupacionTapachula = $capacidadMaxTapachula > 0 ? round(min(100, ($ocupacionTapachula / $capacidadMaxTapachula) * 100), 1) : 0;
 
-        $racksDorado = \App\Models\Rack::where('bodega', 'bodega_dorado')->get();
+        $racksDorado = Rack::where('bodega', 'bodega_dorado')->get();
         $totalRacksDorado = $racksDorado->count();
         $capacidadMaxDorado = $racksDorado->sum('cantidad_max');
         $ocupacionDorado = 0;
@@ -153,7 +153,7 @@ class Dashboard extends Controller
         $stats = $this->warehouseInventoryService->getInventoryStatsByState();
 
         $statsWarehouses = $this->warehouseInventoryService
-        ->getInventoryStatsByStateAndWarehouse();
+            ->getInventoryStatsByStateAndWarehouse();
 
         foreach ($stats as $key => $stat) {
 
@@ -161,7 +161,7 @@ class Dashboard extends Controller
                 case 3:
                     $critical = $stat;
                     break;
-                
+
                 case 2:
                     $attention = $stat;
                     break;
@@ -172,24 +172,23 @@ class Dashboard extends Controller
             }
         }
 
-        $critical =  $critical ?? new InventoryStatsByStateDTO(
-            3,0
+        $critical = $critical ?? new InventoryStatsByStateDTO(
+            3, 0
         );
-        
+
         $attention = $attention ?? new InventoryStatsByStateDTO(
-            2,0
+            2, 0
         );
 
         $ok = $ok ?? new InventoryStatsByStateDTO(
-            1,0
+            1, 0
         );
 
         $semaforoCritical = $this->warehouseInventoryService->getInventoryByState(3);
         $semaforoAttention = $this->warehouseInventoryService->getInventoryByState(2);
         $semaforoOk = $this->warehouseInventoryService->getInventoryByState(1);
 
-        $almacenes = \App\Models\WarehouseModel::select('id', 'warehouses_name')->get();
-
+        $almacenes = WarehouseModel::select('id', 'warehouses_name')->get();
 
         return view('module.dashboard.home', compact(
             'titulo',

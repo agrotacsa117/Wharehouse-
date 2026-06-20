@@ -8,14 +8,23 @@ use Carbon\Carbon;
 class ExpiredInventoryDTO implements \JsonSerializable
 {
     private int $warehouseId;
+
     private string $productCode;
+
     private string $productName;
+
     private string $warehouseName;
+
     private int $quantity;
+
     private string $lotNumber;
+
     private string $expirationDate;
+
     private ?int $rack;
+
     private ?int $level;
+
     private int $expiredDays;
 
     public function __construct(
@@ -47,7 +56,6 @@ class ExpiredInventoryDTO implements \JsonSerializable
         $this->expiredDays = $expiredDays;
     }
 
-
     public function jsonSerialize(): array
     {
         return [
@@ -60,7 +68,7 @@ class ExpiredInventoryDTO implements \JsonSerializable
             'expirationDate' => Carbon::parse($this->expirationDate)->format('Y-m-d'),
             'expiredDays' => $this->expiredDays,
             'rack' => $this->rack,
-            'level' => $this->level
+            'level' => $this->level,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Mappers\DTO;
 class DetailsOfMovements
 {
     private array $details;
+
     private array $statics;
 
     public function __construct(

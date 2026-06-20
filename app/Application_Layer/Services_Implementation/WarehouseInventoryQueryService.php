@@ -5,40 +5,47 @@ namespace App\Application_Layer\Services_Implementation;
 use App\Application_Layer\ResultPattern;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
+use App\Contracts\WarehouseInventoryServiceI;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 
 class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
 {
     private WarehouseInventoryRepositoryInterface $warehouseInventoryRepository;
+
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+
+    private WarehouseInventoryServiceI $warehouseInventoryService;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
-        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
+        WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper,
+        WarehouseInventoryServiceI $warehouseInventoryService
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
+        $this->warehouseInventoryService = $warehouseInventoryService;
     }
 
     public function getInventoryById(int $id): ResultPattern
     {
         $warehouseInventory = $this->warehouseInventoryRepository->findById($id);
 
-        if (!$warehouseInventory) {
+        if (! $warehouseInventory) {
             return ResultPattern::failure(
-                "¡No se encontro ningun inventario "
-                ."registrado con este id ".$id
+                '¡No se encontro ningun inventario '
+                .'registrado con este id '.$id
             );
         }
 
         $warehouseInventoryOutDetailDTO =
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper
-        ->convertToOutDetailDTO(
-            $warehouseInventory
-        );
+            ->convertToOutDetailDTO(
+                $warehouseInventory
+            );
 
         return ResultPattern::success($warehouseInventoryOutDetailDTO);
     }
@@ -55,10 +62,10 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $level
             );
 
-            if (!$updated) {
+            if (! $updated) {
                 return ResultPattern::failure(
-                    "¡Error: no fue posible "
-                    ."modificar campos de ubicación!"
+                    '¡Error: no fue posible '
+                    .'modificar campos de ubicación!'
                 );
             }
 
@@ -74,17 +81,20 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
-        $warehouseInventoryEntity =  $this
-        ->warehouseInventoryRepository
-        ->findSpecificInventory(
-            $removeWarehouseInventoryStockDTO->getWarehouseId(),
-            $removeWarehouseInventoryStockDTO->getRack(),
-            $removeWarehouseInventoryStockDTO->getLevel(),
-            $warehouseInventoryOutDetailDTO->getProductCode(),
-            $warehouseInventoryOutDetailDTO->getLotNumber()
-        );
+        $warehouseInventoryEntity = $this
+            ->warehouseInventoryRepository
+            ->findSpecificInventory(
+                $removeWarehouseInventoryStockDTO->getWarehouseId(),
+                $removeWarehouseInventoryStockDTO->getRack(),
+                $removeWarehouseInventoryStockDTO->getLevel(),
+                $removeWarehouseInventoryStockDTO->getModule(),
+                $removeWarehouseInventoryStockDTO->getPlatform(),
+                $removeWarehouseInventoryStockDTO->getBay(),
+                $warehouseInventoryOutDetailDTO->getProductCode(),
+                $warehouseInventoryOutDetailDTO->getLotNumber()
+            );
 
-        if (!$warehouseInventoryEntity) {
+        if (! $warehouseInventoryEntity) {
             $timeZone = new \DateTimeZone('America/Mexico_City');
             $now = new \DateTime('now', $timeZone);
             $date = new \DateTime(
@@ -108,15 +118,70 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 null
             );
 
+            $warehouseInventory
+                ->setModule(
+                    $removeWarehouseInventoryStockDTO
+                        ->getModule());
+
+            $warehouseInventory->setBay(
+                $removeWarehouseInventoryStockDTO
+                    ->getBay()
+            );
+
+            $warehouseInventory->setPlatform(
+                $removeWarehouseInventoryStockDTO
+                    ->getPlatform()
+            );
+
+            $warehouseInventory->setManufacturingDate(
+                new \DateTime(
+                    $warehouseInventoryOutDetailDTO
+                        ->getManufacturingDate()
+                )
+            );
+
             $warehouseInventory = $this->warehouseInventoryRepository
-            ->save($warehouseInventory);
+                ->save($warehouseInventory);
 
             return ResultPattern::success(
                 $warehouseInventory
             );
-        } 
+        } else {
 
-        
+            $finalQuantity = $warehouseInventoryEntity
+                ->getQuantity()
+            + $removeWarehouseInventoryStockDTO->getQuantity();
+
+            $this->warehouseInventoryRepository->updateQuantity(
+                $warehouseInventoryEntity->getId(),
+                $finalQuantity
+            );
+        }
+
         return ResultPattern::success(true);
+    }
+
+    public function saveInventory(
+        WarehouseInventoryRequestDTO $warehouseInventoryDTO): ResultPattern
+    {
+        $result = $this
+            ->warehouseInventoryService
+            ->saveInventory(
+                $warehouseInventoryDTO);
+
+        if ($result->isFailure()) {
+            return $result;
+        }
+
+        return ResultPattern::success($result->getValue());
+    }
+
+    public function desactiveInventory(
+        int $warehouseInventoryId): void
+    {
+        $this->warehouseInventoryRepository
+            ->updateActiveInventory(
+                $warehouseInventoryId
+            );
     }
 }

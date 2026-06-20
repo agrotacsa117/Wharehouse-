@@ -2,9 +2,9 @@
 
 namespace App\Application_Layer\Repository_Implementation;
 
+use App\Contracts\WarehouseSalesEntityToModelMapperI;
 use App\Contracts\WarehouseSalesRepositoryI;
 use App\Enterprise_Layer\WarehouseSalesEntity;
-use App\Contracts\WarehouseSalesEntityToModelMapperI;
 use App\Models\WarehouseSalesModel;
 
 class WarehouseSalesRepository implements WarehouseSalesRepositoryI
@@ -22,14 +22,13 @@ class WarehouseSalesRepository implements WarehouseSalesRepositoryI
     ): ?WarehouseSalesEntity {
 
         $warehouseSalesModel = $this->warehouseSalesEntityToModelMapper
-        ->toWarehouseSalesModel(
-            $warehouseSalesEntity
-        );
-
+            ->toWarehouseSalesModel(
+                $warehouseSalesEntity
+            );
 
         $result = $warehouseSalesModel->save();
 
-        if (!$result) {
+        if (! $result) {
             return null;
         }
 
@@ -41,11 +40,10 @@ class WarehouseSalesRepository implements WarehouseSalesRepositoryI
         $sales = WarehouseSalesModel::has(
             'movement'
         )->with([
-                'movement.inventory.warehouse',
-                'movement.user'
-            ])->get();
+            'movement.inventory.warehouse',
+            'movement.user',
+        ])->get();
 
-     
         return $sales->toArray();
     }
 

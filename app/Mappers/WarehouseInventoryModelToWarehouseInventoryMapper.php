@@ -1,16 +1,16 @@
 <?php
 
 namespace App\Mappers;
+
 use App\Contracts\WarehouseInventoryModelToWarehouseInventoryMapperI;
 use App\Enterprise_Layer\WarehouseInventory;
 use App\Models\WarehouseInventoryModel;
 
-class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInventoryModelToWarehouseInventoryMapperI{
-
-    
-    function convertWarehouseInventoryModelToWarehouseInventory(
+class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInventoryModelToWarehouseInventoryMapperI
+{
+    public function convertWarehouseInventoryModelToWarehouseInventory(
         WarehouseInventoryModel $model
-    ) : WarehouseInventory{
+    ): WarehouseInventory {
         $entity = new WarehouseInventory(
             $model->warehouse_id,
             $model->product_id,
@@ -30,6 +30,11 @@ class WarehouseInventoryModelToWarehouseInventoryMapper implements WarehouseInve
         $entity->setModule($model->module);
         $entity->setBay($model->bay);
         $entity->setPlatform($model->platform);
+        $entity->setManufacturingDate(
+            $model->manufacturing_date ? new \DateTime(
+                $model->manufacturing_date) : null);
+        $entity->setActiveInventory($model->active_inventory);
+
         return $entity;
     }
-} 
+}
