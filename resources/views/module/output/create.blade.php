@@ -477,6 +477,41 @@
                                                 <small class="text-muted">Solo bodegas del mismo location</small>
                                             </div>
 
+                                            <!-- Campos para REUBICACIÓN — agregar al final del div row g-3 existente -->
+                                            <div class="col-12 mt-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="checkRehabilitar" onchange="toggleRehabilitar()">
+                                                    <label class="form-check-label fw-bold" for="checkRehabilitar">
+                                                        <i class="bi bi-arrow-clockwise me-1 text-warning"></i>
+                                                        ¿Rehabilitar producto? (actualizar fecha)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Campos de rehabilitación — ocultos por defecto -->
+                                            <div id="fields-rehabilitar" class="col-12 d-none">
+                                                <div class="p-3 mt-2"
+                                                    style="background:#fffbeb; border-radius:8px; border:1px solid #f59e0b;">
+                                                    <p class="small fw-bold mb-3" style="color:#92400e;">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                                        Rehabilitación — se actualizará la fecha del lote
+                                                    </p>
+                                                    <div class="row g-3">
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small fw-bold">
+                                                                Fecha de manufactura <span
+                                                                    class="text-muted fw-normal">(opcional)</span>
+                                                            </label>
+                                                            <input type="date" name="new_manufacturing_date"
+                                                                id="input-new-manufacturing-date"
+                                                                class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Nuevo Rack *</label>
                                                 <input type="text" name="new_rack" id="input-new-rack"
@@ -505,6 +540,8 @@
                                                 <input type="number" name="platform" id="platform"
                                                     class="form-control" min="1" placeholder="Ej: 1">
                                             </div>
+
+
                                         </div>
                                     </div>
 
@@ -804,10 +841,7 @@
                 <tr>
                     <td><span class="badge-info">${item.productCode}</span></td>
                     <td><strong>${item.productName}</strong></td>
-                    <td>
-                        ${item.rack !== null && item.level !== null 
-            ? `R:${item.rack} / N:${item.level}` 
-            : `M:${item.module} / B:${item.bay} / T:${item.platform}`
+                    <td>${`R:${item.rack ?? 'SR'} / N:${item.level ?? 'SN'} / M:${item.module ?? 'SM'} / B:${item.bay ?? 'SB'} / T:${item.platform ?? 'ST'}`
         }</td>
                     <td class="fw-bold">${item.quantity}</td>
                     <td class="fw-bold">${item.expirationDate.split(' ')[0]}</td>
@@ -848,7 +882,10 @@
             document.getElementById('current-module').textContent = product.module ?? 'SM';
             document.getElementById('current-bay').textContent = product.bay ?? 'SB';
             document.getElementById('current-platform').textContent = product.platform ?? 'ST';
-
+           
+            // Reset checkbox rehabilitar al seleccionar nuevo producto
+            document.getElementById('checkRehabilitar').checked = false;
+            toggleRehabilitar();
             showStep(3);
         }
 
@@ -946,6 +983,19 @@
                 </div>
             `;
             setTimeout(() => document.getElementById(id)?.remove(), 3000);
+        }
+
+        function toggleRehabilitar() {
+            const checked = document.getElementById('checkRehabilitar').checked;
+            const fields = document.getElementById('fields-rehabilitar');
+
+            if (checked) {
+                fields.classList.remove('d-none');
+                document.getElementById('input-new-manufacturing-date').required = true;
+            } else {
+                fields.classList.add('d-none');
+                document.getElementById('input-new-manufacturing-date').value = '';
+            }
         }
     </script>
 </body>

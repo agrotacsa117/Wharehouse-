@@ -1679,7 +1679,7 @@
 
                                 <div class="inventory-item-row">
                                     <span class="label">Fecha de fabricación</span>
-                                    <span class="value" style="color:rgb(7, 7, 7);">{{ $item->getLotNumber() }}</span>
+                                    <span class="value" style="color:rgb(7, 7, 7);">{{ $item->getManufacturingDate() }}</span>
                                 </div>
                             </div>
                         @endforeach

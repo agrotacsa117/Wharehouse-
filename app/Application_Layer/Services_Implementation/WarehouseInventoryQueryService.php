@@ -87,6 +87,37 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
+        // var_dump(
+        //     'The RemoveWarehouseInventoryStockDTO is: <br>');
+        // var_dump($removeWarehouseInventoryStockDTO);
+        // var_dump('<br>');
+
+        $manufacturingDate = $warehouseInventoryOutDetailDTO
+            ->getManufacturingDate();
+
+        if ($removeWarehouseInventoryStockDTO
+            ->getManufacturingDate()) {
+            $manufacturingDate = $removeWarehouseInventoryStockDTO
+                ->getManufacturingDate();
+        }
+
+        // var_dump('The arrived datas <br>');
+
+        // $debugData = [
+        //     'Warehouse ID' => $removeWarehouseInventoryStockDTO->getWarehouseId(),
+        //     'Rack' => $removeWarehouseInventoryStockDTO->getRack(),
+        //     'Level' => $removeWarehouseInventoryStockDTO->getLevel(),
+        //     'Module' => $removeWarehouseInventoryStockDTO->getModule(),
+        //     'Platform' => $removeWarehouseInventoryStockDTO->getPlatform(),
+        //     'Bay' => $removeWarehouseInventoryStockDTO->getBay(),
+        //     'Product Code' => $warehouseInventoryOutDetailDTO->getProductCode(),
+        //     'Lot Number' => $warehouseInventoryOutDetailDTO->getLotNumber(),
+        //     'Manufacturing Date' => $manufacturingDate,
+        // ];
+
+        // var_dump($debugData);
+        // var_dump('<br>');
+
         $warehouseInventoryEntity = $this
             ->warehouseInventoryRepository
             ->findSpecificInventory(
@@ -97,8 +128,14 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $removeWarehouseInventoryStockDTO->getPlatform(),
                 $removeWarehouseInventoryStockDTO->getBay(),
                 $warehouseInventoryOutDetailDTO->getProductCode(),
-                $warehouseInventoryOutDetailDTO->getLotNumber()
+                $warehouseInventoryOutDetailDTO->getLotNumber(),
+                $manufacturingDate
             );
+
+        // var_dump('<br>');
+        // var_dump('The result of consulting: <br>');
+        // var_dump($warehouseInventoryEntity);
+        // var_dump('<br>');
 
         if (! $warehouseInventoryEntity) {
             $timeZone = new \DateTimeZone('America/Mexico_City');
@@ -140,19 +177,36 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                     ->getPlatform()
             );
 
+            $manufacturingDate = $warehouseInventoryOutDetailDTO
+                ->getManufacturingDate();
+
+            if ($removeWarehouseInventoryStockDTO
+                ->getManufacturingDate()) {
+                $manufacturingDate = $removeWarehouseInventoryStockDTO
+                    ->getManufacturingDate();
+            }
+
+            // var_dump(
+            //     'The manufacturing date 
+            //     into creation inventory is: <br>');
+            // var_dump($manufacturingDate);
+
             $warehouseInventory->setManufacturingDate(
-                new \DateTime(
-                    $warehouseInventoryOutDetailDTO
-                        ->getManufacturingDate()
-                )
+                $manufacturingDate ? new \DateTime($manufacturingDate) : null
             );
+
             $warehouseInventory = $this->warehouseInventoryRepository
                 ->save($warehouseInventory);
+            // var_dump('The result entity is: <br>');
+            // var_dump($warehouseInventory);
+            
 
             return ResultPattern::success(
                 $warehouseInventory
             );
-        } else {
+        }
+
+        if ($warehouseInventoryEntity) {
             $finalQuantity = $warehouseInventoryEntity
                 ->getQuantity()
             + $removeWarehouseInventoryStockDTO->getQuantity();

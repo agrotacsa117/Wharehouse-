@@ -404,9 +404,22 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ?int $platform,
         ?int $bay,
         string $productId,
-        string $lotNumber
+        string $lotNumber,
+        ?string $manufacturingDate
     ): ?WarehouseInventory {
-
+        var_dump('Dates Arrived at repository <br>');
+        var_dump([
+            'warehouseId' => $warehouseId,         // ID del Almacén
+            'rack' => $rack,                // Número de estante/rack
+            'level' => $level,               // Nivel de altura
+            'module' => $module,              // Módulo de ubicación
+            'platform' => $platform,            // Plataforma o sector
+            'bay' => $bay,                 // Bahía o posición específica
+            'productId' => $productId,           // Identificador único del producto
+            'lotNumber' => $lotNumber,           // Número de lote de fabricación
+            'manufacturingDate' => $manufacturingDate,    // Fecha de fabricación
+        ]);
+        var_dump('<br>');
         // 1. Ejecutar la consulta con Eloquent
         $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
             ->where('rack', $rack)
@@ -416,6 +429,18 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->where('platform', $platform)
             ->where('product_id', $productId)
             ->where('lot_number', $lotNumber)
+            ->where(function ($query) use ($manufacturingDate) {
+                // Si es null (o está vacío), filtramos con IS NULL
+                if (is_null($manufacturingDate)
+                    || $manufacturingDate === '') {
+                    $query->whereNull(
+                        'manufacturing_date');
+                } else {
+                    // Si tiene valor, filtramos por la fecha exacta
+                    $query->where(
+                        'manufacturing_date', $manufacturingDate);
+                }
+            })
             ->first();
 
         if (! $model) {

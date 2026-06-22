@@ -135,6 +135,7 @@ class OutputController extends Controller
             'module' => 'nullable|integer|min:1',
             'bay' => 'nullable|integer|min:1',
             'platform' => 'nullable|integer|min:1',
+            'new_manufacturing_date' => 'nullable|date',
         ]);
 
         $this->removeWarehouseInventoryStockDTO =
@@ -182,6 +183,12 @@ class OutputController extends Controller
         $this->removeWarehouseInventoryStockDTO
             ->setPlatform(
                 $request->platform
+            );
+
+        $this
+            ->removeWarehouseInventoryStockDTO
+            ->setManufacturingDate(
+                $request->new_manufacturing_date
             );
 
         $result = $this->warehouseInventoryService
