@@ -130,11 +130,12 @@ class OutputController extends Controller
         $movementType = $request->movement_type;
         $request->validate([
             'new_rack' => 'nullable|integer|max:50',
-            'new_level' => 'nullable|integer|min:1',
-            'quantity' => 'required|integer|min:1',
-            'module' => 'nullable|integer|min:1',
-            'bay' => 'nullable|integer|min:1',
-            'platform' => 'nullable|integer|min:1',
+            'new_level' => 'nullable|integer|min:0',
+            'quantity' => 'required|integer|min:0',
+            'module' => 'nullable|integer|min:0',
+            'bay' => 'nullable|integer|min:0',
+            'platform' => 'nullable|integer|min:0',
+            'new_manufacturing_date' => 'nullable|date'
         ]);
 
         $this->removeWarehouseInventoryStockDTO =
@@ -182,6 +183,12 @@ class OutputController extends Controller
         $this->removeWarehouseInventoryStockDTO
             ->setPlatform(
                 $request->platform
+            );
+
+               $this
+            ->removeWarehouseInventoryStockDTO
+            ->setManufacturingDate(
+                $request->new_manufacturing_date
             );
 
         $result = $this->warehouseInventoryService
@@ -370,10 +377,10 @@ class OutputController extends Controller
     ) {
         $request->validate([
             'new_rack_r' => 'nullable|integer|max:50',
-            'new_level_r' => 'nullable|integer|min:1',
-            'new_module_r' => 'nullable|integer|min:1',
-            'new_bay_r' => 'nullable|integer|min:1',
-            'new_platform_r' => 'nullable|integer|min:1',
+            'new_level_r' => 'nullable|integer|min:0',
+            'new_module_r' => 'nullable|integer|min:0',
+            'new_bay_r' => 'nullable|integer|min:0',
+            'new_platform_r' => 'nullable|integer|min:0',
             'reason' => 'nullable|string|max:255',
         ]);
 

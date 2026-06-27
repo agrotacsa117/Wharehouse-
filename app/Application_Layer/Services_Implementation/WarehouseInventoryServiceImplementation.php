@@ -626,9 +626,20 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     public function getStockSummaryPerWarehouse(): array
     {
+        Log::info(
+            "Accessing to the method getStockSummaryPerWarehouse
+            to obtain stockSummary");
+
         $stockSummary = $this->warehouseInventoryRepository
             ->findStockAndProductCountGroupedByWarehouse();
 
+        Log::info(
+            ["The result of
+             consulting in warehouseInventoryRepository 
+             calling to the method is: " => $stockSummary]);
+
+        Log::info("The size of stockSummary is: "
+        .count($stockSummary));
         $quantityExpiredByWarehouse = $this->warehouseInventoryRepository
             ->sumQuantityOfExpiredByWarehouse();
 
@@ -636,7 +647,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         for ($i = 0; $i < count($stockSummary); $i++) {
             $statics = $stockSummary[$i];
-
+            Log::debug('Processing WarehouseSummaryDTO with index is: '.$i, 
+            ['statics' => $statics]);
             $stockSummaryReport[$statics['warehouse_id']]
             = new WarehouseSummaryDTO(
                 $statics['stock'],

@@ -66,7 +66,8 @@ interface WarehouseInventoryRepositoryInterface
         ?int $platform,
         ?int $bay,
         string $productId,
-        string $lotNumber
+        string $lotNumber,
+        ?string $manufacturingDate
     ): ?WarehouseInventory;
 
     public function updateActiveInventory(

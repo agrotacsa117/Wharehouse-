@@ -81,6 +81,15 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
+     $manufacturingDate = $warehouseInventoryOutDetailDTO
+            ->getManufacturingDate();
+
+        if ($removeWarehouseInventoryStockDTO
+            ->getManufacturingDate()) {
+            $manufacturingDate = $removeWarehouseInventoryStockDTO
+                ->getManufacturingDate();
+        }
+
         $warehouseInventoryEntity = $this
             ->warehouseInventoryRepository
             ->findSpecificInventory(
@@ -91,10 +100,11 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $removeWarehouseInventoryStockDTO->getPlatform(),
                 $removeWarehouseInventoryStockDTO->getBay(),
                 $warehouseInventoryOutDetailDTO->getProductCode(),
-                $warehouseInventoryOutDetailDTO->getLotNumber()
+                $warehouseInventoryOutDetailDTO->getLotNumber(),
+                $manufacturingDate
             );
 
-        if (! $warehouseInventoryEntity) {
+          if (! $warehouseInventoryEntity) {
             $timeZone = new \DateTimeZone('America/Mexico_City');
             $now = new \DateTime('now', $timeZone);
             $date = new \DateTime(
@@ -118,6 +128,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 null
             );
 
+            
             $warehouseInventory
                 ->setModule(
                     $removeWarehouseInventoryStockDTO
@@ -133,21 +144,31 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                     ->getPlatform()
             );
 
+            $manufacturingDate = $warehouseInventoryOutDetailDTO
+                ->getManufacturingDate();
+
+            if ($removeWarehouseInventoryStockDTO
+                ->getManufacturingDate()) {
+                $manufacturingDate = $removeWarehouseInventoryStockDTO
+                    ->getManufacturingDate();
+            }
+
+            
+
             $warehouseInventory->setManufacturingDate(
-                new \DateTime(
-                    $warehouseInventoryOutDetailDTO
-                        ->getManufacturingDate()
-                )
+                $manufacturingDate ? new \DateTime($manufacturingDate) : null
             );
 
             $warehouseInventory = $this->warehouseInventoryRepository
                 ->save($warehouseInventory);
+            
 
             return ResultPattern::success(
                 $warehouseInventory
             );
-        } else {
+        }
 
+        if ($warehouseInventoryEntity) {
             $finalQuantity = $warehouseInventoryEntity
                 ->getQuantity()
             + $removeWarehouseInventoryStockDTO->getQuantity();

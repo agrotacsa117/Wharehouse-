@@ -2379,7 +2379,7 @@
         async function verAnalisisProducto(
             productoNombre, productCode,
             warehouseId, warehouseName, stock) {
-           
+
             actualizarKPIsLotes(stock);
 
             try {
@@ -2393,22 +2393,22 @@
                     });
 
                 //if (!response.ok) throw new Error('Error al obtener productos');
-                
+
                 try {
-    const response = await fetch('tu-url-aqui');
+                    const response = await fetch('tu-url-aqui');
 
-    if (!response.ok) {
-        // Aquí capturas el código de estado (ej: 404) y el mensaje
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
+                    if (!response.ok) {
+                        // Aquí capturas el código de estado (ej: 404) y el mensaje
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
 
-    const data = await response.json();
-    // procesar datos...
+                    const data = await response.json();
+                    // procesar datos...
 
-} catch (error) {
-    // Aquí verás el mensaje de error completo
-    console.error('Hubo un problema con la petición:', error.message);
-}
+                } catch (error) {
+                    // Aquí verás el mensaje de error completo
+                    console.error('Hubo un problema con la petición:', error.message);
+                }
 
                 const data = await response.json();
 
@@ -2526,7 +2526,7 @@
             //filtrarLotesProducto();
         }
 
-          document.getElementById('modalLotesProducto')?.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('modalLotesProducto')?.addEventListener('hidden.bs.modal', function() {
             lotesProductoData = [];
             lotesProductoFiltrados = [];
             currentProductoId = null;

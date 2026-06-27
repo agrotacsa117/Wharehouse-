@@ -501,6 +501,38 @@
                                                 <small class="text-muted">Solo bodegas del mismo location</small>
                                             </div>
 
+                                            <div class="col-12 mt-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="checkRehabilitar" onchange="toggleRehabilitar()">
+                                                    <label class="form-check-label fw-bold" for="checkRehabilitar">
+                                                        <i class="bi bi-arrow-clockwise me-1 text-warning"></i>
+                                                        ¿Rehabilitar producto? (actualizar fecha)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div id="fields-rehabilitar" class="col-12 d-none">
+                                                <div class="p-3 mt-2"
+                                                    style="background:#fffbeb; border-radius:8px; border:1px solid #f59e0b;">
+                                                    <p class="small fw-bold mb-3" style="color:#92400e;">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                                        Rehabilitación — se actualizará la fecha del lote
+                                                    </p>
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small fw-bold">
+                                                                Fecha de manufactura
+                                                                <span class="text-muted fw-normal">(opcional)</span>
+                                                            </label>
+                                                            <input type="date" name="new_manufacturing_date"
+                                                                id="input-new-manufacturing-date"
+                                                                class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold">Nuevo Rack *</label>
                                                 <input type="text" name="new_rack" id="input-new-rack"
@@ -667,7 +699,8 @@
             fieldsSale.classList.add('d-none');
             fieldsTransfer.classList.add('d-none');
             fieldsRelocation.classList.add('d-none');
-
+            fieldsRelocation.classList.add('d-none');
+            fieldsLocationUpdate.classList.add('d-none');
             // Reset required attributes
 
             document.getElementById('input-destination-warehouse').required = false;
@@ -701,7 +734,7 @@
                     loadRelocationWarehouses();
                     break;
 
-                    case 'LOCATION_UPDATE': // ✅ NUEVO
+                case 'LOCATION_UPDATE': // ✅ NUEVO
                     fieldsLocationUpdate.classList.remove('d-none');
                     document.getElementById('input-quantity').disabled = true;
                     document.getElementById('input-quantity').value = 0;
@@ -860,17 +893,20 @@
             document.getElementById('warehouseInventoryId').value = product.inventoryId;
             //document.getElementById('input-qty').max = product.stock;
 
-              // ✅ NUEVO — poblar ubicación actual para LOCATION_UPDATE
+            // ✅ NUEVO — poblar ubicación actual para LOCATION_UPDATE
             document.getElementById('current-rack').textContent = product.rack ?? 'SR';
             document.getElementById('current-level').textContent = product.level ?? 'SN';
             document.getElementById('current-module').textContent = product.module ?? 'SM';
             document.getElementById('current-bay').textContent = product.bay ?? 'SB';
             document.getElementById('current-platform').textContent = product.platform ?? 'ST';
+
+            // Reset checkbox rehabilitar al seleccionar nuevo producto
+            document.getElementById('checkRehabilitar').checked = false;
             showStep(3);
         }
 
         function processSalida(e) {
-            alert(JSON.stringify(state.product));
+            //alert(JSON.stringify(state.product));
 
             e.preventDefault();
             const qty = parseInt(document.getElementById('input-qty').value);
@@ -963,6 +999,20 @@
                 </div>
             `;
             setTimeout(() => document.getElementById(id)?.remove(), 3000);
+        }
+
+
+        function toggleRehabilitar() {
+            const checked = document.getElementById('checkRehabilitar').checked;
+            const fields = document.getElementById('fields-rehabilitar');
+
+            if (checked) {
+                fields.classList.remove('d-none');
+                document.getElementById('input-new-manufacturing-date').required = true;
+            } else {
+                fields.classList.add('d-none');
+                document.getElementById('input-new-manufacturing-date').value = '';
+            }
         }
     </script>
 </body>

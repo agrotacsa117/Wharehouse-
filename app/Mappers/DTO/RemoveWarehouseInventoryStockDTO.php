@@ -32,6 +32,8 @@ class RemoveWarehouseInventoryStockDTO
 
     private bool $forceNegativeStock;
 
+    private ?string $manufacturingDate;
+
     public function __construct(
         int $warehouseInventoryId,
         int $quantity,
@@ -41,6 +43,16 @@ class RemoveWarehouseInventoryStockDTO
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->forceNegativeStock = false;
+    }
+
+    public function getManufacturingDate(): ?string
+    {
+        return $this->manufacturingDate;
+    }
+
+    public function setManufacturingDate(?string $manufacturingDate): void
+    {
+        $this->manufacturingDate = $manufacturingDate;
     }
 
     // Getter y Setter para $module

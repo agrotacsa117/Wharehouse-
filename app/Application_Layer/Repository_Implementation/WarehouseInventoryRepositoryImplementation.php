@@ -102,7 +102,8 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     {
         $warehouseIds = WarehouseInventoryModel::select(
             'warehouse_id'
-        )->distinct()->get();
+        )->where('active_inventory', 1)
+        ->distinct()->get();
 
         $warehouseIds = $warehouseIds->toArray();
 
@@ -170,6 +171,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             '.$this->getQueryBase().',
             SUM(quantity) AS total_stock
         ');
+        
 
         return $query->groupBy('state')
             ->orderBy('state', 'DESC')
@@ -186,7 +188,8 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             SUM(i.quantity) AS total_stock
         ')
             ->from('warehouse_inventory as i')
-            ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id');
+            ->join('warehouses as w', 'i.warehouse_id', '=', 'w.id')
+            ->where('i.active_inventory', 1);
 
         return $query->groupBy('i.warehouse_id', 'w.warehouses_name', 'state')
             ->orderBy('state', 'DESC')
@@ -398,10 +401,10 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         ?int $platform,
         ?int $bay,
         string $productId,
-        string $lotNumber
+        string $lotNumber,
+        ?string $manufacturingDate
     ): ?WarehouseInventory {
 
-        // 1. Ejecutar la consulta con Eloquent
         $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
             ->where('rack', $rack)
             ->where('_level', $level)
@@ -410,6 +413,18 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->where('platform', $platform)
             ->where('product_id', $productId)
             ->where('lot_number', $lotNumber)
+            ->where(function ($query) use ($manufacturingDate) {
+                // Si es null (o está vacío), filtramos con IS NULL
+                if (is_null($manufacturingDate)
+                    || $manufacturingDate === '') {
+                    $query->whereNull(
+                        'manufacturing_date');
+                } else {
+                    // Si tiene valor, filtramos por la fecha exacta
+                    $query->where(
+                        'manufacturing_date', $manufacturingDate);
+                }
+            })
             ->first();
 
         if (! $model) {
@@ -440,6 +455,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 'SUM(quantity) as stock')
             ->selectRaw(
                 'COUNT(DISTINCT product_id) as products')
+                ->where('active_inventory', 1)
             ->groupBy(
                 'warehouse_id')
             ->get();
@@ -466,6 +482,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
     {
         return WarehouseInventoryModel::select('product_id', 'warehouse_name', DB::raw('SUM(quantity) as stock'))
             ->where('warehouse_id', $warehouseId)
+            ->where('active_inventory', 1)
             ->groupBy('product_id', 'warehouse_name')
             ->orderBy('warehouse_name', 'asc')
             ->get()->toArray();
@@ -492,6 +509,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->selectRaw($remainingDaysQuery)
             ->where('product_id', $productId)
             ->where('warehouse_id', $warehouseId)
+            ->where('active_inventory', 1)
             ->get()
             ->toArray();
     }
