@@ -248,9 +248,8 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
     public function markStatusIsReserved(
         string $folio, bool $status
     ): bool {
-        return $this
-            ->warehouseMovementsRepository
-            ->setReversedByFolio(
+        return $this->warehouseMovementsRepository
+            ->updateIsReversedStatus(
                 $folio,
                 $status
             );

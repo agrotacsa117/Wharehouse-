@@ -77,6 +77,10 @@ interface WarehouseInventoryRepositoryInterface
         int $inventoryId
     ): void;
 
+    public function activateInventory(
+        int $inventoryId
+    ): void;
+
     public function findStockAndProductCountGroupedByWarehouse(): array;
 
     public function sumQuantityOfExpiredByWarehouse(): array;

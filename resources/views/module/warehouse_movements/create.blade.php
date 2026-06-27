@@ -1679,7 +1679,8 @@
 
                                 <div class="inventory-item-row">
                                     <span class="label">Fecha de fabricación</span>
-                                    <span class="value" style="color:rgb(7, 7, 7);">{{ $item->getManufacturingDate() }}</span>
+                                    <span class="value"
+                                        style="color:rgb(7, 7, 7);">{{ $item->getManufacturingDate() }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -1913,8 +1914,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                     MODAL: NUEVA ENTRADA
-                                                                                                                                                                ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                             MODAL: NUEVA ENTRADA
+                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -1947,8 +1948,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                     MODAL: NUEVA SALIDA
-                                                                                                                                                                ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                             MODAL: NUEVA SALIDA
+                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2032,8 +2033,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                     MODAL: VER DETALLE
-                                                                                                                                                                 ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                             MODAL: VER DETALLE
+                                                                                                                                                                                                                         ══════════════════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2058,8 +2059,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                     MODAL: ELIMINAR
-                                                                                                                                                                ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                             MODAL: ELIMINAR
+                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -2261,6 +2262,7 @@
 @endsection
 @push('scripts')
     <script>
+        let reversalCantidad = null; //  
         function goToInventoryMovements(inventoryId) {
             const id = parseInt(inventoryId);
 
@@ -2411,7 +2413,7 @@
                 }
 
                 if (m.movementType === 'LOCATION_UPDATE' && m.reason) {
-                    warehouseDisplay = m.reason + "\nBodega: "+m.warehousesName;
+                    warehouseDisplay = m.reason + "\nBodega: " + m.warehousesName;
                 }
                 const tr = document.createElement('tr');
 
@@ -2442,7 +2444,14 @@
         function generarBotonReversal(mov) {
 
             const esAdmin = {{ auth()->user()->rol === 'admin' ? 'true' : 'false' }};
-            const tiposRevertibles = ['IN', 'OUT', 'SALE', 'TRANSFER'];
+            const tiposRevertibles = [
+                'IN',
+                'OUT',
+                'SALE',
+                'TRANSFER',
+                'RELOCATION',
+                'LOCATION_UPDATE'
+            ];
             const tipo = (mov.movementType || '').toUpperCase();
             const esRevertible = tiposRevertibles.includes(tipo);
             const estaRevertido = mov.isReversed;
@@ -3202,7 +3211,9 @@
         });
 
         function abrirModalReversal(movId, folio, tipo, producto, cantidad) {
-            reversalMovementId = movId;
+            reversalMovementId = folio;
+            reversalCantidad = cantidad;
+
             console.log(
                 movId,
                 folio,
@@ -3243,6 +3254,14 @@
 
             btn.disabled = true;
             btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Procesando...';
+            // alert(
+            //     "The movement folio is: " +
+            //     reversalMovementId + " and the reason is: " 
+            //     + reason);
+
+            let reason = document.getElementById(
+                'reason-reverse').value;
+
 
             try {
                 const response = await fetch(`/warehouse-movements/movements/${reversalMovementId}/reason/${reason}`, {
@@ -3265,12 +3284,14 @@
                     document.querySelectorAll('.modal.show').forEach(m =>
                         bootstrap.Modal.getInstance(m)?.hide()
                     );
-                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                    document.body.classList.remove('modal-open');
-                    document.body.style.removeProperty('overflow');
-                    document.body.style.removeProperty('padding-right');
 
-                    setTimeout(() => abrirModalWarning(data), 200);
+                    setTimeout(() => {
+                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('padding-right');
+                        abrirModalWarning(data);
+                    }, 350); // ✅ 350ms en vez de 200ms
                     return;
                 }
 
@@ -3293,6 +3314,7 @@
                     filtrarMovimientos(); // Refrescar tabla
 
                 } else {
+                    console.log(data.message);
                     mostrarToastReversal('error', data.message);
                 }
 
@@ -3307,9 +3329,19 @@
             }
         }
 
+        const tipoBadge = {
+            'IN': 'bg-success',
+            'OUT': 'bg-danger',
+            'SALE': 'bg-danger',
+            'TRANSFER': 'bg-primary',
+            'RELOCATION': 'bg-info text-dark',
+            'LOCATION_UPDATE': 'bg-info text-dark',
+            'ADJUSTMENT': 'bg-warning text-dark'
+        };
+
         function abrirModalWarning(data) {
             // Stock resultante — color según positivo/negativo
-            const resultante = data.stock_resultante;
+            const resultante = data.resulting_stock;
             const esNegativo = resultante < 0;
             const cardResultante = document.getElementById('warnStockResultanteCard');
 
@@ -3317,18 +3349,17 @@
             cardResultante.style.border = `1px solid ${esNegativo ? '#dc2626' : '#16a34a'}`;
 
             document.getElementById('warnCantidadRevertir').textContent = formatNumber(reversalCantidad);
-            document.getElementById('warnStockActual').textContent = formatNumber(data.stock_actual);
+            document.getElementById('warnStockActual').textContent = formatNumber(data.actual_stock);
             document.getElementById('warnStockResultante').textContent = formatNumber(resultante);
             document.getElementById('warnStockResultante').style.color = esNegativo ? '#dc2626' : '#16a34a';
 
-            // Tabla de movimientos posteriores
             const tbody = document.getElementById('warnMovimientosPosteriores');
-            tbody.innerHTML = data.movimientos_posteriores.map(m => `
+            tbody.innerHTML = data.posterior_movements.map(m => `
         <tr>
             <td style="font-weight:600; color:var(--tacsa-red);">${m.folio}</td>
-            <td><span class="badge ${tipoBadge[m.movement_type] || 'bg-secondary'}">${tipoLabels[m.movement_type] || m.movement_type}</span></td>
+            <td><span class="badge ${tipoBadge[m.movementType] || 'bg-secondary'}">${tipoLabels[m.movementType] || m.movementType}</span></td>
             <td class="text-center fw-bold">${formatNumber(m.quantity)}</td>
-            <td style="font-size:12px;">${m.created_at}</td>
+            <td style="font-size:12px;">${m.createdAt}</td>
         </tr>`).join('');
 
             // Reset checkbox
@@ -3338,6 +3369,12 @@
 
             new bootstrap.Modal(document.getElementById('modalReversalWarning')).show();
         }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-MX').format(num ?? 0);
+        }
+
+
 
         function mostrarToastReversal(tipo, mensaje) {
             const toastId = 'toastReversal_' + Date.now();

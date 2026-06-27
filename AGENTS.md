@@ -2,12 +2,12 @@
 
 ## Project Overview
 - **Type**: Laravel 8 PHP Application (PHP ^7.4.1)
-- **Architecture**: Enterprise_Layer, Application_Layer, Infrastructure layers
+- **Architecture**: Domain-driven design with `Enterprise_Layer`, `Application_Layer`, `Infrastructure` layers
+- **Testing**: PHPUnit 9, Mockery
 - **Primary Author**: 808 Labs
 
 ## Build / Lint / Test Commands
 
-### Installation
 ```bash
 composer install && npm install && cp .env.example .env && php artisan key:generate
 ```
@@ -15,149 +15,142 @@ composer install && npm install && cp .env.example .env && php artisan key:gener
 ### Development
 ```bash
 php artisan serve              # Start server on localhost:8000
-npm run watch                  # Hot reload assets
-npm run dev | npm run prod     # Build assets
+npm run watch                  # Hot reload assets (Laravel Mix)
+npm run dev/prod               # Dev/prod build (Laravel Mix)
+php artisan tinker             # Interactive REPL
 ```
 
 ### Testing
 ```bash
-php artisan test               # Run all tests
-./vendor/bin/phpunit
+php artisan test                       # All tests
+./vendor/bin/phpunit tests/Unit/ExampleTest.php   # Single file
+php artisan test --filter test_basic_test          # Single method
+./vendor/bin/phpunit --testsuite Unit              # Suite
+./vendor/bin/phpunit --coverage-html coverage/     # Coverage
+```
 
-# Run single test file
-./vendor/bin/phpunit tests/Unit/ExampleTest.php
-
-# Run specific test method
-./vendor/bin/phpunit --filter testBasicTest
-
-# Run test suites
-./vendor/bin/phpunit --testsuite Unit
-./vendor/bin/phpunit --testsuite Feature
-
-# Coverage report
-./vendor/bin/phpunit --coverage-html coverage/
+### Database & Cache
+```bash
+php artisan migrate
+php artisan migrate:fresh --seed   # Destructive - dev only
+php artisan db:seed
+php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan optimize
 ```
 
 ### Code Quality
 ```bash
+# PHP CS Fixer (config in routes/ and app/**/ directories)
 ./vendor/bin/php-cs-fixer fix --dry-run --diff   # Check only
 ./vendor/bin/php-cs-fixer fix                     # Auto-fix
-```
-
-### Database
-```bash
-php artisan migrate
-php artisan migrate:fresh --seed   # Fresh DB (destructive)
-php artisan db:seed
-php artisan tinker                # Interactive REPL
+# StyleCI (.styleci.yml: Laravel preset, unused_use disabled)
 ```
 
 ## Code Style
 
 ### EditorConfig
-- **Indentation**: 4 spaces | **YAML**: 2 spaces
-- **Line endings**: LF | **Charset**: UTF-8
-- **Final newline**: Yes | **Trailing whitespace**: Remove
+- **Indentation**: 4 spaces (YAML: 2 spaces) | **Line endings**: LF | **Charset**: UTF-8
+- **Final newline**: Yes | **Trailing whitespace**: Remove (except .md)
 
-### PHP CS Fixer
-- **Version**: ^3.86 | **Preset**: Laravel (`@auto`)
-- **Config**: `.styleci.yml` (disabled: `unused_use`)
-- No comments unless explicitly requested
+### PHP Conventions
+- **Strict types**: `declare(strict_types=1);` at top of every file (aspirational — many lack it, add when editing)
+- **Return types**: Always specify (`: void`, `: string`, `: ResultPattern`)
+- **Property types**: Typed (`private int $id;`), nullable with `?Type` (`?DateTime`)
+- **PHPDoc**: Minimal — only `@template T`, complex arrays, generics. No explanatory comments.
+- **Constructor**: Traditional assignment over constructor promotion
+
+### Import Statements
+- One `use` per line, grouped alphabetically: PHP core → Laravel → Custom App
+```php
+use DateTime;
+use Illuminate\Http\Request;
+use App\Application_Layer\ResultPattern;
+use App\Contracts\WarehouseStorageServiceInterface;
+use App\Enterprise_Layer\Warehouse;
+use App\Mappers\DTO\WarehouseDTO;
+```
 
 ### Naming Conventions
 | Element | Convention | Example |
 |---------|------------|---------|
 | Classes | PascalCase | `WarehouseInventory` |
 | Interfaces | PascalCase + `Interface` | `WarehouseServiceInterface` |
+| (alt) | PascalCase + `I` suffix | `WarehouseMapperI` |
 | Methods/Vars | camelCase | `getAllWarehouses()`, `$warehouseId` |
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| Tables | snake_case, plural | `warehouse_inventories` |
-| Test files | `XxxTest.php` | `WarehouseTest.php` |
+| Eloquent Models | PascalCase + `Model` | `WarehouseModel` |
+| Tables/Columns | snake_case | `warehouse_inventories`, `warehouses_name` |
+| Exceptions | PascalCase + `Exception` | `InvalidAddressException` |
+| Test files | `*Test.php` | `WarehouseTest.php` |
+| Test methods | `test_` + snake_case | `test_it_creates_warehouse()` |
 
-### Import Statements
-One `use` per line, sorted alphabetically. Groups: PHP core → Laravel → Custom
-```php
-use App\Application_Layer\ResultPattern;
-use App\Contracts\ProductServiceInterface;
-use App\Enterprise_Layer\WarehouseInventory;
-use Illuminate\Http\Request;
-```
-
-### Type Declarations
-- Always use `declare(strict_types=1);`
-- Return type hints when possible
-- PHPdoc for arrays and complex types
+### Spanish Error Messages
+All user-facing messages are in Spanish: `ResultPattern::failure('¡Error: código postal invalido!')`, `ResultPattern::success('¡Almacén registrado con éxito!')`
 
 ## Architecture Layers
 
 ### Enterprise_Layer (`app/Enterprise_Layer/`)
-- Pure PHP domain entities (NO framework dependencies)
-- Business logic and rules
-- Custom exceptions in `Exception/` subfolder
-- Entities: `Warehouse`, `Location`, `WarehouseInventory`
+- Pure PHP domain entities — NO `use Illuminate\*`. Business logic in constructors.
+- Custom exceptions: `Exception/` subfolder, extend `RuntimeException`
+- Builder Pattern: `Warehouse::builder()->setX()->setY()->build()`
+- Nullable properties for optionals: `private ?DateTime $expirationDate;`
 
-### Application_Layer
-- Services: `app/Application_Layer/Services_Implementation/`
-- Repositories: `app/Application_Layer/Repository_Implementation/`
-- Use `ResultPattern` for operations that can fail
+### Application_Layer (`app/Application_Layer/`)
+- **Services**: `Services_Implementation/` | **Repositories**: `Repository_Implementation/`
+- **ResultPattern**: Return for fallible ops — `::success($val)` / `::failure("msg")`, check `$result->isFailure()`
+- **Strategies**: Strategy pattern in `Strategies/`
 
 ### Contracts (`app/Contracts/`)
-- Interface definitions for all services/repositories
-- Naming: `XxxServiceInterface`, `XxxRepositoryInterface`
+- Interfaces: `XxxServiceInterface`, `XxxRepositoryInterface`, `XxxMapperInterface` (or `XxxMapperI`)
 
 ### Infrastructure (`app/Infrastructure/`)
-- Request validation classes, exception handling
-- Framework-specific implementations
+- `FormRequest` validations with `rules()`, `messages()`, `authorize()`
+- Exception classes extend `RuntimeException`; Factory classes for strategies
 
 ### Models (`app/Models/`)
-- Eloquent ORM models (follow Laravel conventions)
+- Eloquent models (`XxxModel`), properties: `$table`, `$fillable`, `$guarded`, `$casts`. Relationships: `belongsTo`, `hasMany` (some legacy Spanish names: `Bodega`, `Producto`)
 
-### Mappers (`app/Mappers/DTO/Requests/`)
-- DTO <-> Entity mapping
+### Mappers (`app/Mappers/`)
+- DTOs in `DTO/` (typed props, `JsonSerializable`). Request DTOs in `DTO/Requests/`.
+- Entity↔Model mappers use Builder pattern
 
 ## Key Patterns
 
 ### Result Pattern
 ```php
-public function create(DTO $dto): ResultPattern
+public function registerWarehouse(WarehouseDTO $dto): ResultPattern
 {
-    if ($condition) {
-        return ResultPattern::failure("Error message");
-    }
-    return ResultPattern::success($result);
+    if ($condition) return ResultPattern::failure("¡Error!");
+    return ResultPattern::success('¡Almacén registrado con éxito!');
 }
-// Usage
-$result = $service->create($dto);
-if ($result->isFailure()) { return $result->getError(); }
-$value = $result->getValue();
+$result = $this->service->registerWarehouse($dto);
+if ($result->isFailure()) return redirect()->back()->with('error', $result->getError());
 ```
 
-### Builder Pattern (Entities)
+### Builder Pattern
 ```php
-$warehouse = Warehouse::builder()
-    ->setWarehouseName('Main')
-    ->setWarehouseKey('WH-001')
-    ->build();
+$warehouse = Warehouse::builder()->setWarehouseName('Main')->setWarehouseKey('WH-001')->build();
 ```
 
 ### Repository/Service Pattern
-- Interfaces in `app/Contracts/`
-- Implementations in `app/Application_Layer/`
+- Interface in `app/Contracts/`, impl in `app/Application_Layer/`. Constructor DI of interfaces.
+- Repositories catch `\Throwable`, wrap in infrastructure exceptions, return `ResultPattern::failure()`
 
-## Error Handling
-1. **Domain exceptions**: Throw from `Enterprise_Layer/Exception/`
-2. **Infrastructure exceptions**: Handle in `Infrastructure/Exception/`
-3. **Application layer**: Catch exceptions, convert to `ResultPattern::failure()`
-4. **Controllers**: Return appropriate HTTP responses
+### Error Handling
+1. **Domain**: Throw `Enterprise_Layer/Exception/*` (extend `RuntimeException`)
+2. **Infrastructure**: Throw `Infrastructure/Exception/*` (e.g., `CouldNotPersistLocationException`)
+3. **Application**: Catch in repositories, return `ResultPattern::failure()`
+4. **Controllers**: Check `$result->isFailure()`, redirect with error
+5. **Global handler**: `app/Exceptions/Handler.php`
 
 ## Testing Guidelines
-- Unit tests: `tests/Unit/` → extend `PHPUnit\Framework\TestCase`
-- Feature tests: `tests/Feature/` → extend `Tests\TestCase`
-- Test file suffix: `Test.php`, method prefix: `test` or `@test`
-- Use factories: `database/factories/`
+- **Unit tests**: `tests/Unit/` → `PHPUnit\Framework\TestCase`
+- **Feature tests**: `tests/Feature/` → `Tests\TestCase` (uses `CreatesApplication`)
+- **Naming**: `*Test.php` suffix, `test_` prefix (snake_case)
+- **Assertions**: `$this->assertTrue()`, `$response->assertStatus(200)`
 
 ## Precautions
-- Never commit secrets; use `.env.example`
-- `vendor/` and `node_modules/` are gitignored
+- Never commit secrets; use `.env.example`. `vendor/`, `node_modules/`, `.env` gitignored.
 - `php artisan migrate:fresh` only in development
-- Keep entities pure (no framework dependencies)
+- Enterprise_Layer must be pure (zero `Illuminate` imports)
+- All user-facing messages in Spanish
+- Add `declare(strict_types=1)` to files that lack it

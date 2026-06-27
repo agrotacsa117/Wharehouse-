@@ -463,6 +463,13 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ]);
     }
 
+    public function activateInventory(
+        int $inventoryId): void
+    {
+        WarehouseInventoryModel::where('id', $inventoryId)
+            ->update(['active_inventory' => 1]);
+    }
+
     public function findStockAndProductCountGroupedByWarehouse(): array
     {
         $inventorySummary = WarehouseInventoryModel::select(

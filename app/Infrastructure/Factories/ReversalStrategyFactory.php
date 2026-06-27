@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Factories;
 
 use App\Application_Layer\Strategies\InReversalStrategy;
+use App\Application_Layer\Strategies\OutReversalStrategy;
 use App\Contracts\ReversalStrategyFactoryInterface;
 use App\Contracts\ReversalStrategyInterface;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
@@ -29,6 +30,13 @@ class ReversalStrategyFactory implements ReversalStrategyFactoryInterface
         switch ($type) {
             case 'IN':
                 return new InReversalStrategy(
+                    $this->warehouseInventoryRepositoryInterface,
+                    $this->warehouseMovementsServiceI
+                );
+                break;
+
+            case 'OUT':
+                return new OutReversalStrategy(
                     $this->warehouseInventoryRepositoryInterface,
                     $this->warehouseMovementsServiceI
                 );

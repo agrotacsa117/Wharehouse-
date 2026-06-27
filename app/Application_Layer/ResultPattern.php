@@ -16,7 +16,7 @@ class ResultPattern
     /** @var T|null */
     private $value;
 
-    private bool $warningStatus;
+    private bool $warningStatus = false;
 
     protected function __construct(
         bool $isSuccess,

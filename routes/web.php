@@ -76,7 +76,7 @@ Route::post(
 )->name('warehouse-movements.report-caducidad');
 
 Route::post(
-    '/warehouse-movements/movements/${reversalMovementId}/reason/${reason}',
+    '/warehouse-movements/movements/{reversalMovementId}/reason/{reason}',
     [MovementsController::class, 'reverseMovement']
 )->name('warehouse-movements.reverse-movement');
 

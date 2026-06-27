@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enterprise_Layer;
 
-use DateTime;
+use DateTimeInterface;
+use InvalidArgumentException;
 
 class WarehouseInventoryMovements
 {
@@ -22,32 +23,31 @@ class WarehouseInventoryMovements
 
     public const LOCATION_UPDATE = 'LOCATION_UPDATE';
 
-    // enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION')
-    private $id;
+    private ?int $id = null;
 
-    private $folio;
+    private string $folio;
 
-    private $warehouseInventoryId;
+    private int $warehouseInventoryId;
 
-    private $movementType;
+    private string $movementType;
 
-    private $quantity;
+    private int $quantity;
 
-    private $reason;
+    private ?string $reason;
 
-    private $userId;
+    private ?int $userId;
 
-    private $createdAt;
+    private ?DateTimeInterface $createdAt = null;
 
-    private $updatedAt;
+    private ?DateTimeInterface $updatedAt = null;
 
     private ?int $sourceWarehouseId = null;
 
-    private ?DateTime $operationDate = null;
+    private ?DateTimeInterface $operationDate = null;
 
     private ?int $transferFolio = null;
 
-    private bool $iSReversed;
+    private bool $isReversed = false;
 
     private ?int $reversedBy = null;
 
@@ -62,10 +62,7 @@ class WarehouseInventoryMovements
         ?int $userId
     ) {
         $this->validateMovementType($movementType);
-        $this->validateQuantity(
-            $quantity,
-            $movementType
-        );
+        $this->validateQuantity($quantity, $movementType);
 
         $this->folio = $folio;
         $this->warehouseInventoryId = $warehouseInventoryId;
@@ -73,82 +70,24 @@ class WarehouseInventoryMovements
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->userId = $userId;
-        $this->iSReversed = false;
     }
 
-    public function getTransferFolio(): ?int
+    public function setTimestamps(DateTimeInterface $createdAt, DateTimeInterface $updatedAt): void
     {
-        return $this->transferFolio;
+        $this->createdAt = $createdAt;
+        $this->updatedAt = $updatedAt;
     }
 
-    public function setTransferFolio(?int $transferFolio): void
-    {
-        $this->transferFolio = $transferFolio;
-    }
+    // ... (El resto de tus getters y setters se mantienen igual)
 
-    // =========================
-    // VALIDATIONS (Domain Rules)
-    // =========================
-
-    private function validateMovementType(string $type): void
-    {
-        $allowed = [
-            self::TYPE_IN,
-            self::TYPE_OUT,
-            self::TYPE_ADJUSTMENT,
-            self::TYPE_TRANSFER,
-            self::TYPE_RELOCATION,
-            self::TYPE_SALE,
-            self::LOCATION_UPDATE,
-        ];
-
-        if (! in_array($type, $allowed, true)) {
-            throw new \InvalidArgumentException('Invalid movement type.');
-        }
-    }
-
-    // Getters
-    public function getSourceWarehouseId(): ?int
-    {
-        return $this->sourceWarehouseId;
-    }
-
-    public function getOperationDate(): ?DateTime
-    {
-        return $this->operationDate;
-    }
-
-    // Setters
-    public function setSourceWarehouseId(int $sourceWarehouseId): self
-    {
-        $this->sourceWarehouseId = $sourceWarehouseId;
-
-        return $this;
-    }
-
-    public function setOperationDate(DateTime $operationDate): self
-    {
-        $this->operationDate = $operationDate;
-
-        return $this;
-    }
-
-    private function validateQuantity(
-        int $quantity,
-        string $movementType
-    ): void {
-        if ($quantity <= 0 && $movementType !== self::TYPE_RELOCATION) {
-            throw new \InvalidArgumentException('Quantity must be greater than zero.');
-        }
-    }
-
-    // =========================
-    // GETTERS
-    // =========================
-
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getFolio(): string
@@ -181,39 +120,58 @@ class WarehouseInventoryMovements
         return $this->userId;
     }
 
-    public function getCreatedAt()
+    public function getCreatedAt(): ?DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    // =========================
-    // Setters controlados
-    // =========================
-
-    public function setId(int $id): void
+    public function getSourceWarehouseId(): ?int
     {
-        $this->id = $id;
+        return $this->sourceWarehouseId;
     }
 
-    public function setTimestamps(string $createdAt, string $updatedAt): void
+    public function setSourceWarehouseId(int $sourceWarehouseId): self
     {
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->sourceWarehouseId = $sourceWarehouseId;
+
+        return $this;
+    }
+
+    public function getOperationDate(): ?DateTimeInterface
+    {
+        return $this->operationDate;
+    }
+
+    public function setOperationDate(?DateTimeInterface $operationDate): self
+    {
+        $this->operationDate = $operationDate;
+
+        return $this;
+    }
+
+    public function getTransferFolio(): ?int
+    {
+        return $this->transferFolio;
+    }
+
+    public function setTransferFolio(?int $transferFolio): void
+    {
+        $this->transferFolio = $transferFolio;
     }
 
     public function isReversed(): bool
     {
-        return $this->iSReversed;
+        return $this->isReversed;
     }
 
-    public function setIsReversed(bool $iSReversed): void
+    public function setIsReversed(bool $isReversed): void
     {
-        $this->iSReversed = $iSReversed;
+        $this->isReversed = $isReversed;
     }
 
     public function getReversedBy(): ?int
@@ -234,5 +192,25 @@ class WarehouseInventoryMovements
     public function setReversalOf(?int $reversalOf): void
     {
         $this->reversalOf = $reversalOf;
+    }
+
+    private function validateMovementType(string $type): void
+    {
+        $allowed = [
+            self::TYPE_IN, self::TYPE_OUT, self::TYPE_ADJUSTMENT,
+            self::TYPE_TRANSFER, self::TYPE_RELOCATION, self::TYPE_SALE,
+            self::LOCATION_UPDATE,
+        ];
+
+        if (! in_array($type, $allowed, true)) {
+            throw new InvalidArgumentException('Invalid movement type.');
+        }
+    }
+
+    private function validateQuantity(int $quantity, string $movementType): void
+    {
+        if ($quantity <= 0 && $movementType !== self::TYPE_RELOCATION) {
+            throw new InvalidArgumentException('Quantity must be greater than zero.');
+        }
     }
 }

@@ -87,11 +87,6 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
-        // var_dump(
-        //     'The RemoveWarehouseInventoryStockDTO is: <br>');
-        // var_dump($removeWarehouseInventoryStockDTO);
-        // var_dump('<br>');
-
         $manufacturingDate = $warehouseInventoryOutDetailDTO
             ->getManufacturingDate();
 
@@ -100,23 +95,6 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             $manufacturingDate = $removeWarehouseInventoryStockDTO
                 ->getManufacturingDate();
         }
-
-        // var_dump('The arrived datas <br>');
-
-        // $debugData = [
-        //     'Warehouse ID' => $removeWarehouseInventoryStockDTO->getWarehouseId(),
-        //     'Rack' => $removeWarehouseInventoryStockDTO->getRack(),
-        //     'Level' => $removeWarehouseInventoryStockDTO->getLevel(),
-        //     'Module' => $removeWarehouseInventoryStockDTO->getModule(),
-        //     'Platform' => $removeWarehouseInventoryStockDTO->getPlatform(),
-        //     'Bay' => $removeWarehouseInventoryStockDTO->getBay(),
-        //     'Product Code' => $warehouseInventoryOutDetailDTO->getProductCode(),
-        //     'Lot Number' => $warehouseInventoryOutDetailDTO->getLotNumber(),
-        //     'Manufacturing Date' => $manufacturingDate,
-        // ];
-
-        // var_dump($debugData);
-        // var_dump('<br>');
 
         $warehouseInventoryEntity = $this
             ->warehouseInventoryRepository
@@ -187,7 +165,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             }
 
             // var_dump(
-            //     'The manufacturing date 
+            //     'The manufacturing date
             //     into creation inventory is: <br>');
             // var_dump($manufacturingDate);
 
@@ -199,7 +177,6 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 ->save($warehouseInventory);
             // var_dump('The result entity is: <br>');
             // var_dump($warehouseInventory);
-            
 
             return ResultPattern::success(
                 $warehouseInventory

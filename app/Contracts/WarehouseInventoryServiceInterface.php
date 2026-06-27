@@ -81,7 +81,8 @@ interface WarehouseInventoryServiceInterface
     public function revertMovement(
         string $folio,
         string $reason,
-        int $responsableUserId): ResultPattern;
+        int $responsableUserId,
+        bool $foreceConfirm): ResultPattern;
 
     public function getListFilteredByProductCodeOrName(
         string $product

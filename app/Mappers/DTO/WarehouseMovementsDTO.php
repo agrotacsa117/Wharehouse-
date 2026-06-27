@@ -65,7 +65,7 @@ class WarehouseMovementsDTO
         return $this->operationDate;
     }
 
-    public function setOperationDate(\DateTime $operationDate): void
+    public function setOperationDate(?\DateTime $operationDate): void
     {
         $this->operationDate = $operationDate;
     }
@@ -75,7 +75,7 @@ class WarehouseMovementsDTO
         return $this->sourceWarehouseId;
     }
 
-    public function setSourceWarehouseId(int $sourceWarehouseId): void
+    public function setSourceWarehouseId(?int $sourceWarehouseId): void
     {
         $this->sourceWarehouseId = $sourceWarehouseId;
     }

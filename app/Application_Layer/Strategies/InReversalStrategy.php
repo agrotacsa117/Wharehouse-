@@ -34,10 +34,15 @@ class InReversalStrategy implements ReversalStrategyInterface
         WarehouseMovementsDTO $warehouseMovementsDTO): ResultPattern
     {
 
+        $currentQuantity = $this->warehouseInventoryRepositoryInterface
+            ->findQuantityByIdWithLock(
+                $warehouseMovementsDTO
+                    ->getWarehouseInventoryId()
+            );
+
         $result = ManagesInventoryStock::validateStockAvailability(
-            $this->warehouseInventoryRepositoryInterface,
-            $warehouseMovementsDTO->getWarehouseInventoryId(),
             $warehouseMovementsDTO->getQuantity(),
+            $currentQuantity,
             $warehouseMovementsDTO->getForceNegativeStock()
         );
 
@@ -59,7 +64,6 @@ class InReversalStrategy implements ReversalStrategyInterface
                 return $result;
             }
 
-            $currentQuantity = ManagesInventoryStock::$currentQuantity;
             $resultingStock = $currentQuantity - $warehouseMovementsDTO
                 ->getQuantity();
 

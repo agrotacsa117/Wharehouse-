@@ -190,6 +190,13 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
             $removeWarehouseInventoryStockDTO
         );
 
+        $warehouseMovementDTO->setReversedOf(
+            $this->warehouseInventoryOutDetailDTO->getInventoryId()
+        );
+        $warehouseMovementDTO->setReversedBy(
+            $this->warehouseInventory->getId()
+        );
+
         $this->result = $this->warehouseMovementsService
             ->saveWarehouseMovement(
                 $warehouseMovementDTO

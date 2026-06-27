@@ -8,6 +8,7 @@ use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MovementsController extends Controller
 {
@@ -167,30 +168,29 @@ class MovementsController extends Controller
     }
 
     public function reverseMovement(
+        Request $request,
         string $folio,
         string $reason
     ): JsonResponse {
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Productos obtenidos exitosamente',
-        ], 200);
-    }
+        Log::info(
+            ['The force confirm is: ' => $request->force_confirm]);
 
-    public function createReversal(
-        string $folio,
-        string $reason): JsonResponse
-    {
+        Log::info('Método reverseMovement ejecutado', [
+            'folio' => $folio,
+            'reason' => $reason,
+        ]);
 
-        $resutl = $this->warehouseInventoryService
+        $result = $this->warehouseInventoryService
             ->revertMovement(
                 $folio,
                 $reason,
-                auth()->id()
+                auth()->id(),
+                $request->force_confirm
             );
 
-        if ($resutl->isWarning()) {
-            $negativeStockWarningDTO = $resutl->getValue();
+        if ($result->isWarning()) {
+            $negativeStockWarningDTO = $result->getValue();
 
             return response()->json([
                 'success' => false,
@@ -198,20 +198,21 @@ class MovementsController extends Controller
                 'actual_stock' => $negativeStockWarningDTO->getCurrentStock(),
                 'resulting_stock' => $negativeStockWarningDTO->getResultingStock(),
                 'posterior_movements' => $negativeStockWarningDTO->getDependentMovements(),
-                'message' => $resutl->getError(),
-            ], 200);
+                'message' => $result->getError(),
+            ], 409);
         }
 
-        if ($resutl->isFailure()) {
+        if ($result->isFailure()) {
             return response()->json([
-                'status' => 400,
-                'details' => $resutl->getError(),
-            ]);
+                'success' => false,
+                'message' => $result->getError(),
+            ], 422);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Contramovimiento ',
-        ]);
+            'message' => "Contramovimiento {$result->getValue()} creado correctamente",
+            'reversal_folio' => $result->getValue(),
+        ], 200);
     }
 }

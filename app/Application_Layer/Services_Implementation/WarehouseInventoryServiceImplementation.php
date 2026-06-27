@@ -735,78 +735,92 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function revertMovement(
         string $folio,
         string $reason,
-        int $responsableUserId
+        int $responsableUserId,
+        bool $foreceConfirm
     ): ResultPattern {
+        
+        return $this->runInTransaction(function () use (
+            $folio,
+            $reason,
+            $responsableUserId,
+            $foreceConfirm) {
 
-        $warehouseMovementsDTO = $this
-            ->warehouseMovementsService
-            ->getWarehouseMovementsByFolio(
-                $folio
-            );
+            $warehouseMovementsDTO = $this
+                ->warehouseMovementsService
+                ->getWarehouseMovementsByFolio(
+                    $folio
+                );
 
-        if ($warehouseMovementsDTO->isReversed()) {
-            return ResultPattern::failure(
-                'Operación no permitida: 
-                El movimiento ya ha sido ejecutado.'
-            );
-        }
-
-        $reversalStrategy = $this
-            ->reversalStrategyFactory->make(
-                $warehouseMovementsDTO
-                    ->getMovementType());
-
-        $movementType = $reversalStrategy->getInverseType();
-        $result = $reversalStrategy->processCountermovement(
             $warehouseMovementsDTO
-        );
+                ->setForceNegativeStock(
+                    $foreceConfirm
+                );
 
-        if ($result->isFailure()) {
-            return $result;
-        }
+            if ($warehouseMovementsDTO->isReversed()) {
+                return ResultPattern::failure(
+                    'Operación no permitida: 
+                El movimiento ya ha sido ejecutado.'
+                );
+            }
 
-        $revFolio = 'REV-'.$warehouseMovementsDTO
-            ->getFolio();
+            $reversalStrategy = $this
+                ->reversalStrategyFactory->make(
+                    $warehouseMovementsDTO
+                        ->getMovementType());
 
-        $reversalOf = $this->warehouseMovementsService
-            ->getIdByFolio(
-                $warehouseMovementsDTO->getFolio()
+            $movementType = $reversalStrategy->getInverseType();
+            $result = $reversalStrategy->processCountermovement(
+                $warehouseMovementsDTO
             );
 
-        $revertMovement = $this
-            ->generateWarehouseMovementsDTO(
-                $revFolio,
-                $warehouseMovementsDTO->getWarehouseInventoryId(),
-                $movementType,
-                $warehouseMovementsDTO->getQuantity(),
-                $reason,
-                $responsableUserId
-            );
+            if ($result->isFailure()) {
+                return $result;
+            }
 
-        $revertMovement->setReversedOf(
-            $reversalOf);
+            $revFolio = 'REV-'.$warehouseMovementsDTO
+                ->getFolio();
 
-        $result = $this->warehouseMovementsService
-            ->saveWarehouseMovement(
-                $revertMovement
-            );
+            $reversalOf = $this->warehouseMovementsService
+                ->getIdByFolio(
+                    $warehouseMovementsDTO->getFolio()
+                );
 
-        if ($result->isFailure()) {
-            return $result;
-        }
+            $revertMovement = $this
+                ->generateWarehouseMovementsDTO(
+                    $revFolio,
+                    $warehouseMovementsDTO->getWarehouseInventoryId(),
+                    $movementType,
+                    $warehouseMovementsDTO->getQuantity(),
+                    $reason,
+                    $responsableUserId
+                );
 
-        $contramovementId = $this->warehouseMovementsService
-            ->getIdByFolio(
-                $revFolio
-            );
+            $revertMovement->setReversedOf(
+                $reversalOf);
 
-        $this->warehouseMovementsService
-            ->reserveAMovementFolio(
-                $warehouseMovementsDTO->getFolio(),
-                $contramovementId
-            );
+            $result = $this->warehouseMovementsService
+                ->saveWarehouseMovement(
+                    $revertMovement
+                );
 
-        return ResultPattern::success($revFolio);
+            if ($result->isFailure()) {
+                return $result;
+            }
+
+            $contramovementId = $this->warehouseMovementsService
+                ->getIdByFolio(
+                    $revFolio
+                );
+
+            $this->warehouseMovementsService
+                ->reserveAMovementFolio(
+                    $warehouseMovementsDTO->getFolio(),
+                    $contramovementId
+                );
+
+            return ResultPattern::success($revFolio);
+        });
+
     }
 
     public function getListFilteredByProductCodeOrName(

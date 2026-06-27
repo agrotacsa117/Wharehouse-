@@ -6,19 +6,11 @@ use App\Contracts\WarehouseInventoryRepositoryInterface;
 
 class ManagesInventoryStock
 {
-    public static int $currentQuantity;
-
     public static function validateStockAvailability(
-        WarehouseInventoryRepositoryInterface $inventoryRepository,
-        int $warehouseInventoryId,
         int $amountToWithdraw,
+        int $currentQuantity,
         bool $forceNegativeStock
     ): ResultPattern {
-
-        $currentQuantity = $inventoryRepository
-            ->findQuantityByIdWithLock(
-                $warehouseInventoryId
-            );
 
         if ($amountToWithdraw > $currentQuantity
         && ! $forceNegativeStock) {
