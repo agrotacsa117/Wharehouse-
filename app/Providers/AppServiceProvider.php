@@ -85,6 +85,8 @@ use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
 use App\Mappers\WarehouseTypeModelToWarehouseTypeEntityMapper;
 use App\Mappers\WarehouseTypeRequestDTOToWarehouseTypeEntity;
 use Illuminate\Support\ServiceProvider;
+use App\Contracts\ReversalStrategyFactoryInterface;
+use App\Infrastructure\Factories\ReversalStrategyFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -298,6 +300,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseMovementMapperI::class,
             WarehouseMovementEntityToDTOMapper::class
+        );
+
+          $this->app->bind(
+            ReversalStrategyFactoryInterface::class,
+            ReversalStrategyFactory::class
         );
 
     }

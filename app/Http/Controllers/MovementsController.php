@@ -7,6 +7,8 @@ use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class MovementsController extends Controller
 {
@@ -163,5 +165,54 @@ class MovementsController extends Controller
             'data' => $expiredInventory,
             'ranking' => $ranking,
         ]);
+    }
+
+    public function reverseMovement(
+        Request $request,
+        string $folio,
+        string $reason
+    ): JsonResponse {
+
+        Log::info(
+            ['The force confirm is: ' => $request->force_confirm]);
+
+        Log::info('Método reverseMovement ejecutado', [
+            'folio' => $folio,
+            'reason' => $reason,
+        ]);
+
+        $result = $this->warehouseInventoryService
+            ->revertMovement(
+                $folio,
+                $reason,
+                auth()->id(),
+                $request->force_confirm
+            );
+
+        if ($result->isWarning()) {
+            $negativeStockWarningDTO = $result->getValue();
+
+            return response()->json([
+                'success' => false,
+                'requires_confirm' => true,
+                'actual_stock' => $negativeStockWarningDTO->getCurrentStock(),
+                'resulting_stock' => $negativeStockWarningDTO->getResultingStock(),
+                'posterior_movements' => $negativeStockWarningDTO->getDependentMovements(),
+                'message' => $result->getError(),
+            ], 409);
+        }
+
+        if ($result->isFailure()) {
+            return response()->json([
+                'success' => false,
+                'message' => $result->getError(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Contramovimiento {$result->getValue()} creado correctamente",
+            'reversal_folio' => $result->getValue(),
+        ], 200);
     }
 }

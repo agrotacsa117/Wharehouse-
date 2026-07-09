@@ -74,4 +74,11 @@ interface WarehouseInventoryServiceInterface
         int $warehouseId,
         string $productId
     ): InventoryExpirationMetricsDataDTO;
+
+    
+    public function revertMovement(
+        string $folio,
+        string $reason,
+        int $responsableUserId,
+        bool $foreceConfirm): ResultPattern;
 }

@@ -68,6 +68,11 @@ Route::post(
     [MovementsController::class, 'reportByCaducidad']
 )->name('warehouse-movements.report-caducidad');
 
+Route::post(
+    '/warehouse-movements/movements/{reversalMovementId}/reason/{reason}',
+    [MovementsController::class, 'reverseMovement']
+)->name('warehouse-movements.reverse-movement');
+
 Route::middleware('auth')->group(function () {
     Route::get(
         '/warehouse-movements',

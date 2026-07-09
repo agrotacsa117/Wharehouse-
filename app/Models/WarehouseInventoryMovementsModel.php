@@ -20,6 +20,9 @@ class WarehouseInventoryMovementsModel extends Model
         'created_at',
         'updated_at',
         'transfer_folio',
+        'is_reversed',
+        'reversed_by',
+        'reversal_of',
     ];
 
     public function inventory()

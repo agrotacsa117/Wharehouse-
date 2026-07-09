@@ -27,4 +27,24 @@ interface WarehouseMovementsServiceI
     ): ResultPattern;
 
     public function getTotalOfRelocation(): int;
+
+     public function getDependentMovements(
+        int $inventoryId,
+        string $folio): array;
+
+         public function markStatusIsReserved(
+        string $folio, bool $status
+    ): bool;
+
+      public function getWarehouseMovementsByFolio(
+        string $folio
+    ): ?WarehouseMovementsDTO;
+
+    public function getIdByFolio(string $folio): int;
+
+    public function reserveAMovementFolio(
+        string $folio,
+        int $countermovementId): bool;
+
+         public function isReserved(string $folio): bool;
 }

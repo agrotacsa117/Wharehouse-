@@ -170,4 +170,86 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 
         return $movementCounts;
     }
+
+    public function findByWarehouseInventoryIdAndFolioNot(
+        int $warehouseInventoryId,
+        string $folio
+    ): array {
+        $movements = WarehouseInventoryMovementsModel::with([
+            'inventory.warehouse',
+            'user',
+            'sale',
+        ])
+            ->where('warehouse_inventory_id', $warehouseInventoryId) // Limitamos al lote/inventario correcto
+            ->where('folio', '!=', $folio)         // Excluimos la entrada errónea
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $movements->toArray();
+    }
+
+     public function updateIsReversedStatus(
+        string $folio,
+        bool $status
+    ): bool {
+        return WarehouseInventoryMovementsModel::where(
+            'folio',
+            $folio)
+            ->update(
+                ['is_reversed' => $status]
+            );
+    }
+
+     public function findByFolio(string $folio): ?WarehouseInventoryMovements
+    {
+        $warehouseInventoryMovements = WarehouseInventoryMovementsModel::firstWhere(
+            'folio',
+            $folio);
+
+        if (! $warehouseInventoryMovements) {
+            return null;
+        }
+
+        $warehouseInventoryMovements = $this->warehouseInventoryMovementModelMapper
+            ->convertWarehouseInventoryMovementsModelToEntity(
+                $warehouseInventoryMovements
+            );
+
+        return $warehouseInventoryMovements;
+    }
+
+    public function findIdByFolio(string $folio): int
+    {
+        return WarehouseInventoryMovementsModel::where(
+            'folio',
+            $folio)->value('id');
+    }
+
+     public function setReversedByFolio(
+        string $folio,
+        int $reversedBy): bool
+    {
+        $reversalId = WarehouseInventoryMovementsModel::where(
+            'folio', $folio)->value('id');
+
+        if (! $reversalId) {
+            return false;
+        }
+
+        try {
+            return WarehouseInventoryMovementsModel::where('folio', $folio)
+                ->update(
+                    ['reversed_by' => $reversedBy]);
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
+
+     public function isReversed(string $folio): bool
+    {
+        return WarehouseInventoryMovementsModel::where(
+            'folio',
+            $folio
+        )->value('is_reversed');
+    }
 }

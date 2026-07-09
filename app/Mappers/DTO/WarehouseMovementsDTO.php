@@ -65,7 +65,7 @@ class WarehouseMovementsDTO
         return $this->operationDate;
     }
 
-    public function setOperationDate(\DateTime $operationDate): void
+    public function setOperationDate(?\DateTime $operationDate): void
     {
         $this->operationDate = $operationDate;
     }
@@ -75,7 +75,7 @@ class WarehouseMovementsDTO
         return $this->sourceWarehouseId;
     }
 
-    public function setSourceWarehouseId(int $sourceWarehouseId): void
+    public function setSourceWarehouseId(?int $sourceWarehouseId): void
     {
         $this->sourceWarehouseId = $sourceWarehouseId;
     }
@@ -154,10 +154,8 @@ class WarehouseMovementsDTO
     /**
      * Establece el valor de forceNegativeStock.
      */
-    public function setForceNegativeStock(bool $forceNegativeStock): self
+    public function setForceNegativeStock(bool $forceNegativeStock): void
     {
         $this->forceNegativeStock = $forceNegativeStock;
-
-        return $this;
     }
 }

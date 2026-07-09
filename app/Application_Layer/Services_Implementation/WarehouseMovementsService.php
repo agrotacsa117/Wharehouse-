@@ -3,6 +3,7 @@
 namespace App\Application_Layer\Services_Implementation;
 
 use App\Application_Layer\ResultPattern;
+
 use App\Contracts\WarehouseInventoryMovementsMapperI;
 use App\Contracts\WarehouseMovementsRepositoryI;
 use App\Contracts\WarehouseMovementsServiceI;
@@ -10,6 +11,8 @@ use App\Mappers\DTO\DetailsOfMovements;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\WarehouseMovementsListDetailDTO;
+use App\Contracts\WarehouseMovementMapperI;
+use FontLib\Table\Type\kern;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
 {
@@ -17,12 +20,16 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
 
     private WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper;
 
+    private WarehouseMovementMapperI $warehouseMovementMapperI;
+
     public function __construct(
         WarehouseMovementsRepositoryI $warehouseMovementsRepository,
-        WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper
+        WarehouseInventoryMovementsMapperI $warehouseInventoryMovementsMapper,
+        WarehouseMovementMapperI $warehouseMovementMapperI
     ) {
         $this->warehouseMovementsRepository = $warehouseMovementsRepository;
         $this->warehouseInventoryMovementsMapper = $warehouseInventoryMovementsMapper;
+        $this->warehouseMovementMapperI = $warehouseMovementMapperI;
     }
 
     public function listAllMovements(): array
@@ -177,5 +184,92 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             ->countByMovementType('LOCATION_UPDATE');
 
         return $relocationTotal + $internalRelocationTotal;
+    }
+
+     public function getDependentMovements(
+        int $inventoryId,
+        string $folio
+    ): array {
+
+        $dependentMovements = $this->warehouseMovementsRepository
+            ->findByWarehouseInventoryIdAndFolioNot(
+                $inventoryId,
+                $folio
+            );
+
+        return $this
+            ->convertToWarehouseMovementsListDetailDTO(
+                $dependentMovements
+            );
+    }
+
+    
+    private function convertToWarehouseMovementsListDetailDTO(
+        array $movements
+    ): array {
+        for ($i = 0; $i < count($movements); $i++) {
+            $movements[$i] = WarehouseMovementsListDetailDTO::fromModel(
+                $movements[$i]
+            );
+        }
+
+        return $movements;
+    }
+
+
+     public function markStatusIsReserved(
+        string $folio, bool $status
+    ): bool {
+        return $this->warehouseMovementsRepository
+            ->updateIsReversedStatus(
+                $folio,
+                $status
+            );
+    }
+
+      public function getWarehouseMovementsByFolio(
+        string $folio
+    ): ?WarehouseMovementsDTO {
+
+        $warehouseMovements = $this
+            ->warehouseMovementsRepository
+            ->findByFolio($folio);
+
+        if ($warehouseMovements) {
+            return $this->warehouseMovementMapperI
+                ->convertToWarehouseMovementsDTO(
+                    $warehouseMovements
+                );
+        }
+
+        return null;
+    }
+
+      public function getIdByFolio(string $folio): int
+    {
+        return $this->warehouseMovementsRepository
+            ->findIdByFolio(
+                $folio
+            );
+    }
+
+     public function reserveAMovementFolio(
+        string $folio,
+        int $countermovementId): bool
+    {
+        return $this->warehouseMovementsRepository
+            ->setReversedByFolio(
+                $folio,
+                $countermovementId
+            );
+    }
+
+
+     public function isReserved(string $folio): bool
+    {
+        return $this->warehouseMovementsRepository
+            ->isReversed(
+                $folio
+            );
     }
 }

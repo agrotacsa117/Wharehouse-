@@ -31,4 +31,25 @@ interface WarehouseMovementsRepositoryI
         string $startDate,
         string $endDate
     ): array;
+
+       public function findByWarehouseInventoryIdAndFolioNot(
+        int $warehouseInventoryId,
+        string $folio
+    ): array;
+
+     public function updateIsReversedStatus(
+        string $folio,
+        bool $status
+    ): bool;
+
+     public function findByFolio(string $folio): ?WarehouseInventoryMovements;
+
+       public function findIdByFolio(string $folio): int;
+
+       
+    public function setReversedByFolio(
+        string $folio,
+        int $reversedBy): bool;
+
+        public function isReversed(string $folio): bool;
 }

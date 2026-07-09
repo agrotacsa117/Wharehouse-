@@ -27,6 +27,7 @@ use App\Mappers\DTO\WarehouseStockDTO;
 use App\Mappers\DTO\WarehouseSummaryDTO;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Contracts\ReversalStrategyFactoryInterface;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -50,6 +51,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     private WarehouseOutputStrategy $warehouseOutputStrategy;
 
+        private ReversalStrategyFactoryInterface $reversalStrategyFactory;
+        
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
         WarehouseInventoryRequestDTOToWarehouseInventoryMapperI $warehouseInventoryRequestDTOToWarehouseInventory,
@@ -57,7 +60,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         WarehouseStorageServiceInterface $warehouseStorageService,
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper,
-        WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory
+        WarehouseOutputStrategyFactoryInterface $warehouseOutputStrategyFactory,
+        ReversalStrategyFactoryInterface $reversalStrategyFactoryInterface
     ) {
         $this->warehouseInventoryRepository = $warehouseInventoryRepository;
         $this->warehouseInventoryRequestDTOToWarehouseInventory = $warehouseInventoryRequestDTOToWarehouseInventory;
@@ -66,6 +70,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryToWarehouseInventoryOutDetailDTOMapper = $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
         $this->warehouseOutputStrategyFactory = $warehouseOutputStrategyFactory;
+        $this->reversalStrategyFactory = $reversalStrategyFactoryInterface;
     }
 
     public function getAllWarehouseInventories(): array
@@ -724,4 +729,96 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         return $inventoryExpirationMetricsDataDTO;
     }
+
+public function revertMovement(
+        string $folio,
+        string $reason,
+        int $responsableUserId,
+        bool $foreceConfirm
+    ): ResultPattern {
+        
+        return $this->runInTransaction(function () use (
+            $folio,
+            $reason,
+            $responsableUserId,
+            $foreceConfirm) {
+
+            $warehouseMovementsDTO = $this
+                ->warehouseMovementsService
+                ->getWarehouseMovementsByFolio(
+                    $folio
+                );
+
+            $warehouseMovementsDTO
+                ->setForceNegativeStock(
+                    $foreceConfirm
+                );
+
+            if ($warehouseMovementsDTO->isReversed()) {
+                return ResultPattern::failure(
+                    'Operación no permitida: 
+                El movimiento ya ha sido ejecutado.'
+                );
+            }
+
+            $reversalStrategy = $this
+                ->reversalStrategyFactory->make(
+                    $warehouseMovementsDTO
+                        ->getMovementType());
+
+            $movementType = $reversalStrategy->getInverseType();
+            $result = $reversalStrategy->processCountermovement(
+                $warehouseMovementsDTO
+            );
+
+            if ($result->isFailure()) {
+                return $result;
+            }
+
+            $revFolio = 'REV-'.$warehouseMovementsDTO
+                ->getFolio();
+
+            $reversalOf = $this->warehouseMovementsService
+                ->getIdByFolio(
+                    $warehouseMovementsDTO->getFolio()
+                );
+
+            $revertMovement = $this
+                ->generateWarehouseMovementsDTO(
+                    $revFolio,
+                    $warehouseMovementsDTO->getWarehouseInventoryId(),
+                    $movementType,
+                    $warehouseMovementsDTO->getQuantity(),
+                    $reason,
+                    $responsableUserId
+                );
+
+            $revertMovement->setReversedOf(
+                $reversalOf);
+
+            $result = $this->warehouseMovementsService
+                ->saveWarehouseMovement(
+                    $revertMovement
+                );
+
+            if ($result->isFailure()) {
+                return $result;
+            }
+
+            $contramovementId = $this->warehouseMovementsService
+                ->getIdByFolio(
+                    $revFolio
+                );
+
+            $this->warehouseMovementsService
+                ->reserveAMovementFolio(
+                    $warehouseMovementsDTO->getFolio(),
+                    $contramovementId
+                );
+
+            return ResultPattern::success($revFolio);
+        });
+
+    }
+
 }
