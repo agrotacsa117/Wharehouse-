@@ -18,6 +18,7 @@ php artisan serve              # Start server on localhost:8000
 npm run watch                  # Hot reload assets (Laravel Mix)
 npm run dev/prod               # Dev/prod build (Laravel Mix)
 php artisan tinker             # Interactive REPL
+php artisan route:list         # List all registered routes
 ```
 
 ### Testing
@@ -39,7 +40,7 @@ php artisan cache:clear && php artisan config:clear && php artisan route:clear &
 
 ### Code Quality
 ```bash
-# PHP CS Fixer (config in routes/ and app/**/ directories)
+# PHP CS Fixer (uses @auto preset — per-directory configs in routes/ and app/**/)
 ./vendor/bin/php-cs-fixer fix --dry-run --diff   # Check only
 ./vendor/bin/php-cs-fixer fix                     # Auto-fix
 # StyleCI (.styleci.yml: Laravel preset, unused_use disabled)
@@ -53,10 +54,13 @@ php artisan cache:clear && php artisan config:clear && php artisan route:clear &
 
 ### PHP Conventions
 - **Strict types**: `declare(strict_types=1);` at top of every file (aspirational — many lack it, add when editing)
-- **Return types**: Always specify (`: void`, `: string`, `: ResultPattern`)
-- **Property types**: Typed (`private int $id;`), nullable with `?Type` (`?DateTime`)
-- **PHPDoc**: Minimal — only `@template T`, complex arrays, generics. No explanatory comments.
+- **Return types**: Always specify (`: void`, `: string`, `: ResultPattern`, `: array`)
+- **Property types**: Typed (`private int $id;`), nullable with `?Type` (`?DateTime`, `?int`)
+- **PHPDoc**: Minimal — only `@template T`, complex arrays, generics. No explanatory comments. Avoid legacy `@return void`.
 - **Constructor**: Traditional assignment over constructor promotion
+- **`#[\Override]` attribute**: Use on repository methods implementing interfaces (`#[\Override]`)
+- **Logging**: `Log::info()` / `Log::error()` in repositories for debugging
+- **DateTime**: Prefer `use DateTime;` import over global `\DateTime`
 
 ### Import Statements
 - One `use` per line, grouped alphabetically: PHP core → Laravel → Custom App
@@ -80,11 +84,12 @@ use App\Mappers\DTO\WarehouseDTO;
 | Eloquent Models | PascalCase + `Model` | `WarehouseModel` |
 | Tables/Columns | snake_case | `warehouse_inventories`, `warehouses_name` |
 | Exceptions | PascalCase + `Exception` | `InvalidAddressException` |
+| Controllers | PascalCase (some legacy Spanish: `Categorias`, `Productos`, `Ventas`) | `WarehouseRegistrationController` |
 | Test files | `*Test.php` | `WarehouseTest.php` |
 | Test methods | `test_` + snake_case | `test_it_creates_warehouse()` |
 
 ### Spanish Error Messages
-All user-facing messages are in Spanish: `ResultPattern::failure('¡Error: código postal invalido!')`, `ResultPattern::success('¡Almacén registrado con éxito!')`
+All user-facing messages are in Spanish: `ResultPattern::failure('¡Error: código postal invalido!')`, `ResultPattern::success('¡Almacén registrado con éxito!')`. Internal repository messages may be in English (e.g., 'Warehouse not found').
 
 ## Architecture Layers
 
@@ -97,21 +102,28 @@ All user-facing messages are in Spanish: `ResultPattern::failure('¡Error: códi
 ### Application_Layer (`app/Application_Layer/`)
 - **Services**: `Services_Implementation/` | **Repositories**: `Repository_Implementation/`
 - **ResultPattern**: Return for fallible ops — `::success($val)` / `::failure("msg")`, check `$result->isFailure()`
-- **Strategies**: Strategy pattern in `Strategies/`
+- **Strategies**: Strategy pattern in `Strategies/` (`InReversalStrategy`, `OutReversalStrategy`, `IntraWarehouseTransferStrategy`)
+- **Stock management**: `ManagesInventoryStock` class with static methods `validateStockAvailability()` and `reduceStock()`
 
 ### Contracts (`app/Contracts/`)
-- Interfaces: `XxxServiceInterface`, `XxxRepositoryInterface`, `XxxMapperInterface` (or `XxxMapperI`)
+- Interfaces: `XxxServiceInterface`, `XxxRepositoryInterface`, `XxxMapperInterface` (or `XxxMapperI` suffix)
 
 ### Infrastructure (`app/Infrastructure/`)
 - `FormRequest` validations with `rules()`, `messages()`, `authorize()`
-- Exception classes extend `RuntimeException`; Factory classes for strategies
+- Exception classes extend `RuntimeException`
+- Factory classes for strategies: `MovementFactory`, `ReversalStrategyFactory`, `WarehouseOutputStrategyFactory`
 
 ### Models (`app/Models/`)
-- Eloquent models (`XxxModel`), properties: `$table`, `$fillable`, `$guarded`, `$casts`. Relationships: `belongsTo`, `hasMany` (some legacy Spanish names: `Bodega`, `Producto`)
+- Eloquent models (`XxxModel`), properties: `$table`, `$fillable`, `$guarded`, `$casts`. Relationships: `belongsTo`, `hasMany`. Legacy Spanish models exist: `Bodega`, `Producto`, `Proveedor`, `Usuario`, `Ventas`, `Categoria`, `Rol`
 
 ### Mappers (`app/Mappers/`)
-- DTOs in `DTO/` (typed props, `JsonSerializable`). Request DTOs in `DTO/Requests/`.
+- DTOs in `DTO/` (typed props, `JsonSerializable` with `jsonSerialize(): array`). Request DTOs in `DTO/Requests/`.
 - Entity↔Model mappers use Builder pattern
+
+### Routes (`routes/`)
+- **web.php**: Main routes, named with `->name()`, grouped by `Route::prefix()` and `Route::middleware('auth')` / `->middleware('auth', 'role:admin')`
+- **api.php**: Minimal API routes, `auth:api` middleware
+- Controller syntax: `[ControllerClass::class, 'method']` array syntax
 
 ## Key Patterns
 
@@ -133,7 +145,8 @@ $warehouse = Warehouse::builder()->setWarehouseName('Main')->setWarehouseKey('WH
 
 ### Repository/Service Pattern
 - Interface in `app/Contracts/`, impl in `app/Application_Layer/`. Constructor DI of interfaces.
-- Repositories catch `\Throwable`, wrap in infrastructure exceptions, return `ResultPattern::failure()`
+- Repositories catch `\Throwable` or `QueryException`, wrap in infrastructure exceptions, return `ResultPattern::failure()`
+- Services catch failure results and re-wrap with user-facing Spanish messages
 
 ### Error Handling
 1. **Domain**: Throw `Enterprise_Layer/Exception/*` (extend `RuntimeException`)

@@ -43,6 +43,8 @@ interface WarehouseMovementsRepositoryI
 
     public function findIdByFolio(string $folio): int;
 
+    public function findByIdGreaterThan(int $id, int $limit = 15): array;
+
     public function setReversedByFolio(
         string $folio,
         int $reversedBy): bool;

@@ -215,4 +215,23 @@ class MovementsController extends Controller
             'reversal_folio' => $result->getValue(),
         ], 200);
     }
+
+    public function getMovementsAfterFolio(Request $request, string $folio): JsonResponse
+    {
+        $result = $this->warehouseMovementsService
+            ->getMovementsAfterFolio(
+                $folio, 15);
+
+        if ($result->isFailure()) {
+            return response()->json([
+                'success' => false,
+                'message' => $result->getError(),
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result->getValue(),
+        ]);
+    }
 }

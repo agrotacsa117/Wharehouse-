@@ -11,6 +11,7 @@ use App\Mappers\DTO\DetailsOfMovements;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\WarehouseMovementsListDetailDTO;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
 {
@@ -232,6 +233,32 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             ->findIdByFolio(
                 $folio
             );
+    }
+
+    public function getMovementsAfterFolio(string $folio, int $limit = 15): ResultPattern
+    {
+        Log::info('Service: getMovementsAfterFolio called', ['folio' => $folio, 'limit' => $limit]);
+
+        $id = $this->warehouseMovementsRepository->findIdByFolio($folio);
+
+        if (! $id) {
+            Log::info('Service: getMovementsAfterFolio - folio not found', ['folio' => $folio]);
+
+            return ResultPattern::failure('Folio no encontrado: '.$folio);
+        }
+
+        $movements = $this->warehouseMovementsRepository->findByIdGreaterThan($id, $limit);
+
+        $converted = $this->convertToWarehouseMovementsListDetailDTO($movements);
+
+        Log::info('Service: getMovementsAfterFolio - movements retrieved', [
+            'folio' => $folio,
+            'id' => $id,
+            'count' => count($converted),
+            'content' => $converted
+        ]);
+
+        return ResultPattern::success($converted);
     }
 
     public function reserveAMovementFolio(

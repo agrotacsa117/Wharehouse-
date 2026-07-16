@@ -80,6 +80,11 @@ Route::post(
     [MovementsController::class, 'reverseMovement']
 )->name('warehouse-movements.reverse-movement');
 
+Route::get(
+    '/warehouse-movements/after-folio/{folio}',
+    [MovementsController::class, 'getMovementsAfterFolio']
+)->name('warehouse-movements.after-folio');
+
 Route::middleware('auth')->group(function () {
     Route::get(
         '/warehouse-movements',

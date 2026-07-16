@@ -738,7 +738,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         int $responsableUserId,
         bool $foreceConfirm
     ): ResultPattern {
-        
+
         return $this->runInTransaction(function () use (
             $folio,
             $reason,

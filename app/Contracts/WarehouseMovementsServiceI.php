@@ -38,6 +38,8 @@ interface WarehouseMovementsServiceI
 
     public function getIdByFolio(string $folio): int;
 
+    public function getMovementsAfterFolio(string $folio, int $limit = 15): ResultPattern;
+
     public function reserveAMovementFolio(
         string $folio,
         int $countermovementId): bool;

@@ -1914,8 +1914,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                                                                             MODAL: NUEVA ENTRADA
-                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                                                                                                                                             MODAL: NUEVA ENTRADA
+                                                                                                                                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="entradaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -1948,8 +1948,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                                                                             MODAL: NUEVA SALIDA
-                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                                                                                                                                             MODAL: NUEVA SALIDA
+                                                                                                                                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2033,8 +2033,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                                                                             MODAL: VER DETALLE
-                                                                                                                                                                                                                         ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                                                                                                                                             MODAL: VER DETALLE
+                                                                                                                                                                                                                                                                                                                                         ══════════════════════════════════════════════ -->
             <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
@@ -2059,8 +2059,8 @@
             </div>
 
             <!-- ══════════════════════════════════════════════
-                                                                                                                                                                                                                             MODAL: ELIMINAR
-                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
+                                                                                                                                                                                                                                                                                                                                             MODAL: ELIMINAR
+                                                                                                                                                                                                                                                                                                                                        ══════════════════════════════════════════════ -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
@@ -2262,7 +2262,9 @@
 @endsection
 @push('scripts')
     <script>
-        let reversalCantidad = null; //  
+        let reversalCantidad = null; //
+        let lastFolio = "";
+
         function goToInventoryMovements(inventoryId) {
             const id = parseInt(inventoryId);
 
@@ -2275,6 +2277,8 @@
 
             updatePagination();
             renderMovements();
+
+
 
             // Hacer switch al tab historial
             const tabBtn = document.querySelector('.tacsa-tab');
@@ -2305,7 +2309,14 @@
         updatePagination();
         renderMovements();
 
+        sessionStorage.setItem(
+            'lastFolio',
+            lastFolio);
 
+        sessionStorage.setItem(
+            'movementsCached',
+            JSON.stringify(allMovements)
+        );
 
         // ══════════════════════════════════
         //  RENDER TABLE OF INVENTORY
@@ -2350,6 +2361,8 @@
         // ══════════════════════════════════
         //  RENDER TABLE
         // ══════════════════════════════════
+
+
         function renderMovements() {
             const tbody = document.getElementById('movementsBody');
             const fragment = document.createDocumentFragment();
@@ -2360,12 +2373,12 @@
             const end = start + pagination.per_page;
             const pageData = filteredMovements.slice(start, end);
 
-            pageData.forEach(m => {
+            lastFolio = filteredMovements[0].folio;
+
+            pageData.forEach((m, index) => {
 
                 let badgeClass, badgeIcon, badgeLabel;
 
-                //alert(m.movementType);
-                //SALE
                 if (m.movementType === 'IN') {
                     badgeClass = 'badge-entrada';
                     badgeIcon = 'bi-box-arrow-in-down';
@@ -3254,10 +3267,7 @@
 
             btn.disabled = true;
             btn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Procesando...';
-            // alert(
-            //     "The movement folio is: " +
-            //     reversalMovementId + " and the reason is: " 
-            //     + reason);
+
 
             let reason = document.getElementById(
                 'reason-reverse').value;
@@ -3297,10 +3307,12 @@
 
                 // ── Caso: éxito
                 if (data.success) {
+                    alert("Entered here!!!");
                     // Cerrar todos los modales abiertos
                     document.querySelectorAll('.modal.show').forEach(m =>
                         bootstrap.Modal.getInstance(m)?.hide()
                     );
+
                     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                     document.body.classList.remove('modal-open');
                     document.body.style.removeProperty('overflow');
@@ -3311,15 +3323,80 @@
                         `Contramovimiento ${data.reversal_folio} creado correctamente.`;
 
                     mostrarToastReversal(data.stock_negativo ? 'warning' : 'success', msg);
-                    filtrarMovimientos(); // Refrescar tabla
+                    //filteredMovements
+                    let savedData = sessionStorage.getItem(
+                        "movementsCached");
 
+                    if (savedData) {
+                        filteredMovements = JSON.parse(
+                            savedData
+                        );
+
+                        lastFolio = sessionStorage.getItem(
+                            "lastFolio");
+
+                        alert(
+                            "The last folio is: " +
+                            lastFolio);
+                        console.log('[after-folio] Solicitando movimientos posteriores al folio:', lastFolio);
+
+                        fetch(`/warehouse-movements/after-folio/${lastFolio}`)
+                            .then(res => {
+                                console.log('[after-folio] Response status:', res.status, res.ok);
+                                return res.json();
+                            })
+                            .then(nuevosRegistros => {
+                                console.log('[after-folio] Respuesta recibida (raw):', nuevosRegistros);
+                                console.log('[after-folio] typeof:', typeof nuevosRegistros, '¿es array?', Array
+                                    .isArray(nuevosRegistros));
+
+                                if (nuevosRegistros.data.length > 0) {
+                                    alert("Entered at this cursor!");
+                                    // Los agregas arriba, actualizas la tabla y guardas el nuevo caché
+                                    alert(
+                                        JSON.stringify(
+                                            nuevosRegistros.data)
+                                    );
+
+                                    filteredMovements = [...nuevosRegistros.data,
+                                        ...filteredMovements
+                                    ];
+
+                                    alert("The new array by cursor is: ");
+                                    alert(
+                                        JSON.stringify(
+                                            filteredMovements)
+                                    );
+                                    sessionStorage.setItem(
+                                        'movementsCached',
+                                        JSON.stringify(
+                                            filteredMovements));
+
+                                    sessionStorage.setItem(
+                                        'lastFolio',
+                                        lastFolio);
+                                } else {
+                                    console.log(
+                                        '[after-folio] nuevosRegistros.length no es > 0, no se actualiza el caché',
+                                        nuevosRegistros);
+                                }
+
+                                renderMovements();
+                            })
+                            .catch(error => {
+                                console.error('[after-folio] Error en fetch o parseo de JSON:', error);
+                                renderMovements();
+                            });
+
+
+                    }
                 } else {
                     console.log(data.message);
                     mostrarToastReversal('error', data.message);
                 }
 
             } catch (error) {
-                mostrarToastReversal('error', 'Error de conexión. Intenta nuevamente.');
+                //mostrarToastReversal('error', 'Error de conexión. Intenta nuevamente.');
                 console.error(error);
             } finally {
                 btn.disabled = false;

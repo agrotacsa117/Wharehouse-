@@ -9,6 +9,7 @@ use App\Enterprise_Layer\WarehouseInventoryMovements;
 use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Models\WarehouseInventoryMovementsModel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 {
@@ -217,9 +218,40 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
 
     public function findIdByFolio(string $folio): int
     {
-        return WarehouseInventoryMovementsModel::where(
+        Log::info('Repository: findIdByFolio called', ['folio' => $folio]);
+
+        $id = WarehouseInventoryMovementsModel::where(
             'folio',
             $folio)->value('id');
+
+        Log::info('Repository: findIdByFolio result', ['folio' => $folio, 'id' => $id]);
+
+        return $id;
+    }
+
+    public function findByIdGreaterThan(int $id, int $limit = 15): array
+    {
+        Log::info('Repository: findByIdGreaterThan called', ['id' => $id, 'limit' => $limit]);
+
+        $movements = WarehouseInventoryMovementsModel::with([
+            'inventory.warehouse',
+            'user',
+            'sale',
+            'sourceWarehouse' => function ($q) {
+                $q->select('id', 'warehouses_name');
+            },
+        ])
+            ->where('id', '>', $id)
+            ->limit($limit)
+            ->get();
+
+        Log::info('Repository: findByIdGreaterThan result', [
+            'id' => $id,
+            'limit' => $limit,
+            'count' => $movements->count(),
+        ]);
+
+        return $movements->toArray();
     }
 
     public function setReversedByFolio(
