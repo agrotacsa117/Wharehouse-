@@ -6,7 +6,9 @@ use App\Contracts\ProductServiceInterface;
 use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class WareouseInventoryController extends Controller
 {
@@ -95,5 +97,28 @@ class WareouseInventoryController extends Controller
         return redirect()
             ->route('operation.get')
             ->with('success', 'Inventario registrado correctamente');
+    }
+
+    public function saerchByProduct(string $product): JsonResponse
+    {
+        Log::info(
+            'Initializing saerching of produdct '
+            .$product);
+
+        $productsFiltered = $this
+            ->warehouseInventoryService
+            ->getListFilteredByProductCodeOrName(
+                $product
+            );
+
+        Log::info(
+            'The result of this saerch',
+            ['products' => $product]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Productos obtenidos exitosamente',
+            'products' => $productsFiltered,
+        ], 200);
     }
 }

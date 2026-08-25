@@ -680,7 +680,9 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
             $existences[$i] = new WarehouseStockDTO(
                 (string) ($row['product_id']),
                 (string) ($row['warehouse_name']),
-                (int) ($row['stock'])
+                (int) ($row['stock']),
+                null,
+                null  
             );
         }
 
@@ -730,7 +732,41 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $inventoryExpirationMetricsDataDTO;
     }
 
-public function revertMovement(
+    public function getListFilteredByProductCodeOrName(
+        string $product
+    ): array {
+
+        Log::info(
+            'Consulting to the WarehouseInventoryServiceImplementation
+            in method getListFilteredByProductCodeOrName
+            with param', ['Product' => $product]);
+
+        $products = $this->warehouseInventoryRepository
+            ->findByProductIdOrName(
+                $product
+            );
+
+        Log::info('The result of consulting from 
+        getListFilteredByProductCodeOrName method is: ',
+            [
+                'ProductsFiltered' => $products,
+            ]);
+
+        for ($i = 0; $i < count($products); $i++) {
+            $product = $products[$i];
+            $products[$i] = new WarehouseStockDTO(
+                $product['product_id'],
+                $product['product_name'],
+                $product['stock'],
+                $product['warehouse_id'],
+                $product['warehouses_name']
+            );
+        }
+
+        return $products;
+    }
+
+    public function revertMovement(
         string $folio,
         string $reason,
         int $responsableUserId,

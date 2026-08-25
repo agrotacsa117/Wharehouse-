@@ -88,4 +88,7 @@ interface WarehouseInventoryRepositoryInterface
     public function getExpirationMetrics(
         int $warehouseId,
         string $productId): array;
+
+    public function findByProductIdOrName(
+        string $product): array;
 }

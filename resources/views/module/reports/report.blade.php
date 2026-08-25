@@ -317,6 +317,10 @@
         vertical-align: middle;
     }
 
+    .warehouse-column {
+        display: none;
+    }
+
     .no-data-message {
         padding: 3rem;
         text-align: center;
@@ -565,9 +569,9 @@
                 <button class="tab-btn" onclick="switchTab('movimientos', this)">
                     <i class="bi bi-arrow-left-right"></i> Movimientos
                 </button>
-                {{-- <button class="tab-btn" onclick="switchTab('sales', this)">
+                <button class="tab-btn" onclick="switchTab('sales', this)">
                     <i class="bi bi-cart3"></i> Ventas
-                </button> --}}
+                </button>
             </div>
 
             {{-- =========================================== --}}
@@ -775,7 +779,7 @@
             <div id="tab-productos" class="tab-panel">
 
                 {{-- FILTROS --}}
-                {{-- <div class="reporte-filter-bar">
+                <div class="reporte-filter-bar">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label class="form-label small fw-medium">Producto</label>
@@ -817,7 +821,7 @@
                             </button>
                         </div>
                     </div>
-                </div> --}}
+                </div>
 
                 {{-- VISTA GRID DE BODEGAS (cuando NO hay producto seleccionado) --}}
                 <div id="productos-grid-view">
@@ -934,7 +938,7 @@
                     </div>
 
                     {{-- Header bodega --}}
-                    <div class="reporte-card mb-3">
+                    <div class="reporte-card mb-3" id="header_kpis">
                         <div
                             style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
                             <div style="display: flex; align-items: center; gap: 12px;">
@@ -957,7 +961,7 @@
                                     <i class="bi bi-printer me-1"></i> Imprimir
                                 </button>
                             </div>
-                        </div>{{-- VISTA DETALLE DE PRODUCTO (cuando S├ì hay producto seleccionado) --}}
+                        </div>
 
                         {{-- KPIs bodega --}}
                         <div class="row g-2 mt-3">
@@ -998,7 +1002,7 @@
                     </div>
 
                     {{-- Filtros --}}
-                    <div class="reporte-filter-bar">
+                    <div class="reporte-filter-bar" id="secondary_saerch">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label class="form-label small fw-medium">Buscar producto</label>
@@ -1042,6 +1046,7 @@
                             <table class="table table-hover table-semaforo mb-0">
                                 <thead>
                                     <tr>
+                                        <th style="display: none;" id="warehouse_column">Bodega</th>
                                         <th>Código</th>
                                         <th>Producto</th>
                                         <th class="text-center">Cantidad</th>
@@ -2154,29 +2159,44 @@
         let currentWarehouseId = 0;
         let warehouseName = "";
         let productosDetalleBodegaFiltrados = [];
+        let isGeneralSaerch = false;
 
-        function buscarProducto() {
+        async function buscarProducto() {
+            isGeneralSaerch = true;
             const producto = document.getElementById('prodProducto').value;
             const almacen = document.getElementById('prodAlmacen').value;
             const periodo = document.getElementById('prodPeriodo').value;
             const estado = document.getElementById('prodEstado').value;
+
+            document.getElementById('productos-grid-view').style.display = 'none';
+            document.getElementById('header_kpis').style.display = 'none';
+            document.getElementById('secondary_saerch').style.display = 'none';
+
+            document.getElementById('productos-detalle-bodega').style.display = 'block';
 
             if (!producto.trim()) {
                 alert('Por favor ingresa un nombre de producto');
                 return;
             }
 
-            // TODO: Aquí harías un fetch al backend para obtener análisis del producto
-            console.log('Buscando producto:', {
-                producto,
-                almacen,
-                periodo,
-                estado
-            });
+            try {
+                const response = await fetch(`/inventory/search/${producto}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
 
-            // alert(
-            //     `Funcionalidad en desarrollo.\nProducto: ${producto}\nBodega: ${almacen || 'Todas'}\nPeríodo: ${periodo} meses`
-            //     );
+                document.getElementById('warehouse_column').style.display = 'block';
+                const data = await response.json();
+
+                renderTablaDetalleBodega(data.products);
+            } catch (error) {
+                console.log(
+                    "Has been ocurred one error " +
+                    error.message);
+            }
         }
 
         function limpiarBusquedaProducto() {
@@ -2197,6 +2217,15 @@
             expiringSoon,
             expired
         ) {
+
+            if (isGeneralSaerch) {
+                document.getElementById('warehouse_column').style.display = 'none';
+                document.getElementById('header_kpis').style.display = 'block';
+                document.getElementById('secondary_saerch').style.display = 'block';
+
+                isGeneralSaerch = false;
+            }
+
             try {
                 // Mostrar loading
                 document.getElementById('tableDetalleBodegaBody').innerHTML = `
@@ -2294,6 +2323,10 @@
 
                 return `
             <tr>
+                <td class="warehouse-column" style="display: ${isGeneralSaerch ? 'table-cell' : 'none'};">
+                    ${p.warehouse_name || 'N/A'}
+                </td>
+
                 <td>
                     <div style="font-weight: 500; margin-bottom: 2px;">${p.product_id || 'N/A'}</div>
                     <div style="font-size: 11px; color: #64748b;">${p.product_name || ''}</div>
@@ -2302,7 +2335,7 @@
                 <td class="text-center" style="font-weight: 700;">${formatNumber(p.stock || 0)}</td>
                 
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}','${p.product_id}','${warehouseId}','${warehouseName}', '${p.stock}')">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="verAnalisisProducto('${p.product_name}','${p.product_id}','${isGeneralSaerch ? p.warehouse_id : warehouseId}','${isGeneralSaerch ? p.warehouse_name : warehouseName}', '${p.stock}')">
                         Ver detalle ↗
                     </button>
                 </td>
@@ -2372,8 +2405,12 @@
         function volverAGridBodegas() {
             document.getElementById('productos-grid-view').style.display = 'block';
             document.getElementById('productos-detalle-bodega').style.display = 'none';
+            document.getElementById('header_kpis').style.display = 'block';
+            document.getElementById('secondary_saerch').style.display = 'block';
+            document.getElementById('warehouse_column').style.display = 'none';
             productosDetalleBodega = [];
             productosDetalleBodegaFiltrados = [];
+            isGeneralSaerch = false;
         }
 
         async function verAnalisisProducto(
@@ -2430,17 +2467,6 @@
                 document.getElementById(
                     'modalLotesProducto'));
             modal.show();
-        }
-
-        function limpiarBusquedaProducto() {
-            document.getElementById('prodProducto').value = '';
-            document.getElementById('prodAlmacen').value = '';
-            document.getElementById('prodPeriodo').value = '6';
-            document.getElementById('prodEstado').value = '';
-
-            // Volver a vista grid
-            document.getElementById('productos-grid-view').style.display = 'block';
-            document.getElementById('productos-detalle-view').style.display = 'none';
         }
 
         function actualizarKPIsLotes(kpis) {

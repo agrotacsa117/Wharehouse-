@@ -53,6 +53,13 @@ Route::post(
     [WareouseInventoryController::class, 'store']
 )->name('operation.get.store');
 
+Route::get(
+    '/inventory/search/{product}',
+    [
+        WareouseInventoryController::class,
+        'saerchByProduct',
+    ])->name('inventory.search.get');
+
 Route::post(
     '/warehouse-type',
     [WarehouseTypeController::class, 'store']

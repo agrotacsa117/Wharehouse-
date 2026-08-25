@@ -11,6 +11,7 @@ use App\Infrastructure\Exception\CouldNotPersistLocationException;
 use App\Infrastructure\Exception\InventoryNotFoundException;
 use App\Models\WarehouseInventoryModel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRepositoryInterface
 {
@@ -544,5 +545,42 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->where('warehouse_id', $warehouseId)
             ->where('product_id', $productId)
             ->first()->toArray();
+    }
+
+    public function findByProductIdOrName(
+        string $product): array
+    {
+        Log::info('Consulting findByProductIdOrName 
+        method into 
+        WarehouseInventoryRepositoryImplementation.',
+            ['Product' => $product]);
+
+        $searchTerm = "{$product}%";
+        $productsFiltered = WarehouseInventoryModel::query()
+            ->join('warehouses as w', 'warehouse_inventory.warehouse_id', '=', 'w.id')
+            ->select(
+                'warehouse_inventory.warehouse_id',
+                'w.warehouses_name',
+                'warehouse_inventory.product_id',
+                'warehouse_inventory.warehouse_name AS product_name',
+                DB::raw('SUM(warehouse_inventory.quantity) as stock')
+            )
+            ->where(function ($query) use ($searchTerm) {
+                $query->where('warehouse_inventory.product_id', 'LIKE', $searchTerm)
+                    ->orWhere('warehouse_inventory.warehouse_name', 'LIKE', $searchTerm);
+            })
+            ->groupBy(
+                'warehouse_inventory.warehouse_id',
+                'w.warehouses_name',
+                'warehouse_inventory.product_id',
+                'warehouse_inventory.warehouse_name'
+            )
+            ->get()
+            ->toArray();
+
+        Log::info('The result of consulting by eloquent method is: ',
+            ['Product' => $productsFiltered]);
+
+        return $productsFiltered;
     }
 }

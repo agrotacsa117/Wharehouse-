@@ -81,4 +81,8 @@ interface WarehouseInventoryServiceInterface
         string $reason,
         int $responsableUserId,
         bool $foreceConfirm): ResultPattern;
+
+    public function getListFilteredByProductCodeOrName(
+        string $product
+    ): array;
 }

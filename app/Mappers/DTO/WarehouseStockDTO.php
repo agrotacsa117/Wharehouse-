@@ -4,28 +4,38 @@ namespace App\Mappers\DTO;
 
 class WarehouseStockDTO implements \JsonSerializable
 {
+    private ?int $warehouseId;
+
+    private ?string $warehouseName;
+
     private string $productId;
 
-    private string $warehouseName;
+    private string $productName;
 
     private int $stock;
 
     public function __construct(
         string $productId,
-        string $warehouseName,
-        int $stock)
-    {
+        string $productName,
+        int $stock,
+        ?int $warehouseId,
+        ?string $warehouseName
+    ) {
         $this->productId = $productId;
-        $this->warehouseName = $warehouseName;
+        $this->productName = $productName;
         $this->stock = $stock;
+        $this->warehouseId = $warehouseId;
+        $this->warehouseName = $warehouseName;
     }
 
     public function jsonSerialize(): array
     {
         return [
             'product_id' => $this->productId,
-            'product_name' => $this->warehouseName,
+            'product_name' => $this->productName,
             'stock' => $this->stock,
+            'warehouse_id' => $this->warehouseId,
+            'warehouse_name' => $this->warehouseName,
         ];
     }
 
@@ -34,13 +44,23 @@ class WarehouseStockDTO implements \JsonSerializable
         return $this->productId;
     }
 
-    public function getWarehouseName(): string
+    public function getProductName(): string
     {
-        return $this->warehouseName;
+        return $this->productName;
     }
 
     public function getStock(): int
     {
         return $this->stock;
+    }
+
+    public function getWarehouseId(): ?int
+    {
+        return $this->warehouseId;
+    }
+
+    public function getWarehouseName(): ?string
+    {
+        return $this->warehouseName;
     }
 }
