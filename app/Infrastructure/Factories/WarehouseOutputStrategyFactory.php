@@ -13,6 +13,7 @@ use App\Contracts\WarehouseOutputStrategy;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseSalesServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
 {
@@ -66,6 +67,8 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                 );
 
             case 'LOCATION_UPDATE':
+                Log::info('Entered in this strategy!');
+
                 return new IntraWarehouseTransferStrategy(
                     $this->warehouseInventoryQueryService,
                     $this->warehouseMovementsService,

@@ -1,0 +1,1126 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+ ▎ Tackle your toughest work with Opus 5. Switch anytime with /model.
+
+❯ /init 2026-07-27-181537-dercos_vichy                                          
+
+● I'll review the current codebase state to verify the existing CLAUDE.md is
+  accurate and see what's changed, then suggest improvements.
+
+  Searched for 4 patterns, read 4 files, ran 4 shell commands (ctrl+o to expand)
+
+● Now I have enough to make targeted, accurate improvements. I'll add a small
+  note about the new cart-batch endpoint since it's a distinct pattern (JSON
+  per-item results instead of the usual redirect+ResultPattern flow), and flag a
+  serious bug I found along the way.
+
+● Update(CLAUDE.md)
+  ⎿  User rejected update to CLAUDE.md
+
+✻ Cooked for 14m 52s
+
+❯ Recuedas que fue lo último que hicimos                                        
+
+● En esta sesión estábamos ejecutando /init para actualizar el CLAUDE.md del
+  proyecto, revisando qué cambió recientemente (composer.json añadió
+  maatwebsite/excel, ReportController ganó endpoints de exportación Excel/PDF,
+  routes/web.php sumó una ruta nueva output.inventory.process.cart, y
+  OutputController creció ~333 líneas con un flujo de "cart" para procesar
+  salidas por lote).
+
+  Estaba por proponerte un ajuste puntual al CLAUDE.md para documentar ese nuevo
+  flujo processCart, pero rechazaste el edit — así que no se aplicó nada.
+
+  De paso encontré algo que te debería importar más que la doc: en
+  app/Http/Controllers/OutputController.php:457, dentro de processCartItem, hay
+  un exit; suelto en medio del código (antes del try). Eso mata el proceso PHP
+  en el primer ítem del carrito — el batch completo se rompería en producción.
+  Parece un residuo de debugging del trabajo en curso (todavía no está
+  commiteado).
+
+  ¿Cómo quieres seguir? ¿reviso/edito el CLAUDE.md de otra forma, quitamos el
+  exit;, o prefieres que no toque nada todavía?
+
+✻ Cogitated for 14s
+
+※ recap: We're refreshing CLAUDE.md via /init to reflect recent changes, and I found a stray `exit;` bug in OutputController.php that would break the new cart batch feature. Next: confirm whether to remove that `exit;` or continue with CLAUDE.md edits first. (disable recaps in /config)
+
+❯ Poniendolo a prueba el funcionamiento es el esperado pero sabes creo que hay  
+  que refactorizas siento que el controller está manejando muchas               
+  responsabilidades que no le tocan                                             
+
+● 2 background agents launched (↓ to manage)
+   ├ Map OutputController responsibilities and dependencies
+   └ Explore output strategy pattern and DTO builder conventions
+
+● Ambos agentes de exploración están corriendo en paralelo — uno mapeando
+  responsabilidades del OutputController, otro relevando el patrón
+  Strategy/Factory existente para reutilizarlo. Te aviso cuando terminen.
+
+✻ Churned for 32s
+
+● Agent "Explore output strategy pattern and DTO builder conventions" finished ·
+1m 58s
+
+● Uno de los dos exploradores terminó — ya tengo el mapa completo del patrón
+  Strategy/Factory existente y cómo processCart lo reutiliza parcialmente.
+  Esperando al segundo agente (que está mapeando el OutputController línea por
+  línea) antes de diseñar el plan.
+
+✻ Worked for 3s
+
+● Agent "Map OutputController responsibilities and dependencies" finished · 2m 
+28s
+
+  Searched for 4 patterns, read 1 file (ctrl+o to expand)
+
+● User answered Claude's questions:
+  ⎿  · El controller mezcla 3 tipos de responsabilidades que no le corresponden:
+     (1) validación inline con $request->validate(), (2) construcción de DTOs 
+     con reglas de negocio (build*Dto), (3) el loop/try-catch/logging del 
+     carrito (processCart/processCartItem/transferCartItem). ¿Qué alcance 
+     quieres para el refactor? → Solo DTOs + carrito
+
+● Voy a leer el controller completo para armar el plan con precisión sobre qué
+  migra exactamente a cada clase nueva.
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Refactor: sacar construcción de DTOs y lógica de carrito de             │
+     │ OutputController                                                        │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ OutputController (app/Http/Controllers/OutputController.php) ya         │
+     │ funciona correctamente (el usuario lo probó), pero absorbió             │
+     │ responsabilidades que no le corresponden a un controller HTTP:          │
+     │                                                                         │
+     │ - Construcción de DTOs con reglas de negocio incrustadas:               │
+     │ buildRelocationDto, buildSaleDto, buildSimpleOutputDto,                 │
+     │ buildLocationUpdateDto, buildRemoveWarehouseInventoryStockDTO,          │
+     │ buildCartItemDto (líneas 164-204, 235-246, 276-282, 379-391, 497-510)   │
+     │ deciden cosas como forzar quantity = 0 en RELOCATION/LOCATION_UPDATE, o │
+     │ defaultear operation_date a hoy en SALE/OUT. Esta lógica está           │
+     │ duplicada entre el flujo de un solo ítem y el flujo de carrito          │
+     │ (buildCartItemDto es literalmente un switch que reenvía a los mismos    │
+     │ build*Dto).                                                             │
+     │ - Construcción manual de TransferInventoryDTO duplicada byte-a-byte en  │
+     │ processTransfer (317-327) y transferCartItem (526-536), incluyendo la   │
+     │ regla "no transferir al mismo almacén" (312-314 y 522-524).             │
+     │ - El flujo de carrito completo (processCart, processCartItem,           │
+     │ transferCartItem, líneas 397-539): loop, try/catch por ítem, logging    │
+     │ estructurado y armado de la respuesta JSON — es una pieza de            │
+     │ orquestación de negocio que vive en el controller en vez de en          │
+     │ Application_Layer.                                                      │
+     │                                                                         │
+     │ Alcance acordado con el usuario: extraer construcción de DTOs + lógica  │
+     │ de carrito. La validación inline ($request->validate([...])) se queda   │
+     │ como está (no es inconsistente: MovementsController también valida      │
+     │ inline; el único precedente de FormRequest es StoreWarehouseRequest, y  │
+     │ tocar eso es un cambio aparte).                                         │
+     │                                                                         │
+     │ El objetivo es que OutputController quede: valida → arma/pide el DTO →  │
+     │ delega al servicio existente → traduce ResultPattern a redirect/JSON.   │
+     │ Ningún comportamiento observable cambia.                                │
+     │                                                                         │
+     │ Diseño                                                                  │
+     │                                                                         │
+     │ Se reutiliza el patrón ya establecido en el repo (Contracts/XxxMapperI  │
+     │ + implementación en Mappers/ o                                          │
+     │ Application_Layer/Services_Implementation/, registrado en               │
+     │ AppServiceProvider). No se toca WarehouseOutputStrategy,                │
+     │ BaseOutputService, las 4 strategies concretas, el                       │
+     │ WarehouseOutputStrategyFactory ni                                       │
+     │ WarehouseInventoryServiceImplementation::processInventoryOutput() — esa │
+     │ capa ya está bien y el refactor solo la consume.                        │
+     │                                                                         │
+     │ 1. App\Contracts\WarehouseOutputDtoMapperI (nueva interfaz)             │
+     │                                                                         │
+     │ interface WarehouseOutputDtoMapperI                                     │
+     │ {                                                                       │
+     │     public function toSimpleOutputDto(array $data, int $userId):        │
+     │ RemoveWarehouseInventoryStockDTO;                                       │
+     │     public function toSaleDto(array $data, int $userId):                │
+     │ RemoveWarehouseInventoryStockDTO;                                       │
+     │     public function toRelocationDto(array $data, int $userId):          │
+     │ RemoveWarehouseInventoryStockDTO;                                       │
+     │     public function toLocationUpdateDto(array $data, int $userId):      │
+     │ RemoveWarehouseInventoryStockDTO;                                       │
+     │     public function toDto(string $movementType, array $data, int        │
+     │ $userId): RemoveWarehouseInventoryStockDTO;                             │
+     │     public function toTransferDto(int $warehouseInventoryId,            │
+     │ WarehouseInventory $inventory, array $data): TransferInventoryDTO;      │
+     │ }                                                                       │
+     │ (confirmar el tipo real de la entidad devuelta por                      │
+     │ getInventoryById()->getValue() — es el mismo objeto que hoy usan        │
+     │ processTransfer/transferCartItem vía                                    │
+     │ ->getWarehouseId()/->getLotNumber()).                                   │
+     │                                                                         │
+     │ 2. App\Mappers\WarehouseOutputDtoMapper (implementación)                │
+     │                                                                         │
+     │ Mueve tal cual (mismo comportamiento, mismas reglas) desde              │
+     │ OutputController:                                                       │
+     │ - buildRemoveWarehouseInventoryStockDTO → método privado baseDto()      │
+     │ (conserva la regla de forzar quantity = 0 para                          │
+     │ RELOCATION/LOCATION_UPDATE).                                            │
+     │ - buildRelocationDto → toRelocationDto()                                │
+     │ - buildSaleDto → toSaleDto() (conserva default de operation_date a      │
+     │ now()->format('Y-m-d'))                                                 │
+     │ - buildSimpleOutputDto → toSimpleOutputDto() (mismo default de fecha)   │
+     │ - buildLocationUpdateDto → toLocationUpdateDto()                        │
+     │ - buildCartItemDto → toDto() (mismo switch, ahora delega a los métodos  │
+     │ de arriba en vez de a métodos privados del controller)                  │
+     │ - Nuevo toTransferDto(): extrae el bloque new TransferInventoryDTO(...) │
+     │ que hoy está duplicado en processTransfer (317-327) y transferCartItem  │
+     │ (526-536), unificando ambos.                                            │
+     │                                                                         │
+     │ 3. App\Contracts\CartOutputServiceInterface (nueva interfaz)            │
+     │                                                                         │
+     │ interface CartOutputServiceInterface                                    │
+     │ {                                                                       │
+     │     public function processBatch(string $movementType, array $shared,   │
+     │ array $items, int $userId): array;                                      │
+     │ }                                                                       │
+     │                                                                         │
+     │ 4. App\Application_Layer\Services_Implementation\CartOutputService      │
+     │ (implementación)                                                        │
+     │                                                                         │
+     │ Constructor inyecta WarehouseInventoryServiceInterface +                │
+     │ WarehouseOutputDtoMapperI. Mueve tal cual desde el controller:          │
+     │ - El loop de processCart (428-436) → cuerpo de processBatch().          │
+     │ - processCartItem (441-495) → método privado processItem() (mismo       │
+     │ try/catch, mismo Log::info/Log::error, mismo shape de retorno           │
+     │ ['warehouseInventoryId', 'ok', 'message']).                             │
+     │ - transferCartItem (512-538) → método privado transferItem(), pero      │
+     │ ahora construye el DTO llamando a                                       │
+     │ $this->outputDtoMapper->toTransferDto(...) en vez de duplicar el new    │
+     │ TransferInventoryDTO(...).                                              │
+     │ - Dentro de processItem(), el dispatch por tipo (buildCartItemDto) pasa │
+     │ a ser $this->outputDtoMapper->toDto($movementType, $data, $userId).     │
+     │                                                                         │
+     │ 5. Cambios en OutputController                                          │
+     │                                                                         │
+     │ - Constructor: agrega WarehouseOutputDtoMapperI $outputDtoMapper y      │
+     │ CartOutputServiceInterface $cartOutputService a los dos parámetros      │
+     │ existentes.                                                             │
+     │ - Elimina por completo: buildRelocationDto,                             │
+     │ buildRemoveWarehouseInventoryStockDTO, buildSaleDto,                    │
+     │ buildSimpleOutputDto, buildLocationUpdateDto, buildCartItemDto,         │
+     │ processCartItem, transferCartItem (ya viven en las clases nuevas).      │
+     │ - processRelocation / processSale / processSimpleOutput /               │
+     │ processLocationUpdate: cambian $this->buildXDto(...) por                │
+     │ $this->outputDtoMapper->toXDto(...). La validación inline y el manejo   │
+     │ de ResultPattern (redirect con éxito/error) se quedan exactamente       │
+     │ igual.                                                                  │
+     │ - processTransfer: sigue hciendo el fetch de inventario y el guard      │
+     │ "mismo almacén" inline (es lógica de flujo HTTP de un solo ítem, fuera  │
+     │ del alcance acordado), pero construye el DTO con                        │
+     │ $this->outputDtoMapper->toTransferDto($request->warehouseInventoryId,   │
+     │ $inventory, $request->all()) en vez del new TransferInventoryDTO(...)   │
+     │ inline.                                                                 │
+     │ - processCart: se queda con la validación inline, arma                  │
+     │ $movementType/$userId/$shared igual que hoy, y reemplaza el loop por:   │
+     │ $results = $this->cartOutputService->processBatch($movementType,        │
+     │ $shared, $request->items, $userId); return response()->json(['results'  │
+     │ => $results]);.                                                         │
+     │ - La propiedad private RemoveWarehouseInventoryStockDTO                 │
+     │ $removeWarehouseInventoryStockDTO; se elimina; pasa a ser variable      │
+     │ local en cada método (hoy se usa como estado de instancia solo para     │
+     │ pasar el valor entre dos líneas del mismo método, no hay razón para que │
+     │ sea propiedad).                                                         │
+     │                                                                         │
+     │ 6. Limpieza incidental (gratis, en los mismos métodos que ya se tocan)  │
+     │                                                                         │
+     │ - Borrar el bloque muerto/inalcanzable en processOutput (líneas 71-84:  │
+     │ el switch de arriba ya retorna en todos sus casos, incluido el          │
+     │ default).                                                               │
+     │ - Quitar el use Illuminate\Support\Facades\DB; (no se usa; las únicas   │
+     │ referencias a DB:: están comentadas en getView).                        │
+     │ - Quitar el parámetro $movementType no usado en processTransfer y       │
+     │ processLocationUpdate (se puede confirmar leyendo los cuerpos: ninguno  │
+     │ lo referencia).                                                         │
+     │ - Hacer processLocationUpdate private (hoy es public sin razón          │
+     │ aparente; todos sus pares — processRelocation, processSale,             │
+     │ processSimpleOutput — son private).                                     │
+     │ - Corregir el import use Symfony\Component\HttpFoundation\Request; →    │
+     │ use Illuminate\Http\Request; (hoy funciona en runtime porque Laravel    │
+     │ inyecta su propia subclase, pero el type-hint correcto es el de         │
+     │ Laravel, que es el que expone validate()/all()/acceso a propiedades     │
+     │ dinámicas).                                                             │
+     │                                                                         │
+     │ 7. Registro en AppServiceProvider                                       │
+     │                                                                         │
+     │ Agregar junto a los bindings existentes de                              │
+     │ WarehouseInventoryServiceInterface (~línea 210) y de los demás          │
+     │ XxxMapperI (~línea 195), siguiendo el mismo estilo:                     │
+     │ $this->app->bind(                                                       │
+     │     WarehouseOutputDtoMapperI::class,                                   │
+     │     WarehouseOutputDtoMapper::class                                     │
+     │ );                                                                      │
+     │                                                                         │
+     │ $this->app->bind(                                                       │
+     │     CartOutputServiceInterface::class,                                  │
+     │     CartOutputService::class                                            │
+     │ );                                                                      │
+     │                                                                         │
+     │ Archivos                                                                │
+     │                                                                         │
+     │ Nuevos:                                                                 │
+     │ - app/Contracts/WarehouseOutputDtoMapperI.php                           │
+     │ - app/Mappers/WarehouseOutputDtoMapper.php                              │
+     │ - app/Contracts/CartOutputServiceInterface.php                          │
+     │ - app/Application_Layer/Services_Implementation/CartOutputService.php   │
+     │                                                                         │
+     │ Modificados:                                                            │
+     │ - app/Http/Controllers/OutputController.php                             │
+     │ - app/Providers/AppServiceProvider.php                                  │
+     │                                                                         │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ No hay suite de tests real sobre este flujo (tests/ solo tiene los      │
+     │ stubs por defecto), así que la verificación es manual, probando en el   │
+     │ navegador con php artisan serve + npm run watch:                        │
+     │                                                                         │
+     │ 1. Flujo de un solo ítem (vista output/create.blade.php, sin usar el    │
+     │ carrito): probar los 5 tipos de movimiento uno por uno — OUT, SALE,     │
+     │ RELOCATION, LOCATION_UPDATE, TRANSFER — y confirmar que cada uno        │
+     │ redirige con el mismo mensaje de éxito que antes, y que un error (ej.   │
+     │ stock insuficiente, o transferir al mismo almacén) muestra el mismo     │
+     │ error que antes.                                                        │
+     │ 2. Flujo de carrito: agregar varios ítems del mismo movement_type       │
+     │ (incluir al menos un TRANSFER y un RELOCATION/LOCATION_UPDATE) y        │
+     │ confirmar que la respuesta JSON trae el mismo shape (results:           │
+     │ [{warehouseInventoryId, ok, message}]) y que un ítem que falla no       │
+     │ aborta el resto.                                                        │
+     │ 3. Revisar los logs (storage/logs/laravel.log) durante la prueba de     │
+     │ carrito para confirmar que los mensajes Log::info/Log::error de         │
+     │ processItem/transferItem siguen apareciendo igual que antes (mismo      │
+     │ texto, misma estructura del array de contexto).                         │
+     │ 4. php artisan route:list | grep output para confirmar que no cambió    │
+     │ ninguna ruta.                                                           │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Worked for 15m 19s
+
+❯ Ok adelante                                                                   
+
+  Searched for 3 patterns, read 2 files (ctrl+o to expand)
+
+● Confirmado: getInventoryById()->getValue() es WarehouseInventoryOutDetailDTO.
+  Ahora creo la interfaz del mapper.
+
+● Write(app\Contracts\WarehouseOutputDtoMapperI.php)
+  ⎿  Wrote 28 lines to app\Contracts\WarehouseOutputDtoMapperI.php
+      1 <?php
+      2 
+      3 declare(strict_types=1);
+      4 
+      5 namespace App\Contracts;
+      6 
+      7 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+      8 use App\Mappers\DTO\TransferInventoryDTO;
+      9 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
+     … +23 lines (ctrl+o to expand)
+
+● Ahora la implementación del mapper, moviendo exactamente la lógica actual del
+  controller.
+● Write(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Wrote 124 lines to app\Mappers\WarehouseOutputDtoMapper.php
+       1 <?php
+       2 
+       3 declare(strict_types=1);
+       4 
+       5 namespace App\Mappers;
+       6 
+       7 use App\Contracts\WarehouseOutputDtoMapperI;
+       8 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
+       9 use App\Mappers\DTO\TransferInventoryDTO;
+      10 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
+     … +124 lines (ctrl+o to expand)
+
+  Searched for 2 patterns, read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● I'll remove the #[\Override] attributes to match the actual codebase
+  convention — it's only used on Repository_Implementation classes, not
+  Mappers/.
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      11  
+      12  class WarehouseOutputDtoMapper implements WarehouseOutputDtoMap
+          perI
+      13  {
+      14 -    #[\Override]                                               
+      14      public function toRelocationDto(array $data, int $userId): 
+          RemoveWarehouseInventoryStockDTO
+      15      {
+      16          $dto = $this->baseDto($data, $userId, 'RELOCATION');
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      28          return $dto;
+      29      }
+      30  
+      31 -    #[\Override]                                               
+      31      public function toSaleDto(array $data, int $userId): Remove
+          WarehouseInventoryStockDTO
+      32      {
+      33          $dto = $this->baseDto($data, $userId, 'SALE');
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      41          return $dto;
+      42      }
+      43  
+      44 -    #[\Override]                                               
+      44      public function toSimpleOutputDto(array $data, int $userId)
+          : RemoveWarehouseInventoryStockDTO
+      45      {
+      46          $dto = $this->baseDto($data, $userId, 'OUT');
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      49          return $dto;
+      50      }
+      51  
+      52 -    #[\Override]                                               
+      52      public function toLocationUpdateDto(array $data, int $userI
+          d): RemoveWarehouseInventoryStockDTO
+      53      {
+      54          $dto = $this->baseDto($data, $userId, 'LOCATION_UPDATE'
+          );
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      63          return $dto;
+      64      }
+      65  
+      66 -    #[\Override]                                               
+      66      public function toDto(string $movementType, array $data, in
+          t $userId): RemoveWarehouseInventoryStockDTO
+      67      {
+      68          switch ($movementType) {
+
+● Update(app\Mappers\WarehouseOutputDtoMapper.php)
+  ⎿  Removed 1 line
+      78          }
+      79      }
+      80  
+      81 -    #[\Override]                                               
+      81      public function toTransferDto(
+      82          int $warehouseInventoryId,
+      83          WarehouseInventoryOutDetailDTO $inventory,
+
+● Mapper listo. Marco la tarea completa y sigo con el
+  CartOutputServiceInterface.
+
+● Write(app\Contracts\CartOutputServiceInterface.php)
+  ⎿  Wrote 16 lines to app\Contracts\CartOutputServiceInterface.php
+       1 <?php
+       2 
+       3 declare(strict_types=1);
+       4 
+       5 namespace App\Contracts;
+       7 interface CartOutputServiceInterface
+       8 {
+       9     /**
+      10      * @param array $shared Datos comunes a todos los ítems del 
+         carrito
+     … +10 lines (ctrl+o to expand)
+
+● Write(app\Application_Layer\Services_Implementation\CartOutputService.php)
+  ⎿  Wrote 111 lines to
+     app\Application_Layer\Services_Implementation\CartOutputService.php
+       1 <?php
+       2 
+       3 declare(strict_types=1);
+       4 
+       5 namespace App\Application_Layer\Services_Implementation;
+       6 
+       7 use App\Application_Layer\ResultPattern;
+       8 use App\Contracts\CartOutputServiceInterface;
+       9 use App\Contracts\WarehouseInventoryServiceInterface;
+      10 use App\Contracts\WarehouseOutputDtoMapperI;
+     … +118 lines (ctrl+o to expand)
+
+● Update(app\Application_Layer\Services_Implementation\CartOutputService.php)
+  ⎿  Added 1 line, removed 1 line
+      28      {
+      29          Log::info('Cart batch iniciado', [
+      30              'movement_type' => $movementType,
+      31 -            'items_count' => count($items),                    
+      31 +            'items_count' => $items,                           
+      32              'shared' => $shared,
+      33          ]);
+      34  
+
+● Ahora sigo con el refactor del controller (tarea 5).
+● Ahora reescribo OutputController.php completo, ya con toda la información
+  necesaria del archivo original.
+
+● Write(app\Http\Controllers\OutputController.php)
+  ⎿  Added 34 lines, removed 257 lines
+       2  
+       3  namespace App\Http\Controllers;
+       4  
+       5 -use App\Application_Layer\ResultPattern;                       
+       5 +use App\Contracts\CartOutputServiceInterface;                  
+       6  use App\Contracts\WarehouseInventoryServiceInterface;
+       7 +use App\Contracts\WarehouseOutputDtoMapperI;                   
+       8  use App\Contracts\WarehouseStorageServiceInterface;
+       8 -use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;          
+       9 -use App\Mappers\DTO\TransferInventoryDTO;                      
+      10 -use Illuminate\Support\Facades\DB;                             
+      11 -use Illuminate\Support\Facades\Log;                            
+      12 -use Symfony\Component\HttpFoundation\Request;                  
+       9 +use Illuminate\Http\Request;                                   
+      10  
+      11  class OutputController extends Controller
+      12  {
+     ...
+      14  
+      15      private WarehouseInventoryServiceInterface $warehouseInvent
+          oryService;
+      16  
+      20 -    private RemoveWarehouseInventoryStockDTO $removeWarehouseIn
+         -ventoryStockDTO;                                               
+      17 +    private WarehouseOutputDtoMapperI $outputDtoMapper;        
+      18  
+      19 +    private CartOutputServiceInterface $cartOutputService;     
+      20 +                                                               
+      21      public function __construct(
+      22          WarehouseStorageServiceInterface $warehouseStorageServi
+          ce,
+      24 -        WarehouseInventoryServiceInterface $warehouseInventoryS
+         -ervice                                                         
+      23 +        WarehouseInventoryServiceInterface $warehouseInventoryS
+         +ervice,                                                        
+      24 +        WarehouseOutputDtoMapperI $outputDtoMapper,            
+      25 +        CartOutputServiceInterface $cartOutputService          
+      26      ) {
+      27          $this->warehouseStorageService = $warehouseStorageServi
+          ce;
+      28          $this->warehouseInventoryService = $warehouseInventoryS
+          ervice;
+      29 +        $this->outputDtoMapper = $outputDtoMapper;             
+      30 +        $this->cartOutputService = $cartOutputService;         
+      31      }
+      32  
+      33      public function processOutput(Request $request)
+     ...
+      57              case 'TRANSFER':
+      58                  return $this->processTransfer(
+      59                      $request,
+      57 -                    $userId,                                   
+      58 -                    $movementType                              
+      60 +                    $userId                                    
+      61                  );
+      62  
+      63              case 'LOCATION_UPDATE':
+      64                  return $this->processLocationUpdate(
+      65                      $request,
+      64 -                    $userId,                                   
+      65 -                    $movementType                              
+      66 +                    $userId                                    
+      67                  );
+      68              default:
+      69                  return back()->withErrors('Tipo de movimiento n
+          o válido.');
+      70          }
+      70 -                                                               
+      71 -        $result = $this->warehouseInventoryService             
+      72 -            ->processInventoryOutput(                          
+      73 -                $this->removeWarehouseInventoryStockDTO        
+      74 -            );                                                 
+      75 -                                                               
+      76 -        if ($result->isFailure()) {                            
+      77 -            return back()                                      
+      78 -                ->withErrors($result->getError())              
+      79 -                ->withInput();                                 
+      80 -        }                                                      
+      81 -                                                               
+      82 -        return redirect()                                      
+      83 -            ->route('output.get')                              
+      84 -            ->with('success', 'Salida registrada correctamente'
+         -);                                                             
+      71      }
+      72  
+      73      public function getView()
+      74      {
+      89 -        // DB::enableQueryLog();                               
+      75          $warehousesId = $this->warehouseInventoryService
+      76              ->getWarehouseIdsWithInventory();
+      77  
+     ...
+       82          // ✅ AGREGAR LISTA DE TODOS LOS ALMACENES PARA EL SEL
+           ECT DE TRANSFER
+       83          $allWarehouses = $this->warehouseStorageService->listA
+           llWarehouses();
+       84  
+      100 -        // dd(DB::getQueryLog());                             
+       85          return view(
+       86              'module.output.create',
+       87              compact('warehousesWithLocationsDTO', 'allWarehous
+           es')
+     ...
+      123              'new_manufacturing_date' => 'nullable|date',
+      124          ]);
+      125  
+      142 -        $this->removeWarehouseInventoryStockDTO = $this->build
+          -RelocationDto(                                                
+      143 -            $request->all(),                                  
+      144 -            $userId                                           
+      145 -        );                                                    
+      126 +        $dto = $this->outputDtoMapper->toRelocationDto($reques
+          +t->all(), $userId);                                           
+      127  
+      128          $result = $this->warehouseInventoryService
+      148 -            ->processInventoryOutput(                         
+      149 -                $this->removeWarehouseInventoryStockDTO       
+      150 -            );                                                
+      129 +            ->processInventoryOutput($dto);                   
+      130  
+      131          if ($result->isFailure()) {
+      132              return back()
+     ...
+      140  
+      141      }
+      142  
+      164 -    private function buildRelocationDto(array $data, int $user
+          -Id): RemoveWarehouseInventoryStockDTO                         
+      165 -    {                                                         
+      166 -        $dto = $this->buildRemoveWarehouseInventoryStockDTO(  
+      167 -            $data,                                            
+      168 -            $userId,                                          
+      169 -            'RELOCATION'                                      
+      170 -        );                                                    
+      171 -                                                              
+      172 -        $dto->setQuantity((int) ($data['quantity'] ?? 0));    
+      173 -        $dto->setRack($data['new_rack'] ?? null);             
+      174 -        $dto->setLevel((int) ($data['new_level'] ?? 0));      
+      175 -        $dto->setOperationDate($data['operation_date'] ?? null
+          -);                                                            
+      176 -        $dto->setWarehouseId((int) ($data['destination_warehou
+          -se_id'] ?? 0));                                               
+      177 -        $dto->setBay($data['bay'] ?? null);                   
+      178 -        $dto->setModule($data['module'] ?? null);             
+      179 -        $dto->setPlatform($data['platform'] ?? null);         
+      180 -        $dto->setManufacturingDate($data['new_manufacturing_da
+          -te'] ?? null);                                                
+      181 -                                                              
+      182 -        return $dto;                                          
+      183 -    }                                                         
+      184 -                                                              
+      185 -    private function buildRemoveWarehouseInventoryStockDTO(   
+      186 -        array $data,                                          
+      187 -        int $userId,                                          
+      188 -        string $movementType                                  
+      189 -    ): RemoveWarehouseInventoryStockDTO {                     
+      190 -                                                              
+      191 -        $quantity = (                                         
+      192 -            $movementType === 'RELOCATION'                    
+      193 -        || $movementType === 'LOCATION_UPDATE') ? 0 : (int) ($
+          -data['quantity'] ?? 0);                                       
+      194 -        $dto = new RemoveWarehouseInventoryStockDTO(          
+      195 -            (int) $data['warehouseInventoryId'],              
+      196 -            $quantity,                                        
+      197 -            $data['reason'] ?? ''                             
+      198 -        );                                                    
+      199 -                                                              
+      200 -        $dto->setMovementType($movementType);                 
+      201 -        $dto->setUserId($userId);                             
+      202 -                                                              
+      203 -        return $dto;                                          
+      204 -    }                                                         
+      205 -                                                              
+      143      // ═══════════════════════════════════════════════════════
+           ════
+      144      // SALE (Venta)
+      145      // ═══════════════════════════════════════════════════════
+           ════
+     ...
+      152              'reason' => 'required|string|max:255',
+      153          ]);
+      154  
+      218 -        $this->removeWarehouseInventoryStockDTO = $this->build
+          -SaleDto($request->all(), $userId);                            
+      155 +        $dto = $this->outputDtoMapper->toSaleDto($request->all
+          +(), $userId);                                                 
+      156  
+      220 -        $result = $this->warehouseInventoryService->processInv
+          -entoryOutput(                                                 
+      221 -            $this->removeWarehouseInventoryStockDTO           
+      222 -        );                                                    
+      157 +        $result = $this->warehouseInventoryService->processInv
+          +entoryOutput($dto);                                           
+      158  
+      159          if ($result->isFailure()) {
+      160              return back()
+     ...
+      167              ->with('success', 'Venta registrada correctamente'
+           );
+      168      }
+      169  
+      235 -    private function buildSaleDto(array $data, int $userId): R
+          -emoveWarehouseInventoryStockDTO                               
+      236 -    {                                                         
+      237 -        $dto = $this->buildRemoveWarehouseInventoryStockDTO($d
+          -ata, $userId, 'SALE');                                        
+      238 -                                                              
+      239 -        if (! empty($data['invoice_sap'])) {                  
+      240 -            $dto->setInvoiceId((int) $data['invoice_sap']);   
+      241 -        }                                                     
+      242 -                                                              
+      243 -        $dto->setOperationDate($data['operation_date'] ?? now(
+          -)->format('Y-m-d'));                                          
+      244 -                                                              
+      245 -        return $dto;                                          
+      246 -    }                                                         
+      247 -                                                              
+      170      // ═══════════════════════════════════════════════════════
+           ════
+      171      // OUT (Salida Simple)
+      172      // ═══════════════════════════════════════════════════════
+           ════
+     ...
+      178              'reason' => 'required|string|max:255',
+      179          ]);
+      180  
+      259 -        $this->removeWarehouseInventoryStockDTO = $this->build
+          -SimpleOutputDto($request->all(), $userId);                    
+      181 +        $dto = $this->outputDtoMapper->toSimpleOutputDto($requ
+          +est->all(), $userId);                                         
+      182  
+      261 -        $result = $this->warehouseInventoryService->processInv
+          -entoryOutput(                                                 
+      262 -            $this->removeWarehouseInventoryStockDTO           
+      263 -        );                                                    
+      183 +        $result = $this->warehouseInventoryService->processInv
+          +entoryOutput($dto);                                           
+      184  
+      185          if ($result->isFailure()) {
+      186              return back()
+     ...
+      193              ->with('success', 'Salida registrada correctamente
+           ');
+      194      }
+      195  
+      276 -    private function buildSimpleOutputDto(array $data, int $us
+          -erId): RemoveWarehouseInventoryStockDTO                       
+      277 -    {                                                         
+      278 -        $dto = $this->buildRemoveWarehouseInventoryStockDTO($d
+          -ata, $userId, 'OUT');                                         
+      279 -        $dto->setOperationDate($data['operation_date'] ?? now(
+          -)->format('Y-m-d'));                                          
+      280 -                                                              
+      281 -        return $dto;                                          
+      282 -    }                                                         
+      283 -                                                              
+      196      // ═══════════════════════════════════════════════════════
+           ════
+      285 -    // TRANSFER (Traslado) - PLACEHOLDER                      
+      197 +    // TRANSFER (Traslado)                                    
+      198      // ═══════════════════════════════════════════════════════
+           ════
+      199      private function processTransfer(
+      200          Request $request,
+      289 -        int $userId,                                          
+      290 -        string $movementType                                  
+      201 +        int $userId                                           
+      202      ) {
+      203          $request->validate([
+      204              'warehouseInventoryId' => 'required|integer',
+     ...
+      224              return back()->withErrors('No se puede transferir 
+           al mismo almacén')->withInput();
+      225          }
+      226  
+      316 -        // Crear DTO de transferencia                         
+      317 -        $transferDTO = new TransferInventoryDTO(              
+      227 +        $transferDTO = $this->outputDtoMapper->toTransferDto( 
+      228              (int) $request->warehouseInventoryId,
+      319 -            $inventory->getWarehouseId(), // Bodega origen    
+      320 -            $request->destination_warehouse, // Bodega destino
+      321 -            '',                                               
+      322 -            0,                                                
+      323 -            $inventory->getLotNumber(),                       
+      324 -            (int) $request->quantity,                         
+      325 -            $request->reason,                                 
+      326 -            (int) $request->folio_transfer                    
+      229 +            $inventory,                                       
+      230 +            $request->all()                                   
+      231          );
+      232  
+      233          // Ejecutar transferencia
+     ...
+      245          return redirect()->route('output.get')->with('success'
+           , 'Traslado registrado correctamente');
+      246      }
+      247  
+      344 -    public function processLocationUpdate(                    
+      248 +    private function processLocationUpdate(                   
+      249          Request $request,
+      346 -        int $userId,                                          
+      347 -        string $movementType                                  
+      250 +        int $userId                                           
+      251      ) {
+      252          $request->validate([
+      253              'new_rack_r' => 'nullable|integer|max:50',
+     ...
+      258              'reason' => 'nullable|string|max:255',
+      259          ]);
+      260  
+      358 -        $this->removeWarehouseInventoryStockDTO = $this->build
+          -LocationUpdateDto($request->all(), $userId);                  
+      261 +        $dto = $this->outputDtoMapper->toLocationUpdateDto($re
+          +quest->all(), $userId);                                       
+      262  
+      263          $result = $this->warehouseInventoryService
+      361 -            ->processInventoryOutput(                         
+      362 -                $this->removeWarehouseInventoryStockDTO       
+      363 -            );                                                
+      264 +            ->processInventoryOutput($dto);                   
+      265  
+      266          if ($result->isFailure()) {
+      267              return back()->withErrors(
+     ...
+      277                   bodega registrada correctamente!');
+      278      }
+      279  
+      379 -    private function buildLocationUpdateDto(array $data, int $
+          -userId): RemoveWarehouseInventoryStockDTO                     
+      380 -    {                                                         
+      381 -        $dto = $this->buildRemoveWarehouseInventoryStockDTO($d
+          -ata, $userId, 'LOCATION_UPDATE');                             
+      382 -                                                              
+      383 -        $dto->setRack($data['new_rack_r'] ?? null);           
+      384 -        $dto->setLevel($data['new_level_r'] ?? null);         
+      385 -        $dto->setModule($data['new_module_r'] ?? null);       
+      386 -        $dto->setBay($data['new_bay_r'] ?? null);             
+      387 -        $dto->setPlatform($data['new_platform_r'] ?? null);   
+      388 -        $dto->setReason($data['reason'] ?? '');               
+      389 -                                                              
+      390 -        return $dto;                                          
+      391 -    }                                                         
+      392 -                                                              
+      280      // ═══════════════════════════════════════════════════════
+           ════
+      281      // CART BATCH (mejor esfuerzo — cada ítem se procesa
+      282      // independientemente, sin transacción envolvente)
+     ...
+      305          $userId = auth()->id();
+      306          $shared = $request->except('items');
+      307  
+      421 -        Log::info('Cart batch iniciado', [                    
+      422 -            'movement_type' => $movementType,                 
+      423 -            'items_count' => $request->items,                 
+      424 -            'shared' => $shared,                              
+      425 -        ]);                                                   
+      308 +        $results = $this->cartOutputService->processBatch(    
+      309 +            $movementType,                                    
+      310 +            $shared,                                          
+      311 +            $request->items,                                  
+      312 +            $userId                                           
+      313 +        );                                                    
+      314  
+      427 -                                                              
+      428 -        $results = [];                                        
+      429 -        foreach ($request->items as $item) {                  
+      430 -            $results[] = $this->processCartItem(              
+      431 -                $movementType,                                
+      432 -                $shared,                                      
+      433 -                $item,                                        
+      434 -                $userId                                       
+      435 -            );                                                
+      436 -        }                                                     
+      437 -                                                              
+      315          return response()->json(['results' => $results]);
+      316      }
+      440 -                                                              
+      441 -    private function processCartItem(                         
+      442 -        string $movementType,                                 
+      443 -        array $shared,                                        
+      444 -        array $item,                                          
+      445 -        int $userId                                           
+      446 -    ): array {                                                
+      447 -        $warehouseInventoryId = (int) $item['warehouseInventor
+          -yId'];                                                        
+      448 -        $data = array_merge($shared, $item);                  
+      449 -                                                              
+      450 -        Log::info('processCartItem: procesando ítem', [       
+      451 -            'movementType' => $movementType,                  
+      452 -            'warehouseInventoryId' => $warehouseInventoryId,  
+      453 -            'item' => $item,                                  
+      454 -            'data' => $data,                                  
+      455 -        ]);                                                   
+      456 -                                                              
+      457 -                                                              
+      458 -        try {                                                 
+      459 -            if ($movementType === 'TRANSFER') {               
+      460 -                $result = $this->transferCartItem($data, $ware
+          -houseInventoryId);                                            
+      461 -            } else {                                          
+      462 -                $dto = $this->buildCartItemDto($movementType, 
+          -$data, $userId);                                              
+      463 -                $result = $this->warehouseInventoryService->pr
+          -ocessInventoryOutput($dto);                                   
+      464 -            }                                                 
+      465 -        } catch (\Throwable $exception) {                     
+      466 -                                                              
+      467 -            Log::error('processCartItem: ítem falló con excepc
+          -ión', [                                                       
+      468 -                'warehouseInventoryId' => $warehouseInventoryI
+          -d,                                                            
+      469 -                'reason' => $exception->getMessage(),         
+      470 -            ]);                                               
+      471 -                                                              
+      472 -            return [                                          
+      473 -                'warehouseInventoryId' => $warehouseInventoryI
+          -d,                                                            
+      474 -                'ok' => false,                                
+      475 -                'message' => $exception->getMessage(),        
+      476 -            ];                                                
+      477 -        }                                                     
+      478 -                                                              
+      479 -        if ($result->isFailure()) {                           
+      480 -            Log::error('processCartItem: ítem falló', [       
+      481 -                'warehouseInventoryId' => $warehouseInventoryI
+          -d,                                                            
+      482 -                'reason' => $result->getError(),              
+      483 -            ]);                                               
+      484 -        } else {                                              
+      485 -            Log::info('processCartItem: ítem OK', [           
+      486 -                'warehouseInventoryId' => $warehouseInventoryI
+          -d,                                                            
+      487 -            ]);                                               
+      488 -        }                                                     
+      489 -                                                              
+      490 -        return [                                              
+      491 -            'warehouseInventoryId' => $warehouseInventoryId,  
+      492 -            'ok' => $result->isSuccess(),                     
+      493 -            'message' => $result->isSuccess() ? 'Movimiento ap
+          -licado correctamente' : $result->getError(),                  
+      494 -        ];                                                    
+      495 -    }                                                         
+      496 -                                                              
+      497 -    private function buildCartItemDto(string $movementType, ar
+          -ray $data, int $userId): RemoveWarehouseInventoryStockDTO     
+      498 -    {                                                         
+      499 -        switch ($movementType) {                              
+      500 -            case 'RELOCATION':                                
+      501 -                return $this->buildRelocationDto($data, $userI
+          -d);                                                           
+      502 -            case 'SALE':                                      
+      503 -                return $this->buildSaleDto($data, $userId);   
+      504 -            case 'LOCATION_UPDATE':                           
+      505 -                return $this->buildLocationUpdateDto($data, $u
+          -serId);                                                       
+      506 -            case 'OUT':                                       
+      507 -            default:                                          
+      508 -                return $this->buildSimpleOutputDto($data, $use
+          -rId);                                                         
+      509 -        }                                                     
+      510 -    }                                                         
+      511 -                                                              
+      512 -    private function transferCartItem(array $data, int $wareho
+          -useInventoryId): ResultPattern                                
+      513 -    {                                                         
+      514 -        $inventoryResult = $this->warehouseInventoryService->g
+          -etInventoryById($warehouseInventoryId);                       
+      515 -                                                              
+      516 -        if ($inventoryResult->isFailure()) {                  
+      517 -            return $inventoryResult;                          
+      518 -        }                                                     
+      519 -                                                              
+      520 -        $inventory = $inventoryResult->getValue();            
+      521 -                                                              
+      522 -        if ($inventory->getWarehouseId() == ($data['destinatio
+          -n_warehouse_id'] ?? null)) {                                  
+      523 -            return ResultPattern::failure('No se puede transfe
+          -rir al mismo almacén');                                       
+      524 -        }                                                     
+      525 -                                                              
+      526 -        $transferDTO = new TransferInventoryDTO(              
+      527 -            $warehouseInventoryId,                            
+      528 -            $inventory->getWarehouseId(),                     
+      529 -            $data['destination_warehouse'] ?? '',             
+      530 -            '',                                               
+      531 -            0,                                                
+      532 -            $inventory->getLotNumber(),                       
+      533 -            (int) ($data['quantity'] ?? 0),                   
+      534 -            $data['reason'] ?? '',                            
+      535 -            (int) ($data['folio_transfer'] ?? 0)              
+      536 -        );                                                    
+      537 -                                                              
+      538 -        return $this->warehouseInventoryService->transferInven
+          -tory($transferDTO);                                           
+      539 -    }                                                         
+      317  }
+  ⎿  Found 28 new diagnostic issues in 1 file (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+  ⎿  Found 1 new diagnostic issue in 1 file (ctrl+o to expand)
+
+● Update(app\Http\Controllers\OutputController.php)
+  ⎿  Added 1 line, removed 2 lines
+      56  
+      57              case 'TRANSFER':
+      58                  return $this->processTransfer(
+      59 -                    $request,                                  
+      60 -                    $userId                                    
+      59 +                    $request                                   
+      60                  );
+      61  
+      62              case 'LOCATION_UPDATE':
+
+● Update(app\Http\Controllers\OutputController.php)
+  ⎿  Added 1 line, removed 2 lines
+      196      // TRANSFER (Traslado)
+      197      // ═══════════════════════════════════════════════════════
+           ════
+      198      private function processTransfer(
+      199 -        Request $request,                                     
+      200 -        int $userId                                           
+      199 +        Request $request                                      
+      200      ) {
+      201          $request->validate([
+      202              'warehouseInventoryId' => 'required|integer',
+  ⎿  Found 3 new diagnostic issues in 1 file (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● File confirmed correct and clean. Actualizo las tareas y sigo con el binding
+  en AppServiceProvider.
+
+  Read 1 file (ctrl+o to expand)
+
+● Ahora agrego los imports y el binding cerca de
+  WarehouseInventoryServiceInterface (línea 210-213 original).
+
+● Update(app\Providers\AppServiceProvider.php)
+  ⎿  Added 1 line
+      12  use App\Application_Layer\Repository_Implementation\WarehouseSt
+          orageRepositoryImplementation;
+      13  use App\Application_Layer\Repository_Implementation\WarehouseTy
+          peRepositoryImplementation;
+      14  use App\Application_Layer\Services_Implementation\AuthServiceIm
+          plementation;
+      15 +use App\Application_Layer\Services_Implementation\CartOutputSer
+         +vice;                                                          
+      16  use App\Application_Layer\Services_Implementation\LocationServi
+          ceImplementation;
+      17  use App\Application_Layer\Services_Implementation\ProductServic
+          eImplementation;
+      18  use App\Application_Layer\Services_Implementation\RoleService;
+
+● Update(app\Providers\AppServiceProvider.php)
+  ⎿  Added 1 line
+      24  use App\Application_Layer\Services_Implementation\WarehouseStor
+          ageServiceImplementation;
+      25  use App\Application_Layer\Services_Implementation\WarehouseType
+          ServiceImplementation;
+      26  use App\Contracts\AuthServiceInterface;
+      27 +use App\Contracts\CartOutputServiceInterface;                  
+      28  use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
+      29  use App\Contracts\LocationEntityToLocationModelMapperI;
+      30  use App\Contracts\LocationModelToLocationEntityMapperI;
+
+● Update(app\Providers\AppServiceProvider.php)
+  ⎿  Added 1 line
+      53  use App\Contracts\WarehouseMovementMapperI;
+      54  use App\Contracts\WarehouseMovementsRepositoryI;
+      55  use App\Contracts\WarehouseMovementsServiceI;
+      56 +use App\Contracts\WarehouseOutputDtoMapperI;                   
+      57  use App\Contracts\WarehouseOutputStrategyFactoryInterface;
+      58  use App\Contracts\WarehouseSalesEntityToModelMapperI;
+      59  use App\Contracts\WarehouseSalesRepositoryI;
+
+● Update(app\Providers\AppServiceProvider.php)
+  ⎿  Added 1 line
+      82  use App\Mappers\WarehouseInventoryRequestDTOToWarehouseInventor
+          yMapper;
+      83  use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetail
+          DTOMapper;
+      84  use App\Mappers\WarehouseMovementEntityToDTOMapper;
+      85 +use App\Mappers\WarehouseOutputDtoMapper;                      
+      86  use App\Mappers\WarehouseSalesEntityToModelMapper;
+      87  use App\Mappers\WarehouseSalesRequestDTOToEntityMapper;
+      88  use App\Mappers\WarehouseToWarehouseModelMapper;
+
+● Ahora agrego los bindings junto al de WarehouseInventoryServiceInterface.
+
+● Update(app\Providers\AppServiceProvider.php)
+  ⎿  Added 10 lines
+      217          );
+      218  
+      219          $this->app->bind(
+      220 +            WarehouseOutputDtoMapperI::class,                 
+      221 +            WarehouseOutputDtoMapper::class                   
+      222 +        );                                                    
+      223 +                                                              
+      224 +        $this->app->bind(                                     
+      225 +            CartOutputServiceInterface::class,                
+      226 +            CartOutputService::class                          
+      227 +        );                                                    
+      228 +                                                              
+      229 +        $this->app->bind(                                     
+      230              WarehouseInventoryRepositoryInterface::class,
+      231              WarehouseInventoryRepositoryImplementation::class
+      232          );
+● Ahora verifico sintaxis PHP de los archivos nuevos/modificados y que las rutas
+  sigan resolviendo.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Sin errores de sintaxis (los warnings son de módulos de PHP no relacionados).
+  Ahora confirmo que Laravel resuelve el service container y las rutas
+  correctamente.
+
+  Searched for 1 pattern, ran 3 shell commands (ctrl+o to expand)
+
+● Refactor aplicado. Resumen de lo que cambió:
+
+  Archivos nuevos
+  - app/Contracts/WarehouseOutputDtoMapperI.php — interfaz para construir
+  RemoveWarehouseInventoryStockDTO/TransferInventoryDTO.
+  - app/Mappers/WarehouseOutputDtoMapper.php — implementación; contiene
+  exactamente la lógica que antes vivía en build*Dto/buildCartItemDto del
+  controller (mismas reglas: forzar quantity=0 en RELOCATION/LOCATION_UPDATE,
+  default de operation_date a hoy en SALE/OUT, etc.), más un método nuevo
+  toTransferDto() que unifica el bloque new TransferInventoryDTO(...) que estaba
+  duplicado en processTransfer y transferCartItem.
+  - app/Contracts/CartOutputServiceInterface.php y
+  app/Application_Layer/Services_Implementation/CartOutputService.php — se
+  llevaron el loop, el try/catch por ítem, el logging estructurado y el armado
+  del resultado JSON que antes vivían en
+  processCart/processCartItem/transferCartItem.
+
+  OutputController quedó delgado: valida (sigue inline, como acordaste) → pide
+  el DTO al mapper → delega al WarehouseInventoryServiceInterface (para un solo
+  ítem) o al CartOutputServiceInterface (para el carrito) → traduce
+  ResultPattern a redirect/JSON. De paso se limpiaron cosas gratis: código
+  muerto en processOutput, el import Symfony\Component\HttpFoundation\Request
+  corregido a Illuminate\Http\Request, parámetros $movementType/$userId no
+  usados, y processLocationUpdate ahora es private como sus pares.
+
+  Registrado en AppServiceProvider con el mismo estilo ($this->app->bind(...))
+  que el resto de mappers/servicios.
+
+  Verificado: php -l en los 6 archivos sin errores, y confirmé por reflexión que
+  las clases nuevas autocargan e implementan sus interfaces correctamente. No
+  pude correr php artisan route:list/serve completos porque el entorno local
+  tiene un problema preexistente y no relacionado con este cambio (la extensión
+  sqlsrv de PHP 8.4 no carga — DLL de versión distinta al core — lo que rompe
+  cualquier comando artisan al leer config/database.php). Te recomiendo correr
+  npm run watch + php artisan serve de tu lado y probar el flujo de un solo ítem
+  y el de carrito (con al menos un TRANSFER y un RELOCATION) como en la sección
+  de verificación del plan, ya que ese entorno sí puede levantar la DB.
+
+✻ Cogitated for 4m 13s
+
+※ recap: Refactoring OutputController to move DTO-building and cart-batch logic into dedicated classes is done and syntax-checked. Next: you manually smoke-test the single-item and cart output flows in the browser since local DB config is blocking artisan commands here. (disable recaps in /config)

@@ -53,6 +53,10 @@ class WarehouseInventoryMovements
 
     private ?int $reversalOf = null;
 
+    private ?int $relocatedFromInventoryId = null;
+
+    private ?int $relocatedToInventoryId = null;
+
     public function __construct(
         string $folio,
         int $warehouseInventoryId,
@@ -192,6 +196,26 @@ class WarehouseInventoryMovements
     public function setReversalOf(?int $reversalOf): void
     {
         $this->reversalOf = $reversalOf;
+    }
+
+    public function getRelocatedFromInventoryId(): ?int
+    {
+        return $this->relocatedFromInventoryId;
+    }
+
+    public function setRelocatedFromInventoryId(?int $relocatedFromInventoryId): void
+    {
+        $this->relocatedFromInventoryId = $relocatedFromInventoryId;
+    }
+
+    public function getRelocatedToInventoryId(): ?int
+    {
+        return $this->relocatedToInventoryId;
+    }
+
+    public function setRelocatedToInventoryId(?int $relocatedToInventoryId): void
+    {
+        $this->relocatedToInventoryId = $relocatedToInventoryId;
     }
 
     private function validateMovementType(string $type): void

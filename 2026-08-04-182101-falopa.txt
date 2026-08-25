@@ -1,0 +1,1415 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+ ⚠ Your login expires in 2 days · run /login to renew
+
+❯ /init 2026-08-03-183610-muy_tarde.txt                                         
+
+● Skill(init)
+  ⎿  Successfully loaded skill
+
+  Searched for 6 patterns, read 5 files, ran 1 shell command (ctrl+o to expand)
+
+● All claims check out against the actual code. The current working-tree
+  CLAUDE.md is accurate — it correctly documents OutputController::processCart,
+  the route name output.inventory.process.cart, CartOutputService::processBatch,
+  the WarehouseOutputDtoMapper::toDto() switch, the best-effort/non-atomic
+  behavior, and the report-export flow (app/Exports/ProductLotsExport.php,
+  resources/views/module/reports/exports/lots_pdf.blade.php). I also confirmed
+  there's no root README.md, .cursorrules, or Copilot instructions file to merge
+  in — AGENTS.md and PRODUCT.md are the only other convention docs, and both
+  are already correctly summarized/referenced in CLAUDE.md.
+
+  I found one small drift worth fixing: the file lists SimpleOutputService (OUT)
+  as a concrete Output Strategy, but the DTO mapper doesn't have a
+  toSimpleOutputDto gap — that's fine, it's accurate. Everything I checked
+  matches.
+
+  Read 1 file (ctrl+o to expand)
+
+● The file is accurate, but I noticed a structural problem: the ### Layers
+  bullet list (Enterprise_Layer, Application_Layer, Contracts, Infrastructure)
+  gets interrupted mid-list by two full ### sections ("Output Strategy pattern"
+  and "Cart / batch output flow"), and then the list resumes with Mappers/,
+  Models/, Http/Controllers/. I'll fix that ordering so the layer list stays
+  together and the two subsections follow it.
+
+● Update(CLAUDE.md)
+  ⎿  Added 18 lines, removed 18 lines
+      71  - **`Infrastructure/`** — `FormRequest` validation classes, inf
+          rastructure exceptions
+      72    (`Infrastructure/Exception/`), and `Infrastructure/Factories/
+          ` (`MovementFactory`,
+      73    `ReversalStrategyFactory`, `WarehouseOutputStrategyFactory`) 
+          that select a Strategy at runtime.
+      74 +- **`Mappers/`** — Pure mapping classes between Eloquent Models
+         +, Entities, and DTOs, one class per                            
+      75 +  direction (e.g. `WarehouseModelToWarehouseEntityMapper` vs `W
+         +arehouseToWarehouseModelMapper`). DTOs                         
+      76 +  live in `Mappers/DTO/` (typed properties, `JsonSerializable`)
+         +; request-specific DTOs in                                     
+      77 +  `Mappers/DTO/Requests/`.                                     
+      78 +- **`Models/`** — Eloquent models. New models use `XxxModel` na
+         +ming; legacy Spanish-named models                              
+      79 +  (`Bodega`, `Producto`, `Proveedor`, `Usuario`, `Ventas`, `Cat
+         +egoria`, `Rol`) back the older modules                         
+      80 +  and are not being renamed. There's a *third*, unrelated set o
+         +f English-named models without the                             
+      81 +  `Model` suffix (`Product`, `Category`, `Role`, `User`) — e.g.
+         + `ProductController` uses `Product`                            
+      82 +  while `ProductRepositoryImplementation` uses `ProductModel`, 
+         +and neither is `Producto`. Check which                         
+      83 +  one a file already imports before assuming; don't assume `Xxx
+         +Model` is always "the new one."                                
+      84 +- **`Http/Controllers/`** — Mixed: DDD-style controllers (`Ware
+         +houseRegistrationController`,                                  
+      85 +  `MovementsController`, `WareouseInventoryController`, `Locati
+         +onRegistrationController`,                                     
+      86 +  `RackController`, `WarehouseTypeController`, `InventoryManage
+         +mentController`, `OutputController`,                           
+      87 +  `ProductController`, `ReportController`, `WarehouseManagmentC
+         +ontroller`) call into `Contracts/`                             
+      88 +  services and return `ResultPattern`-driven redirects; legacy 
+         +controllers (`Categorias`, `Productos`,                        
+      89 +  `Proveedores`, `Usuarios`, `Ventas`, `Reportes_productos`, `D
+         +etalleVentas`, `TemporaryProducts`) talk                       
+      90 +  more directly to Eloquent models. When touching a legacy cont
+         +roller, match its existing                                     
+      91 +  (non-layered) style rather than forcing DDD.                 
+      92  
+      93  ### Output Strategy pattern (stock removal)
+      94  A second Strategy hierarchy handles *why* stock is leaving a wa
+          rehouse. `Contracts/WarehouseOutputStrategy`
+     ...
+      118  controller returns the full list as JSON (`{"results": [...]}`
+           ) for the frontend to render per-row.
+      119  When adding a new movement type, add its `toXxxDto()` case to 
+           `WarehouseOutputDtoMapper::toDto()` so
+      120  both the single-item and cart flows pick it up automatically.
+      103 -- **`Mappers/`** — Pure mapping classes between Eloquent Model
+          -s, Entities, and DTOs, one class per                          
+      104 -  direction (e.g. `WarehouseModelToWarehouseEntityMapper` vs `
+          -WarehouseToWarehouseModelMapper`). DTOs                       
+      105 -  live in `Mappers/DTO/` (typed properties, `JsonSerializable`
+          -); request-specific DTOs in                                   
+      106 -  `Mappers/DTO/Requests/`.                                    
+      107 -- **`Models/`** — Eloquent models. New models use `XxxModel` n
+          -aming; legacy Spanish-named models                            
+      108 -  (`Bodega`, `Producto`, `Proveedor`, `Usuario`, `Ventas`, `Ca
+          -tegoria`, `Rol`) back the older modules                       
+      109 -  and are not being renamed. There's a *third*, unrelated set 
+          -of English-named models without the                           
+      110 -  `Model` suffix (`Product`, `Category`, `Role`, `User`) — e.g
+          -. `ProductController` uses `Product`                          
+      111 -  while `ProductRepositoryImplementation` uses `ProductModel`,
+          - and neither is `Producto`. Check which                       
+      112 -  one a file already imports before assuming; don't assume `Xx
+          -xModel` is always "the new one."                              
+      113 -- **`Http/Controllers/`** — Mixed: DDD-style controllers (`War
+          -ehouseRegistrationController`,                                
+      114 -  `MovementsController`, `WareouseInventoryController`, `Locat
+          -ionRegistrationController`,                                   
+      115 -  `RackController`, `WarehouseTypeController`, `InventoryManag
+          -ementController`, `OutputController`,                         
+      116 -  `ProductController`, `ReportController`, `WarehouseManagment
+          -Controller`) call into `Contracts/`                           
+      117 -  services and return `ResultPattern`-driven redirects; legacy
+          - controllers (`Categorias`, `Productos`,                      
+      118 -  `Proveedores`, `Usuarios`, `Ventas`, `Reportes_productos`, `
+          -DetalleVentas`, `TemporaryProducts`) talk                     
+      119 -  more directly to Eloquent models. When touching a legacy con
+          -troller, match its existing                                   
+      120 -  (non-layered) style rather than forcing DDD.                
+      121  
+      122  ### Result Pattern (core error-handling convention)
+      123  Fallible operations return `ResultPattern` instead of throwing
+            outward:
+
+● I reviewed CLAUDE.md against the actual code (OutputController,
+  CartOutputService, WarehouseOutputDtoMapper, app/Exports/, routes/web.php)
+  plus AGENTS.md and PRODUCT.md, and everything it currently documents checks
+  out — no root README.md, .cursorrules, or Copilot instructions exist to merge
+  in either. The only issue was structural: the ### Layers bullet list was split
+  in half by two inserted ### sections. I fixed that by moving Mappers/,
+  Models/, and Http/Controllers/ up to complete the Layers list, then placing
+  "Output Strategy pattern" and "Cart / batch output flow" together afterward.
+  Content is unchanged, just reordered for readability.
+
+✻ Crunched for 1m 27s
+
+※ recap: Verified the working CLAUDE.md accurately reflects the codebase and fixed a formatting issue where a section got split apart. That's done; no further action needed unless you want more review. (disable recaps in /config)
+
+❯ Que recuerdas que fue lo último que hicimos                                   
+
+  Read 1 file (ctrl+o to expand)
+
+● En esta conversación, lo último que hicimos fue una revisión/actualización de
+  CLAUDE.md (comando /init):
+
+  1. Comparé el CLAUDE.md actual (que ya tenía cambios sin commitear) contra
+  AGENTS.md, PRODUCT.md y el código real — verifiqué específicamente las
+  secciones sobre CartOutputService, WarehouseOutputDtoMapper,
+  OutputController::processCart y los exports de reportes
+  (app/Exports/ProductLotsExport.php, lots_pdf.blade.php) contra el código
+  fuente y las rutas en routes/web.php. Todo coincidía, sin invenciones.
+  2. Encontré un problema estructural: la lista de bullets de "### Layers"
+  (Enterprise_Layer, Application_Layer, Contracts, Infrastructure, Mappers,
+  Models, Http/Controllers) estaba partida a la mitad por dos secciones ###
+  insertadas ("Output Strategy pattern" y "Cart / batch output flow").
+  3. Reordené el archivo para que la lista de Layers quede completa y junta, y
+  las dos secciones adicionales vayan después — sin cambiar contenido, solo el
+  orden.
+
+  No hice commit de esos cambios. ¿Quieres que continúe con algo más sobre
+  WarehouseOutputDtoMapper.php (el archivo que tienes abierto), o retomamos otra
+  cosa?
+
+✻ Cogitated for 16s
+
+❯ Seguro que no recuerdas nada sobre que discutiamos sobre la refactorización   
+  inclusive comentaste algo sobre esto: " Plan: cantidad parcial en reubicación 
+  interna (LOCATION_UPDATE) +       │                                           
+       │ unificación con RELOCATION"                                            
+  ⎿  ⧉ Selected 2 lines from 2026-08-03-183610-muy_tarde.txt in Visual Studio 
+     Code
+
+● No tengo memoria persistente de esa conversación anterior (mi sistema de
+  memoria para este proyecto está vacío todavía), pero como me señalas el
+  archivo, lo puedo leer ahora mismo para ver qué se discutió.
+
+  Read 1 file (ctrl+o to expand)
+
+● Sí, ahora que leí el archivo 2026-08-03-183610-muy_tarde.txt (transcript de
+  esa sesión anterior) tengo el contexto completo. Esto es lo que discutimos:
+
+  Concepto aclarado primero: "Reubicación interna" (semánticamente) = mover un
+  lote dentro de la misma bodega (cambiar rack/nivel/módulo/bahía sin que salga
+  stock). Eso corresponde al tipo LOCATION_UPDATE
+  (IntraWarehouseTransferStrategy) — aunque irónicamente la clase que se llama
+  InternalRelocationService es la que mueve entre bodegas (tipo RELOCATION).
+  Nombres al revés del dominio, detectamos también un bug de copy en
+  create.blade.php (línea 533) donde el bloque de RELOCATION muestra la etiqueta
+  "Reubicación Interna" que le pertenece a LOCATION_UPDATE.
+
+  El hallazgo central: RELOCATION (entre bodegas) ya soporta mover una cantidad
+  parcial n de un lote — hace split: reduce origen, suma/crea en destino vía
+  updateOrCreateInventory(). Pero LOCATION_UPDATE (la reubicación interna de
+  verdad) obliga a mover el lote completo — el campo cantidad está deshabilitado
+  y forzado a 0 en la UI, y el backend desactiva la fila origen completa.
+
+  Decisión de negocio que tomamos: sí tiene sentido operativo permitir mover
+  solo una parte de un lote dentro de la misma bodega (liberar rack, separar
+  producto por vencer, etc.).
+
+  El plan que armé y que rechazaste (mostrado arriba, "Plan: cantidad parcial en
+  reubicación interna + unificación con RELOCATION"): extraer un método
+  compartido relocateStock() en BaseOutputService que ambas strategies usarían,
+  generalizando también el registro de reversalOf/reversedBy (hoy solo lo usa
+  LOCATION_UPDATE) a ambos flujos para trazabilidad de lote completa. Incluía
+  cambios en WarehouseOutputDtoMapper::toLocationUpdateDto(),
+  OutputController::processLocationUpdate(), y la UI (create.blade.php) para
+  dejar de forzar cantidad a 0.
+
+  Quedó rechazado sin que me dijeras por qué — ¿quieres que retomemos esa
+  discusión, ajustemos el plan, o tenías otra dirección en mente?
+
+✻ Worked for 22s
+
+❯ Ok quiero que retomemos esa discución                                         
+
+● Perfecto. Antes de re-proponer o ajustar el plan, quiero ubicar en qué punto
+  exacto quieres retomar — el rechazo no vino con motivo explícito en la
+  transcripción, así que no sé si fue por el enfoque técnico, el alcance, o algo
+  de negocio que no habíamos cubierto.
+
+● User declined to answer questions
+  ⎿  · ¿Qué quieres retomar primero de esta discusión? (Por qué rechacé el plan 
+     / Verificar isReversed/reversalOf en reportes primero / Repensar el alcance
+     del cambio / Algo distinto que no cubrimos)
+
+● ¿Qué te gustaría aclarar antes de que reformule la pregunta?
+✻ Cogitated for 17s
+
+❯ Ok dime cual era tu plan que propusiste para refrescar mi memoria             
+
+● Este era el plan que propuse (rechazado sin motivo explícito):
+
+  Objetivo: que LOCATION_UPDATE (reubicación dentro de la misma bodega) soporte
+  mover solo una cantidad parcial n del lote — hoy obliga a mover el lote
+  completo — reutilizando la lógica que RELOCATION (entre bodegas) ya tiene para
+  hacer ese split.
+
+  Cambios propuestos:
+
+  1. WarehouseInventoryQueryService::updateOrCreateInventory() — hoy cuando suma
+  cantidad a una posición destino existente devuelve
+  ResultPattern::success(true) sin exponer el id/entidad. Cambiarlo para que
+  también devuelva la entidad destino en esa rama (verifiqué que el único caller
+  actual, InternalRelocationService, no lee getValue(), así que es seguro).
+  2. Nuevo método compartido relocateStock() en BaseOutputService — recibe el
+  DTO ya con rack/nivel/módulo/bahía/tarima/warehouseId/cantidad/fecha seteados,
+  la entidad origen, y WarehouseInventoryQueryServiceI como parámetro (no
+  inyectado en el constructor base, para no afectar a
+  SimpleOutputService/SaleOutputService). Internamente: valida stock → reduce
+  origen (reduceStock, ya desactiva la fila si llega a 0) →
+  updateOrCreateInventory() en destino → registra el movimiento seteando
+  reversalOf/reversedBy (origen→destino).
+  3. InternalRelocationService::processOutput() — refactorizar para llamar
+  relocateStock() en vez de duplicar reduce+update+save. Gana
+  reversalOf/reversedBy que no tenía antes (mejora).
+  4. IntraWarehouseTransferStrategy::processOutput() — refactorizar para llamar
+  el mismo relocateStock() en vez de saveInventory() + desactiveInventory()
+  manual. Mantiene su guard hasChanges (no permitir mover a la misma posición) y
+  su string de razón propio.
+  5. WarehouseOutputDtoMapper::toLocationUpdateDto() — agregar
+  $dto->setQuantity(...) (igual que ya hace toRelocationDto()), para que la
+  cantidad parcial del formulario llegue al DTO en vez de quedar forzada en 0
+  por baseDto().
+  6. OutputController::processLocationUpdate() — agregar validación 'quantity' 
+  => 'required|integer|min:1'.
+  7. UI (create.blade.php) — en toggleMovementFields(), caso LOCATION_UPDATE:
+  quitar el disabled=true/value=0 del campo cantidad y pre-poblarlo con la
+  cantidad actual del lote (igual que hoy hace RELOCATION), para que un envío
+  sin modificar el campo siga moviendo el lote completo por default.
+
+  Fuera de alcance (anotado, no se tocaba):
+  - La superposición semántica de reversalOf/reversedBy entre "reversa real"
+  (contramovimientos REV-) y "lineage de reposición" no se resolvía con un campo
+  nuevo — quedaba distinguible por movement_type.
+  - No se agregaba el guard hasChanges a InternalRelocationService.
+  - No se tocaba la duplicación entre ManagesInventoryStock (helper estático) y
+  los métodos de instancia de BaseOutputService.
+
+  Verificación propuesta: prueba manual en /output moviendo cantidad parcial y
+  cantidad completa en LOCATION_UPDATE, confirmando reversalOf/reversedBy en
+  ambas filas, y repetir para RELOCATION para confirmar que no se rompía nada.
+
+  ¿Qué parte quieres ajustar o qué te hizo dudar?
+
+✻ Churned for 16s
+
+※ recap: We're deciding how to let internal warehouse relocations (LOCATION_UPDATE) move partial lot quantities by reusing RELOCATION's split logic. I just re-explained the rejected refactor plan; next step is hearing what concerned you about it so we can adjust. (disable recaps in /config)
+
+❯ A ver para ahora si ver si estamos en la misma sintonía porque no me hablas   
+  de como sería tu implementación. Adelante genera como sería tu implementación 
+  más no implementes nada todavía ya que estamos en la fase de evaluación       
+
+● 2 background agents launched (↓ to manage)
+   ├ Explore backend relocation strategy code
+   └ Explore reversalOf usage in reports and UI
+
+● Lancé dos exploraciones en paralelo para verificar el código actual antes de
+  escribir el plan detallado: una sobre las strategies de backend
+  (BaseOutputService, InternalRelocationService, IntraWarehouseTransferStrategy,
+  WarehouseInventoryQueryService, el DTO) y otra sobre el uso de
+  reversalOf/reversedBy/isReversed en reportes y la UI de create.blade.php. En
+  cuanto terminen, armo el diseño concreto de implementación para que lo
+  evalúes.
+
+● Sigo esperando los resultados de las dos exploraciones en paralelo (backend de
+  las strategies de relocación, y uso de reversalOf/reversedBy en reportes +
+  UI). En cuanto terminen, te presento el diseño concreto de implementación para
+  que lo evalúes — nada se ha tocado todavía, seguimos en fase de evaluación.
+
+✻ Churned for 42s
+
+● Agent "Explore backend relocation strategy code" finished · 1m 32s
+
+● El primer agente terminó de leer el código exacto de BaseOutputService,
+  InternalRelocationService, IntraWarehouseTransferStrategy,
+  WarehouseInventoryQueryService, el mapper y el controller. Confirma la premisa
+  del plan anterior pero con más precisión — por ejemplo:
+  IntraWarehouseTransferStrategy (LOCATION_UPDATE) hoy nunca llama
+  reduceStock()/validateStockAvailability(); simplemente crea una fila nueva
+  completa (saveInventory) y desactiva la vieja (desactiveInventory) — no tiene
+  ningún mecanismo de "reducir cantidad", por eso hoy es todo-o-nada. Y
+  updateOrCreateInventory() tiene un bug de forma: cuando encuentra posición
+  existente y suma cantidad, devuelve true en vez de la entidad/id (necesario
+  para poder registrar reversedBy apuntando al destino correcto).
+
+  Sigo esperando el segundo agente (uso de reversalOf/isReversed en reportes +
+  UI de create.blade.php) antes de armar el diseño final.
+
+✻ Cogitated for 35s
+
+● Agent "Explore reversalOf usage in reports and UI" finished · 4m 37s
+
+● Ambos agentes terminaron. Hallazgo clave nuevo: el flujo de LOCATION_UPDATE
+  hoy nunca pasa por reduceStock() — es un reemplazo todo-o-nada (crea fila
+  nueva completa, desactiva la vieja), no una reducción parcial como RELOCATION.
+  Y confirmé que reutilizar reversedOf/reversedBy para RELOCATION es seguro
+  hoy: ningún reporte ni query los interpreta como reversa real — eso solo lo
+  hace is_reversed (columna separada, activada solo por el flujo genuino de
+  contramovimientos REV-). Ahora voy a mandar todo este contexto a un agente de
+  diseño para que arme el plan de implementación concreto, y luego lo reviso
+  contigo.
+
+● Plan(Design partial-quantity LOCATION_UPDATE refactor plan)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+● Mandé todo el contexto verificado a un agente de diseño para que arme la
+  propuesta concreta de implementación (método compartido, dónde vive, qué
+  cambia en cada archivo). En cuanto termine te la presento para que la evalúes
+  — seguimos sin tocar código.
+
+● Sigo esperando el diseño concreto del refactor (agente en segundo plano). En
+  cuanto termine, lo reviso contra el código y te lo presento para evaluación —
+  nada se ha implementado todavía.
+
+✻ Worked for 2m 16s
+
+● Agent "Design partial-quantity LOCATION_UPDATE refactor plan" finished · 8m 
+39s
+
+● El agente de diseño terminó. Antes de presentártelo, voy a verificar
+  directamente algunas de sus afirmaciones más críticas (el hardcode de
+  transferFolio en null, el requisito nuevo de setWarehouseId(), y el
+  comportamiento del carrito) para no pasarte nada sin confirmar contra el
+  código real.
+
+  Searched for 4 patterns, read 1 file (ctrl+o to expand)
+
+● Verifiqué en el código las afirmaciones más delicadas del diseño y todas se
+  confirman exactamente: updateOrCreateInventory() sí tiene un solo caller
+  (InternalRelocationService), sí hardcodea transferFolio a null en la rama de
+  "crear nuevo" (constructor de WarehouseInventory, último parámetro ?int 
+  $transferFolio), y RemoveWarehouseInventoryStockDTO::$warehouseId sí es
+  private int sin default — confirmando que IntraWarehouseTransferStrategy
+  necesitará el nuevo setWarehouseId() que el diseño señala.
+
+  Antes de escribir el plan final, hay dos decisiones de negocio genuinas que el
+  diseño dejó abiertas y dos mejoras opcionales que quiero que confirmes:
+
+● User answered Claude's questions:
+  ⎿  · El guard 'hasChanges' de LOCATION_UPDATE hoy rechaza cualquier envío 
+     donde la posición (rack/nivel/módulo/bahía/tarima) no cambió. Con cantidad 
+     parcial ya soportada, ¿debe seguir rechazando un envío que deja la posición
+     igual pero mueve solo una cantidad menor (efectivamente 'partir' el lote 
+     sin moverlo de sitio)? → Mantener el guard como está (recomendado)
+     · En el flujo de carrito, hoy cada item nuevo se agrega con cantidad=1 por 
+     defecto (el campo de cantidad del formulario individual queda oculto en 
+     modo carrito). Con este refactor, LOCATION_UPDATE por carrito empezaría a 
+     respetar esa cantidad en vez de mover siempre el lote completo. ¿Qué 
+     comportamiento por defecto quieres al elegir LOCATION_UPDATE en modo 
+     carrito? → Dejar el default en 1, como SALE/OUT
+     · El diseño encontró que updateOrCreateInventory() nunca propaga 
+     transferFolio a la fila nueva creada en destino (queda null siempre, 
+     incluso hoy en RELOCATION) — un bug preexistente separado del pedido 
+     original. ¿Lo incluyo en este mismo cambio (una línea) ya que el refactor 
+     toca ese método de todas formas? → Sí, incluírlo (recomendado)
+     · El carrito valida 'items.*.quantity' con mínimo 0 (permite cantidad 0), 
+     lo cual ya aplicaba a RELOCATION y ahora aplicaría también a 
+     LOCATION_UPDATE — un item con cantidad 0 pasaría validación HTTP y 
+     generaría un movimiento de '0 unidades'. ¿Quieres endurecer esto como parte
+     del cambio? → Sí, subir a min:1 (recomendado)
+
+  Read 3 files (ctrl+o to expand)
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Plan: cantidad parcial en reubicación interna (LOCATION_UPDATE) +       │
+     │ unificación con RELOCATION                                              │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ RELOCATION (mover un lote a otra bodega, InternalRelocationService) y   │
+     │ LOCATION_UPDATE                                                         │
+     │ (reubicación interna, misma bodega, IntraWarehouseTransferStrategy) son │
+     │ dos strategies de                                                       │
+     │ WarehouseOutputStrategy que conceptualmente hacen lo mismo — "mover     │
+     │ parte o todo un lote de una                                             │
+     │ posición a otra" — pero hoy están implementadas con mecanismos          │
+     │ completamente distintos:                                                │
+     │                                                                         │
+     │ - RELOCATION ya soporta mover una cantidad parcial n de un lote: reduce │
+     │ el origen                                                               │
+     │ (BaseOutputService::reduceStock(), que además desactiva automáticamente │
+     │ la fila origen si llega a                                               │
+     │   . y usa WarehouseInventoryQueryService::updateOrCreateInventory()     │
+     │ para sumar/crear en destino. No                                         │
+     │ registra reversedOf/reversedBy.                                         │
+     │ - LOCATION_UPDATE solo mueve el lote completo: nunca llama              │
+     │ validateStockAvailability() ni                                          │
+     │ reduceStock() — en vez de eso crea una fila enteramente nueva vía       │
+     │ saveInventory() (INSERT                                                 │
+     │ incondicional, sin buscar si ya existe una fila en esa posición) y      │
+     │ desactiva la fila origen a mano                                         │
+     │ vía desactiveInventory(). Por diseño no hay forma de mover solo una     │
+     │ parte del lote. Sí registra                                             │
+     │ reversedOf/reversedBy (fila vieja → fila nueva) como lineage de         │
+     │ reposición.                                                             │
+     │                                                                         │
+     │ El negocio necesita que LOCATION_UPDATE también soporte mover cantidad  │
+     │ parcial (p. ej. liberar un                                              │
+     │ rack moviendo solo parte de un lote), reutilizando el mecanismo que     │
+     │ RELOCATION ya tiene en vez de                                           │
+     │ duplicar la lógica de split. Se investigó a fondo (lectura completa de  │
+     │ los 7 archivos involucrados,                                            │
+     │ grep exhaustivo de reversalOf/reversedBy/isReversed en todo el repo)    │
+     │ antes de diseñar esto —                                                 │
+     │ los hallazgos relevantes están incorporados en el plan de abajo.        │
+     │                                                                         │
+     │ Confirmado seguro: generalizar reversedOf/reversedBy a RELOCATION       │
+     │ también no rompe nada. Lo                                               │
+     │ único que marca un movimiento como "reversa real" es la columna         │
+     │ is_reversed (activada solo por                                          │
+     │ InReversalStrategy/OutReversalStrategy, el flujo REV-{folio}) y el      │
+     │ prefijo de folio REV- en la                                             │
+     │ UI (create.blade.php:2457-2497, función generarBotonReversal). Ni       │
+     │ ReportController ni                                                     │
+     │ MovementsController leen reversal_of/reversed_by en ningún query.       │
+     │                                                                         │
+     │ Decisiones de negocio ya confirmadas con el usuario:                    │
+     │ - El guard hasChanges de LOCATION_UPDATE (rechaza envíos donde la       │
+     │ posición no cambió) se mantiene                                         │
+     │ tal cual — no se relaja para permitir "partir un lote sin moverlo de    │
+     │ sitio".                                                                 │
+     │ - El carrito de LOCATION_UPDATE mantiene su default de cantidad=1 por   │
+     │ ítem (igual que                                                         │
+     │ SALE/OUT) — no se resincroniza automáticamente a la cantidad completa   │
+     │ del lote al elegir este tipo                                            │
+     │ de movimiento. Esto simplifica el alcance: no se toca                   │
+     │ toggleMovementFields() en modo carrito.                                 │
+     │ - Se incluye el fix de una línea para que updateOrCreateInventory()     │
+     │ propague transferFolio a la                                             │
+     │ fila nueva de destino (hoy siempre queda null, afecta a RELOCATION      │
+     │ también).                                                               │
+     │ - Se endurece items.*.quantity del carrito a min:1 (hoy permite 0) +    │
+     │ chequeo defensivo dentro del                                            │
+     │ método compartido.                                                      │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Cambios                                                                 │
+     │                                                                         │
+     │ 1. WarehouseInventoryQueryService::updateOrCreateInventory() — fix de   │
+     │ retorno + transferFolio                                                 │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/WarehouseInventoryQuerySe │
+     │ rvice.php                                                               │
+     │                                                                         │
+     │ - Rama "no encontrado" (líneas 118-184): el constructor de              │
+     │ WarehouseInventory (línea 127-140) recibe                               │
+     │ null como último argumento (transferFolio). Cambiar a                   │
+     │ $removeWarehouseInventoryStockDTO->getManufacturingDate() ? ... : ... — │
+     │ no, específicamente:                                                    │
+     │ propagar $warehouseInventoryOutDetailDTO->getTransferFolio() (con cast  │
+     │ explícito a ?int ya que                                                 │
+     │ el getter de WarehouseInventoryOutDetailDTO devuelve ?string y el       │
+     │ constructor espera ?int).                                               │
+     │ - Rama "encontrado" (líneas 186-197): hoy devuelve                      │
+     │ ResultPattern::success(true) — un bool sin id.                          │
+     │ Cambiar a ResultPattern::success($warehouseInventoryEntity) (la entidad │
+     │ ya obtenida por                                                         │
+     │ findSpecificInventory() unas líneas arriba). Su getQuantity() queda     │
+     │ desactualizada (no se llama                                             │
+     │ setQuantity() localmente) pero es irrelevante — el único dato que los   │
+     │ callers necesitan de aquí es                                            │
+     │ el id. Agregar un comentario corto señalando esto.                      │
+     │ - Verificado: updateOrCreateInventory() tiene un solo caller hoy        │
+     │ (InternalRelocationService), y ese                                      │
+     │ caller descarta getValue() por completo — el cambio de forma del        │
+     │ retorno es seguro, sin                                                  │
+     │ consumidores que dependan del true bare actual.                         │
+     │                                                                         │
+     │ 2. Nuevo método compartido: BaseOutputService::relocateStock()          │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/BaseOutputService.php     │
+     │                                                                         │
+     │ Agregar el 3er parámetro de constructor WarehouseInventoryQueryServiceI │
+     │ $warehouseInventoryQueryService,                                        │
+     │ guardado como propiedad protected (no private — ambas subclases ya lo   │
+     │ necesitan para su propio                                                │
+     │ getInventoryById()). Import nuevo:                                      │
+     │ App\Contracts\WarehouseInventoryQueryServiceI,                          │
+     │ App\Mappers\DTO\WarehouseInventoryOutDetailDTO.                         │
+     │                                                                         │
+     │ Nuevo método:                                                           │
+     │ protected function relocateStock(                                       │
+     │     RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO, │
+     │     WarehouseInventoryOutDetailDTO $sourceInventory                     │
+     │ ): ResultPattern                                                        │
+     │ Orden interno (generaliza el happy-path que RELOCATION ya tiene):       │
+     │ 1. validateStockAvailability($dto) → fail-fast, capturar                │
+     │ $currentQuantity.                                                       │
+     │ 2. Chequeo defensivo nuevo: si $dto->getQuantity() <= 0, return         │
+     │ ResultPattern::failure(...) —                                           │
+     │ invariante que hoy solo la validación HTTP garantiza; con esto se       │
+     │ cumple sin importar el punto de                                         │
+     │ entrada (form individual, carrito, futuro caller).                      │
+     │ 3. reduceStock($currentQuantity, $dto) → fail-fast (auto-desactiva el   │
+     │ origen si llega a 0 — ya                                                │
+     │ existente, LOCATION_UPDATE lo gana gratis en vez de su propio           │
+     │ desactiveInventory()).                                                  │
+     │ 4. updateOrCreateInventory($dto, $sourceInventory) en destino →         │
+     │ fail-fast.                                                              │
+     │ 5. $destinationId = $destinationResult->getValue()->getId(); (seguro    │
+     │ tras el fix del punto 1).                                               │
+     │ 6. $movementDTO = $this->recordMovement($dto) (heredado — usa           │
+     │ $dto->getReason() y                                                     │
+     │ $dto->getQuantity() ya seteados por el caller antes de invocar          │
+     │ relocateStock()).                                                       │
+     │ 7. $movementDTO->setReversedOf($sourceInventory->getInventoryId()),     │
+     │ setReversedBy($destinationId). Comentario corto: "lineage de lote, no   │
+     │ reversa real — la reversa                                               │
+     │ real se marca vía is_reversed/REV- en                                   │
+     │ InReversalStrategy/OutReversalStrategy".                                │
+     │ 8. saveWarehouseMovement($movementDTO) → fail-fast.                     │
+     │ 9. return ResultPattern::success(true);                                 │
+     │                                                                         │
+     │ 3. InternalRelocationService — usar el método compartido                │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/InternalRelocationService │
+     │ .php                                                                    │
+     │                                                                         │
+     │ - Quitar su propiedad privada $warehouseInventoryQueryService; usar la  │
+     │ heredada.                                                               │
+     │ - __construct() reenvía los 3 params base a                             │
+     │ parent::__construct($warehouseInventoryRepository,                      │
+     │ $warehouseMovementsService, $warehouseInventoryQueryService).           │
+     │ WarehouseStorageServiceInterface                                        │
+     │ sigue siendo propiedad propia de esta subclase (solo la necesita para   │
+     │ el nombre de bodega destino).                                           │
+     │ - processOutput() reordenado: resolver $warehouseDestination →          │
+     │ getInventoryById() (antes que                                           │
+     │ validateStockAvailability, ya que relocateStock() la hace internamente) │
+     │ → checks de rack/nivel                                                  │
+     │ no vacíos (sin cambios) → construir el string de razón actual (mismo    │
+     │ sprintf con los campos                                                  │
+     │ rack/nivel/módulo/bahía/tarima + $warehouseDestination) y               │
+     │ $dto->setReason($reasonString) — antes                                  │
+     │ se pasaba el string literal directo al WarehouseMovementsDTO construido │
+     │ a mano; ahora debe vivir en                                             │
+     │ el DTO porque recordMovement() lo lee de ahí → return                   │
+     │ $this->relocateStock($dto, $sourceInventory);.                          │
+     │ - Se elimina la construcción manual de WarehouseMovementsDTO y el       │
+     │ comentario obsoleto ("Cantidad 0                                        │
+     │ porque solo es cambio de ubicación" — ya no aplica, nunca aplicó        │
+     │ realmente).                                                             │
+     │                                                                         │
+     │ 4. IntraWarehouseTransferStrategy — usar el método compartido           │
+     │                                                                         │
+     │ app/Application_Layer/Strategies/IntraWarehouseTransferStrategy.php     │
+     │                                                                         │
+     │ - Quitar su propiedad privada $warehouseInventoryQueryService; usar la  │
+     │ heredada. Quitar la propiedad                                           │
+     │ $warehouseInventory (ya no se crea una entidad nueva a mano). Quitar    │
+     │ imports que quedan sin uso:                                             │
+     │ App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO,                  │
+     │ App\Enterprise_Layer\WarehouseInventory.                                │
+     │ - __construct() reenvía sus 3 args directo a parent::__construct(...).  │
+     │ - processOutput() reordenado: getInventoryById() → guard hasChanges     │
+     │ (sin cambios, se mantiene                                               │
+     │ estricto por decisión de negocio) →                                     │
+     │ $dto->setWarehouseId($sourceInventory->getWarehouseId())                │
+     │ — línea nueva obligatoria y fácil de omitir:                            │
+     │ RemoveWarehouseInventoryStockDTO::$warehouseId es                       │
+     │ private int sin default y toLocationUpdateDto() nunca lo setea (no hay  │
+     │ concepto de "bodega                                                     │
+     │ destino" para este tipo, es implícitamente la misma);                   │
+     │ updateOrCreateInventory() lee                                           │
+     │ $dto->getWarehouseId() internamente y lanzaría "must not be accessed    │
+     │ before initialization" sin                                              │
+     │ esto → construir el string de razón actual (mismo sprintf, patrón ya    │
+     │ existente) y                                                            │
+     │ $dto->setReason(...) → return $this->relocateStock($dto,                │
+     │ $sourceInventory);.                                                     │
+     │ - Se elimina por completo: la construcción de                           │
+     │ WarehouseInventoryRequestDTO, la llamada a                              │
+     │ saveInventory(), la llamada a desactiveInventory().                     │
+     │ - Efecto colateral positivo (no regresión): al pasar por                │
+     │ updateOrCreateInventory() en vez de                                     │
+     │ saveInventory() (INSERT incondicional), dos reubicaciones internas      │
+     │ sucesivas hacia la misma                                                │
+     │ posición para el mismo lote ahora se suman en una sola fila en vez de   │
+     │ crear filas duplicadas.                                                 │
+     │                                                                         │
+     │ 5. WarehouseOutputDtoMapper::toLocationUpdateDto() — una línea          │
+     │                                                                         │
+     │ app/Mappers/WarehouseOutputDtoMapper.php                                │
+     │                                                                         │
+     │ Agregar, igual que ya hace toRelocationDto():                           │
+     │ $dto->setQuantity((int) ($data['quantity'] ?? 0));                      │
+     │ justo después de baseDto(), antes de los setters de posición. Sin esto  │
+     │ la cantidad queda forzada en 0                                          │
+     │ por baseDto() y nunca llega al DTO. Este único cambio cubre             │
+     │ automáticamente tanto el flujo individual                               │
+     │ como el de carrito (CartOutputService usa el mismo toDto()/switch).     │
+     │                                                                         │
+     │ 6. OutputController — validación                                        │
+     │                                                                         │
+     │ app/Http/Controllers/OutputController.php                               │
+     │                                                                         │
+     │ - processLocationUpdate(): agregar 'quantity' =>                        │
+     │ 'required|integer|min:1' a las reglas (mismo                            │
+     │ patrón que processRelocation()).                                        │
+     │ - processCart(): cambiar 'items.*.quantity' => 'nullable|integer|min:0' │
+     │ a                                                                       │
+     │ 'items.*.quantity' => 'nullable|integer|min:1'.                         │
+     │                                                                         │
+     │ 7. UI — resources/views/module/output/create.blade.php                  │
+     │                                                                         │
+     │ Solo modo individual (no carrito, por la decisión de negocio del punto  │
+     │ de arriba). En                                                          │
+     │ toggleMovementFields(), caso 'LOCATION_UPDATE' (hoy líneas 809-819):    │
+     │ quitar                                                                  │
+     │ input-quantity.disabled = true / input-quantity.value = 0. En su lugar, │
+     │ gateado por                                                             │
+     │ mode === 'single' && state.product (igual que ya limita otras ramas de  │
+     │ este archivo), precargar                                                │
+     │ input-quantity.value = state.product.quantity (cantidad actual del      │
+     │ lote) para que un envío sin                                             │
+     │ modificar el campo siga moviendo el lote completo por default —         │
+     │ preserva el comportamiento actual — y                                   │
+     │ el operador pueda reducirlo para mover solo una parte. El campo ya es   │
+     │ required en su markup y ya es                                           │
+     │ el mismo name="quantity" compartido por todos los tipos de movimiento,  │
+     │ así que no se toca el HTML,                                             │
+     │ solo la lógica de toggleMovementFields().                               │
+     │                                                                         │
+     │ El modo carrito no requiere ningún cambio:                              │
+     │ renderCart()/clampQuantity()/submitCart() ya son                        │
+     │ agnósticos al tipo de movimiento y ya envían quantity: item.quantity    │
+     │ por ítem; con la decisión de                                            │
+     │ mantener el default en 1, no hace falta resincronizar nada al elegir    │
+     │ LOCATION_UPDATE.                                                        │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Fuera de alcance (anotado, no se toca)                                  │
+     │                                                                         │
+     │ - RemoveWarehouseInventoryStockDTO::getLevel(): int vs la propiedad     │
+     │ subyacente ?int — riesgo latente                                        │
+     │ de TypeError, preexistente, no relacionado con este cambio.             │
+     │ - El badge "Revertido" en create.blade.php está muerto                  │
+     │ (WarehouseMovementsListDetailDTO::jsonSerialize()                       │
+     │ nunca emite isReversed) — bug preexistente separado, no se toca.        │
+     │ - Falta de validación de warehouseInventoryId en                        │
+     │ processRelocation()/processLocationUpdate() —                           │
+     │ gap preexistente, no introducido por este cambio.                       │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ Manual vía /output, inspeccionando warehouse_inventories y              │
+     │ warehouse_inventory_movements                                           │
+     │ directamente (tinker o cliente DB) después de cada caso:                │
+     │                                                                         │
+     │ 1. LOCATION_UPDATE parcial: lote con stock ≥ 10 en R1/L1, mover         │
+     │ cantidad=4 a R2/L1 (modo                                                │
+     │ individual). Verificar: fila origen reducida en 4, sigue activa; fila   │
+     │ destino en R2/L1 con                                                    │
+     │ cantidad=4 (nueva si no existía). Repetir el mismo movimiento una       │
+     │ segunda vez hacia R2/L1 para                                            │
+     │ confirmar que se suma en la misma fila (no duplica). Movimiento         │
+     │ registrado: movement_type= LOCATION_UPDATE, quantity=4, reversal_of=id  │
+     │ origen, reversed_by=id destino,                                         │
+     │ is_reversed=false, transfer_folio propagado (no null).                  │
+     │ 2. LOCATION_UPDATE completo: mover la cantidad total de un lote.        │
+     │ Verificar que la fila origen                                            │
+     │ queda en cantidad 0 y active_inventory=false (vía el auto-desactivado   │
+     │ de reduceStock(), antes                                                 │
+     │ nunca se ejercitaba en este flujo). Repetir vía carrito con un solo     │
+     │ ítem, escribiendo manualmente                                           │
+     │ la cantidad completa (el default del carrito es 1).                     │
+     │ 3. RELOCATION regresión: reubicación completa entre bodegas como hoy —  │
+     │ mismo comportamiento                                                    │
+     │ externo, más reversedOf/reversedBy ahora poblados (nuevo). Confirmar    │
+     │ que el botón de reversa en                                              │
+     │ create.blade.php (generarBotonReversal) sigue comportándose igual para  │
+     │ movimientos RELOCATION                                                  │
+     │ (sigue leyendo isReversed/prefijo REV-, no estos campos). Reubicación   │
+     │ parcial entre bodegas                                                   │
+     │ (capacidad ya existente) para confirmar que el refactor de              │
+     │ constructor/propiedades no la rompió.                                   │
+     │ 4. Casos límite: LOCATION_UPDATE con cantidad mayor al stock disponible │
+     │ → falla vía                                                             │
+     │ validateStockAvailability(), sin escrituras en BD (transacción          │
+     │ envolvente de                                                           │
+     │ WarehouseInventoryServiceImplementation::processInventoryOutput()).     │
+     │ Carrito LOCATION_UPDATE con                                             │
+     │ varios lotes, alguno con cantidad inválida → confirmar que el resto se  │
+     │ procesa igual (cada ítem                                                │
+     │ tiene su propia transacción, sin rollback cruzado, según el diseño ya   │
+     │ documentado de                                                          │
+     │ CartOutputService).                                                     │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Cogitated for 1h 13m 52s
+
+✻ Claude resuming /loop wakeup (Aug 4 11:48am)
+
+● El plan ya está escrito en el archivo de plan
+  (a-ver-para-ahora-flickering-nova.md), incorporando las decisiones que
+  confirmaste (guard hasChanges sin cambios, default de carrito en 1, fix de
+  transferFolio incluido, min:1 en validación). Intenté cerrar la fase de
+  planeación con ExitPlanMode pero la rechazaste, así que me detengo aquí y
+  espero tus indicaciones — ¿quieres que ajuste algo del plan, que te muestre
+  alguna sección específica, o hay algo más que quieras discutir antes de
+  aprobarlo?
+
+✻ Crunched for 10s
+
+※ recap: We're planning a refactor to let internal warehouse relocations move partial lot quantities, matching your business decisions. The plan is written and ready; I'm waiting for your go-ahead to exit planning mode. (disable recaps in /config)
+
+❯ ¿Estas seguro que no tendríamos problemas con la funcionalidad de             
+  contramovimientos si reutilizamos los campos reversedOf/reversedBy?           
+
+● Buena pregunta — no debería darte esa garantía sin releer el flujo de reversa
+  completo yo mismo, especialmente qué pasa cuando alguien le da "Revertir" a un
+  movimiento RELOCATION o LOCATION_UPDATE que ya tiene reversedOf/reversedBy
+  poblados. Voy a verificarlo directamente.
+
+  Searched for 5 patterns, read 4 files (ctrl+o to expand)
+
+● Buena señal de alerta — al revisar el flujo completo de reversa (no solo dónde
+  se lee reversalOf/reversedBy, sino dónde se escribe durante una reversa real)
+  encontré algo que no había verificado antes. Ajusto mi respuesta:
+
+  Lo que confirmo que sigue siendo cierto:
+  - El guard "¿ya fue revertido?" en revertMovement()
+  (WarehouseInventoryServiceImplementation.php:759) lee is_reversed, no
+  reversalOf/reversedBy.
+  - InReversalStrategy::processCountermovement() (y por simetría
+  OutReversalStrategy) solo ajustan stock y llaman markStatusIsReserved($folio, 
+  true) — nunca leen reversalOf/reversedBy.
+
+  Lo nuevo que encontré, y que cambia la respuesta:
+
+  ReversalStrategyFactory::make()
+  (app/Infrastructure/Factories/ReversalStrategyFactory.php:26-51) solo tiene 
+  casos para 'IN' y 'OUT':
+  switch ($type) {
+      case 'IN': return new InReversalStrategy(...);
+      case 'OUT': return new OutReversalStrategy(...);
+      default: throw new \InvalidArgumentException("Tipo de salida no soportado:
+  {$type}");
+  }
+  Es decir: hoy en día, el botón "Revertir" para un movimiento RELOCATION o 
+  LOCATION_UPDATE ya falla — revertMovement() llama a esta factory con
+  movementType='RELOCATION' (o 'LOCATION_UPDATE'), lanza la excepción,
+  runInTransaction() la atrapa (catch (\Throwable $e)) y devuelve
+  ResultPattern::failure('Error inesperado: Tipo de salida no soportado: 
+  RELOCATION') — un 422 con mensaje confuso, aunque sin corromper nada. El botón
+  aparece en la UI (tiposRevertibles en create.blade.php incluye ambos tipos)
+  pero es funcionalmente un botón roto para estos dos tipos, precondición que ya
+  existe hoy, independiente de mi refactor.
+
+  Por qué esto importa para tu pregunta: la única escritura real y "peligrosa"
+  sobre estos campos ocurre en
+  WarehouseMovementsRepository::setReversedByFolio() (línea 257-274), que hace
+  un UPDATE incondicional:
+  WarehouseInventoryMovementsModel::where('folio',
+  $folio)->update(['reversed_by' => $reversedBy]);
+  Esto se ejecuta vía reserveAMovementFolio(), llamado desde revertMovement()
+  después de pasar por la factory. Como la factory revienta antes de llegar ahí
+  para RELOCATION/LOCATION_UPDATE, esa sobrescritura nunca ocurre hoy para estos
+  tipos — ni antes ni después de mi refactor.
+
+  El riesgo real, entonces, no es inmediato — es de diseño futuro: si algún día
+  el negocio pide soporte de contramovimiento real para RELOCATION o
+  LOCATION_UPDATE (agregando un case nuevo a ReversalStrategyFactory), esa
+  implementación futura chocaría de frente con el campo reversed_by reutilizado
+  como lineage: revertir el movimiento sobrescribiría silenciosamente el id de
+  la posición destino con el id del contramovimiento, perdiendo la trazabilidad
+  de lote. Esto ya es cierto hoy solo para LOCATION_UPDATE; mi refactor lo
+  extendería también a RELOCATION — duplica la superficie expuesta a ese futuro
+  problema, no la crea de cero.
+
+  Conclusión honesta: no hay riesgo de romper la funcionalidad de
+  contramovimientos tal como existe hoy (esa funcionalidad no cubre
+  RELOCATION/LOCATION_UPDATE en absoluto). El riesgo es de deuda técnica hacia
+  adelante. Quiero ajustar el plan para dejarlo documentado explícitamente en
+  vez de solo un comentario genérico — ¿quieres que:
+
+● User answered Claude's questions:
+  ⎿  · Dado que revertMovement() ya falla (con un mensaje confuso) al intentar 
+     revertir RELOCATION/LOCATION_UPDATE porque ReversalStrategyFactory no los 
+     soporta, ¿quieres que el plan incluya arreglar el botón "Revertir" para que
+     no aparezca en estos dos tipos (ya que hoy es engañoso), o eso queda fuera
+     de alcance de este refactor? → Incluirlo en este cambio
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ oye fijate que no vi la pregunta por accidente le di esc ayudame              
+
+● No hay problema, te la repito para que la veas con calma.
+
+● User answered Claude's questions:
+  ⎿  · Encontré que hoy en día el botón "Revertir" en la vista de movimientos 
+     (create.blade.php de warehouse_movements) aparece también para movimientos 
+     RELOCATION y LOCATION_UPDATE, pero si un operador le da clic, el backend 
+     (ReversalStrategyFactory) no tiene lógica para esos dos tipos y simplemente
+     falla con un mensaje de error confuso ("Error inesperado: Tipo de salida 
+     no soportado: RELOCATION"). Es un bug preexistente, no causado por el 
+     refactor que estamos planeando (cantidad parcial en LOCATION_UPDATE). 
+     ¿Quieres que lo arregle como parte de este mismo cambio, o lo dejamos fuera
+     de alcance por ahora? → Lo que pasa que esa implementación quedo pendiente
+     por eso te dije que no crees que tendríamos problemas si reciclamos los 
+     compos reversal_of/reversed_by para la refactorización que hemos estado 
+     discutiendo 
+
+● Eso lo cambia todo — si la reversa para RELOCATION/LOCATION_UPDATE es trabajo
+  pendiente real (no hipotético), entonces reciclar reversalOf/reversedBy para
+  lineage sí es un problema de diseño que vale la pena resolver ahora, no solo
+  documentar. El mecanismo exacto del choque:
+  WarehouseMovementsRepository::setReversedByFolio() hace un UPDATE ... SET 
+  reversed_by = X WHERE folio = Y incondicional — el día que se implemente la
+  reversa real para estos tipos, sobrescribirá silenciosamente el id de lineage
+  sin avisar, perdiendo la trazabilidad de a dónde fue el lote.
+
+  Y esto ya es cierto hoy para LOCATION_UPDATE (no es algo que mi refactor
+  introduce solo) — mi cambio lo iba a extender también a RELOCATION, duplicando
+  la superficie del problema.
+
+  Te propongo la solución de raíz: en vez de reciclar reversalOf/reversedBy,
+  agregar dos columnas nuevas dedicadas exclusivamente a lineage de lote (p. ej.
+  relocated_from_inventory_id / relocated_to_inventory_id), separadas por
+  completo del mecanismo de contramovimientos. Esto es más cambio (migración
+  nueva + tocar Entity/Model/Mappers/DTO) pero elimina el choque de raíz para
+  ambos tipos, en vez de posponerlo para cuando se implemente la reversa
+  pendiente.
+
+● User declined to answer questions
+  ⎿  · ¿Cómo resolvemos el choque entre lineage de lote y la reversa pendiente 
+     para RELOCATION/LOCATION_UPDATE? (Columnas nuevas dedicadas (recomendado) /
+     No tocar el esquema, solo documentar el riesgo / No agregar lineage a 
+     RELOCATION todavía)
+
+● ¿Qué te gustaría aclarar antes de que reformule la pregunta?
+
+✻ Crunched for 1m 4s
+
+❯ Entonces si concuerdas conmigo que tendríamos problemas o no ?                
+
+● Sí, concuerdo contigo — sí tendríamos un problema, y es real, no hipotético.
+
+  Mi respuesta original ("es seguro reciclar reversalOf/reversedBy") se basaba
+  en verificar que nada lee esos campos hoy como si fueran una reversa real. Eso
+  sigue siendo cierto. Pero tu pregunta apuntaba a algo más profundo que no
+  había verificado bien: qué pasa cuando alguien escribe ahí durante una reversa
+  real. Y encontré que WarehouseMovementsRepository::setReversedByFolio() hace
+  un UPDATE incondicional sobre reversed_by cada vez que se ejecuta una reversa
+  real — sin importar qué valor tenía antes.
+
+  Como tú mismo confirmas que la reversa para RELOCATION/LOCATION_UPDATE es una
+  implementación pendiente (no descartada), el día que se construya, esa reversa
+  va a pisar silenciosamente el dato de lineage (a qué posición fue el lote)
+  con el id del contramovimiento, y se pierde la trazabilidad — sin error, sin
+  aviso, solo datos corrompidos.
+
+  Así que mi conclusión cambió: no es seguro reciclar esos campos para lineage,
+  dado que confirmas que la reversa real para estos tipos sí se va a construir.
+  Lo correcto es usar columnas nuevas y dedicadas para el lineage de lote
+  (separadas de reversal_of/reversed_by, que quedan reservadas exclusivamente
+  para la reversa real), y de paso migrar el uso actual de LOCATION_UPDATE a
+  esas columnas nuevas, ya que hoy mismo tiene el mismo problema latente.
+
+  ¿Quieres que rediseñe el plan con esa solución (columnas nuevas + migración)
+  en vez de reciclar los campos existentes?
+✻ Crunched for 11s
+
+❯ Ok haber cuentame cual nuevo plan ahora                                       
+
+● Voy a revisar la estructura de migraciones y los archivos de
+  entidad/modelo/mappers del movimiento para armar el plan con nombres y
+  ubicaciones exactas antes de contártelo.
+
+  Searched for 6 patterns, read 2 files, ran 1 shell command (ctrl+o to expand)
+
+● Con la información del esquema actual, así queda el plan actualizado:
+
+  Cambio de diseño: columnas nuevas para lineage, en vez de reciclar 
+  reversalOf/reversedBy
+
+  Nueva migración
+  (database/migrations/..._add_lineage_to_warehouse_inventory_movements.php)
+  agregando a warehouse_inventory_movements:
+  - relocated_from_inventory_id — ?int, nullable
+  - relocated_to_inventory_id — ?int, nullable
+
+  Estas quedan exclusivamente para "este movimiento trasladó el lote de la fila
+  X a la fila Y". reversal_of/reversed_by/is_reversed quedan intocados,
+  reservados 100% para la reversa real (REV-{folio},
+  InReversalStrategy/OutReversalStrategy) — sin importar qué se construya
+  después para RELOCATION/LOCATION_UPDATE, no hay colisión posible.
+
+  Archivos a tocar para propagar el campo nuevo por las 4 capas (mismo patrón
+  que ya usan reversalOf/reversedBy hoy, solo un par de campos más):
+  1. app/Enterprise_Layer/WarehouseInventoryMovements.php — agregar propiedades
+  ?int $relocatedFromInventoryId, ?int $relocatedToInventoryId +
+  getters/setters.
+  2. app/Models/WarehouseInventoryMovementsModel.php — agregar
+  relocated_from_inventory_id, relocated_to_inventory_id a $fillable.
+  3. Mappers (los 4 que ya tocan reversalOf/reversedBy, mismo patrón):
+    - WarehouseInventoryMovementModelMapper.php (Model→Entity)
+    - WarehouseInventoryMovementsEntityToModelMapper.php (Entity→Model)
+    - WarehouseInventoryMovementsMapper.php (DTO→Entity)
+    - WarehouseMovementEntityToDTOMapper.php (Entity→DTO)
+  4. app/Mappers/DTO/WarehouseMovementsDTO.php — agregar ?int 
+  $relocatedFromInventoryId = null, ?int $relocatedToInventoryId = null +
+  getters/setters (mismo patrón que reversedBy/reversedOf ya tienen ahí).
+
+  En el refactor compartido:
+  - BaseOutputService::relocateStock() (el método nuevo del plan anterior) usa
+  $movementDTO->setRelocatedFromInventoryId($sourceInventory->getInventoryId())
+  /
+  setRelocatedToInventoryId($destinationId) — no setReversedOf/setReversedBy.
+  - IntraWarehouseTransferStrategy — como ya usa reversedOf/reversedBy hoy para
+  esto mismo, se migra en este mismo cambio a los campos nuevos (elimina el
+  problema latente que ya existía, no solo evita agrandarlo).
+  - InternalRelocationService (RELOCATION) empieza a usar los campos nuevos
+  también — gana lineage que no tenía antes, sin tocar reversedOf/reversedBy.
+
+  El resto del plan original no cambia:
+  - Fix de updateOrCreateInventory() (retorna entidad en vez de true bare +
+  propaga transferFolio).
+  - WarehouseOutputDtoMapper::toLocationUpdateDto() — agregar setQuantity(...).
+  - OutputController — quantity min:1 en processLocationUpdate() y en
+  processCart().
+  - UI en create.blade.php — habilitar/precargar cantidad en modo individual
+  para LOCATION_UPDATE; carrito sin cambios (default en 1, ya confirmado).
+  - Guard hasChanges sin cambios (ya confirmado).
+
+  Punto pendiente de confirmar: el botón "Revertir" en la vista de movimientos
+  ya está roto hoy para RELOCATION/LOCATION_UPDATE (falla con error confuso
+  porque ReversalStrategyFactory no los soporta) — dado que ahora sabemos que se
+  planea implementar esa reversa después, mi recomendación es dejarlo fuera de 
+  alcance de este cambio (es trabajo aparte, ligado a esa implementación
+  pendiente) y solo documentarlo en el plan. ¿De acuerdo, o prefieres que lo
+  oculte de la UI en este mismo cambio?
+
+✻ Sautéed for 1m 8s
+
+※ recap: We're planning partial-quantity support for internal lot relocation, now redesigned to use new dedicated lineage columns instead of reusing reversal fields. I need you to confirm whether to also hide the broken "Revertir" button for RELOCATION/LOCATION_UPDATE in this same change.
+
+❯ Ok me parece muy bien y ya altere la tabla de manera manual en myslq así que  
+  ya nada más encargate del model y los demas warehouse_inventory_movements     
+
+● Perfecto, entonces quito la migración del plan. Antes de escribir el resto del
+  plan con los nombres exactos, confírmame los nombres de columna que usaste al
+  alterar la tabla manualmente (para que el $fillable del modelo y los mappers
+  los referencien exactamente) — ¿quedaron como relocated_from_inventory_id /
+  relocated_to_inventory_id, o usaste otros nombres?
+
+✻ Cogitated for 17s
+
+❯ Son estos 2 relocated_from_inventory_id y relocated_to_inventory_id           
+
+● Updated plan
+  ⎿  /plan to preview
+
+● El plan final ya está escrito en el archivo de plan, incorporando las columnas
+  nuevas de lineage (relocated_from_inventory_id/relocated_to_inventory_id, ya
+  agregadas por ti en MySQL) en vez de reciclar reversalOf/reversedBy.
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Plan: cantidad parcial en reubicación interna (LOCATION_UPDATE) +       │
+     │ unificación con RELOCATION                                              │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ RELOCATION (mover un lote a otra bodega, InternalRelocationService) y   │
+     │ LOCATION_UPDATE                                                         │
+     │ (reubicación interna, misma bodega, IntraWarehouseTransferStrategy) son │
+     │ dos strategies de                                                       │
+     │ WarehouseOutputStrategy que conceptualmente hacen lo mismo — "mover     │
+     │ parte o todo un lote de una                                             │
+     │ posición a otra" — pero hoy están implementadas con mecanismos          │
+     │ completamente distintos:                                                │
+     │                                                                         │
+     │ - RELOCATION ya soporta mover una cantidad parcial n de un lote: reduce │
+     │ el origen                                                               │
+     │ (BaseOutputService::reduceStock(), que además desactiva automáticamente │
+     │ la fila origen si llega a                                               │
+     │   . y usa WarehouseInventoryQueryService::updateOrCreateInventory()     │
+     │ para sumar/crear en destino. No                                         │
+     │ registra lineage de a dónde fue el lote.                                │
+     │ - LOCATION_UPDATE solo mueve el lote completo: nunca llama              │
+     │ validateStockAvailability() ni                                          │
+     │ reduceStock() — en vez de eso crea una fila enteramente nueva vía       │
+     │ saveInventory() (INSERT                                                 │
+     │ incondicional, sin buscar si ya existe una fila en esa posición) y      │
+     │ desactiva la fila origen a mano                                         │
+     │ vía desactiveInventory(). Por diseño no hay forma de mover solo una     │
+     │ parte del lote.                                                         │
+     │                                                                         │
+     │ El negocio necesita que LOCATION_UPDATE también soporte mover cantidad  │
+     │ parcial, reutilizando el                                                │
+     │ mecanismo que RELOCATION ya tiene en vez de duplicar la lógica de       │
+     │ split.                                                                  │
+     │                                                                         │
+     │ Hallazgo crítico sobre reversalOf/reversedBy — por qué NO se reciclan   │
+     │ para lineage                                                            │
+     │                                                                         │
+     │ IntraWarehouseTransferStrategy hoy reutiliza los campos                 │
+     │ reversalOf/reversedBy (pensados para el                                 │
+     │ patrón de contramovimientos REV-{folio}) para registrar lineage de lote │
+     │ (fila origen → fila                                                     │
+     │ destino). Se investigó a fondo si generalizar ese mismo truco a         │
+     │ RELOCATION era seguro:                                                  │
+     │                                                                         │
+     │ - Confirmado seguro hoy en día: nada lee reversalOf/reversedBy como si  │
+     │ fuera una reversa real.                                                 │
+     │ El único indicador de "reversa real" es la columna is_reversed          │
+     │ (activada solo por                                                      │
+     │ InReversalStrategy/OutReversalStrategy) y el prefijo de folio REV-      │
+     │ (usado por el botón de la                                               │
+     │ UI en create.blade.php:2457-2497). Ni ReportController ni               │
+     │ MovementsController leen estos                                          │
+     │ campos.                                                                 │
+     │ - El problema real: ReversalStrategyFactory::make()                     │
+     │ (app/Infrastructure/Factories/ReversalStrategyFactory.php:26-51)        │
+     │ solo tiene casos para 'IN'/'OUT' — reversar RELOCATION o                │
+     │ LOCATION_UPDATE hoy falla con                                           │
+     │ InvalidArgumentException (atrapada por runInTransaction(), se traduce   │
+     │ en un error genérico). Es                                               │
+     │ decir: la reversa real para estos dos tipos es una implementación       │
+     │ pendiente, no descartada.                                               │
+     │ Cuando se construya, usará                                              │
+     │ WarehouseMovementsRepository::setReversedByFolio() — un UPDATE          │
+     │ incondicional sobre reversed_by — que sobrescribiría silenciosamente el │
+     │ valor de lineage con                                                    │
+     │ el id del contramovimiento, perdiendo la trazabilidad de a dónde fue el │
+     │ lote. Esto ya es cierto hoy                                             │
+     │ para LOCATION_UPDATE; extenderlo a RELOCATION duplicaría el problema.   │
+     │                                                                         │
+     │ Decisión de diseño: se agregan dos columnas nuevas y dedicadas          │
+     │ exclusivamente a lineage de lote,                                       │
+     │ separadas del mecanismo de contramovimientos:                           │
+     │ relocated_from_inventory_id y                                           │
+     │ relocated_to_inventory_id (ambas ?int, nullable).                       │
+     │ reversal_of/reversed_by/is_reversed quedan                              │
+     │ reservados 100% para la reversa real, sin importar qué se implemente    │
+     │ después.                                                                │
+     │                                                                         │
+     │ La tabla warehouse_inventory_movements ya fue alterada manualmente en   │
+     │ MySQL agregando estas dos                                               │
+     │ columnas — no se necesita migración en este cambio. Solo falta conectar │
+     │ Model/Entity/Mappers/DTO.                                               │
+     │                                                                         │
+     │ Decisiones de negocio ya confirmadas con el usuario:                    │
+     │ - El guard hasChanges de LOCATION_UPDATE (rechaza envíos donde la       │
+     │ posición no cambió) se mantiene                                         │
+     │ tal cual — no se relaja para permitir "partir un lote sin moverlo de    │
+     │ sitio".                                                                 │
+     │ - El carrito de LOCATION_UPDATE mantiene su default de cantidad=1 por   │
+     │ ítem (igual que                                                         │
+     │ SALE/OUT) — no se resincroniza automáticamente a la cantidad completa   │
+     │ del lote al elegir este tipo                                            │
+     │ de movimiento.                                                          │
+     │ - Se incluye el fix de una línea para que updateOrCreateInventory()     │
+     │ propague transferFolio a la                                             │
+     │ fila nueva de destino (hoy siempre queda null, afecta a RELOCATION      │
+     │ también).                                                               │
+     │ - Se endurece items.*.quantity del carrito a min:1 (hoy permite 0) +    │
+     │ chequeo defensivo dentro del                                            │
+     │ método compartido.                                                      │
+     │ - El botón "Revertir" ya roto para RELOCATION/LOCATION_UPDATE (falla    │
+     │ con error genérico porque                                               │
+     │ ReversalStrategyFactory no los soporta) queda fuera de alcance — es un  │
+     │ problema preexistente                                                   │
+     │ ligado a la implementación de reversa pendiente, no a este refactor.    │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Cambios                                                                 │
+     │                                                                         │
+     │ 1. Lineage de lote — Model, Entity, Mappers, DTO                        │
+     │                                                                         │
+     │ Columnas ya existentes en BD (agregadas manualmente):                   │
+     │ relocated_from_inventory_id,                                            │
+     │ relocated_to_inventory_id en warehouse_inventory_movements. Propagar    │
+     │ por las 4 capas, mismo patrón                                           │
+     │ que ya usan reversalOf/reversedBy/isReversed en estos mismos archivos:  │
+     │                                                                         │
+     │ - app/Models/WarehouseInventoryMovementsModel.php: agregar              │
+     │ relocated_from_inventory_id,                                            │
+     │ relocated_to_inventory_id a $fillable.                                  │
+     │ - app/Enterprise_Layer/WarehouseInventoryMovements.php: agregar         │
+     │ propiedades                                                             │
+     │ private ?int $relocatedFromInventoryId = null;, private ?int            │
+     │ $relocatedToInventoryId = null; +                                       │
+     │ getRelocatedFromInventoryId()/setRelocatedFromInventoryId(?int) y       │
+     │ getRelocatedToInventoryId()/setRelocatedToInventoryId(?int).            │
+     │ - app/Mappers/DTO/WarehouseMovementsDTO.php: mismo par de propiedades + │
+     │ getters/setters (junto a                                                │
+     │ donde ya están reversedBy/reversedOf).                                  │
+     │ - app/Mappers/WarehouseInventoryMovementModelMapper.php (Model→Entity,  │
+     │ líneas ~55-64): agregar                                                 │
+     │ el mismo patrón condicional que usa para reversed_by/reversal_of        │
+     │ (if ($model->relocated_from_inventory_id !== null) {                    │
+     │ $entity->setRelocatedFromInventoryId(...); }).                          │
+     │ - app/Mappers/WarehouseInventoryMovementsEntityToModelMapper.php        │
+     │ (Entity→Model, líneas ~40-45):                                          │
+     │ espejo del anterior, escribe                                            │
+     │ relocated_from_inventory_id/relocated_to_inventory_id en el modelo.     │
+     │ - app/Mappers/WarehouseInventoryMovementsMapper.php (DTO→Entity, líneas │
+     │ ~44-58): mismo patrón,                                                  │
+     │ setRelocatedFromInventoryId/setRelocatedToInventoryId.                  │
+     │ - app/Mappers/WarehouseMovementEntityToDTOMapper.php (Entity→DTO,       │
+     │ líneas ~26-28): mismo patrón,                                           │
+     │ $dto->setRelocatedFromInventoryId($entity->getRelocatedFromInventoryId( │
+     │ )); etc.                                                                │
+     │                                                                         │
+     │ 2. WarehouseInventoryQueryService::updateOrCreateInventory() — fix de   │
+     │ retorno + transferFolio                                                 │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/WarehouseInventoryQuerySe │
+     │ rvice.php                                                               │
+     │                                                                         │
+     │ - Rama "no encontrado" (líneas 118-184): el constructor de              │
+     │ WarehouseInventory (línea 127-140) recibe                               │
+     │ null como último argumento (transferFolio). Cambiar para propagar       │
+     │ $warehouseInventoryOutDetailDTO->getTransferFolio() (cast explícito a   │
+     │ ?int, ya que el getter                                                  │
+     │ devuelve ?string y el constructor espera ?int).                         │
+     │ - Rama "encontrado" (líneas 186-197): hoy devuelve                      │
+     │ ResultPattern::success(true) — un bool sin id.                          │
+     │ Cambiar a ResultPattern::success($warehouseInventoryEntity) (la entidad │
+     │ ya obtenida por                                                         │
+     │ findSpecificInventory() unas líneas arriba). Su getQuantity() queda     │
+     │ desactualizada (no se llama                                             │
+     │ setQuantity() localmente) pero es irrelevante — el único dato que los   │
+     │ callers necesitan de aquí es                                            │
+     │ el id. Agregar un comentario corto señalando esto.                      │
+     │ - Verificado: updateOrCreateInventory() tiene un solo caller hoy        │
+     │ (InternalRelocationService), y ese                                      │
+     │ caller descarta getValue() por completo — el cambio de forma del        │
+     │ retorno es seguro.                                                      │
+     │                                                                         │
+     │ 3. Nuevo método compartido: BaseOutputService::relocateStock()          │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/BaseOutputService.php     │
+     │                                                                         │
+     │ Agregar el 3er parámetro de constructor WarehouseInventoryQueryServiceI │
+     │ $warehouseInventoryQueryService,                                        │
+     │ guardado como propiedad protected (no private — ambas subclases ya lo   │
+     │ necesitan para su propio                                                │
+     │ getInventoryById()). Imports nuevos:                                    │
+     │ App\Contracts\WarehouseInventoryQueryServiceI,                          │
+     │ App\Mappers\DTO\WarehouseInventoryOutDetailDTO.                         │
+     │                                                                         │
+     │ Nuevo método:                                                           │
+     │ protected function relocateStock(                                       │
+     │     RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO, │
+     │     WarehouseInventoryOutDetailDTO $sourceInventory                     │
+     │ ): ResultPattern                                                        │
+     │ Orden interno (generaliza el happy-path que RELOCATION ya tiene):       │
+     │ 1. validateStockAvailability($dto) → fail-fast, capturar                │
+     │ $currentQuantity.                                                       │
+     │ 2. Chequeo defensivo nuevo: si $dto->getQuantity() <= 0, return         │
+     │ ResultPattern::failure(...) —                                           │
+     │ invariante que hoy solo la validación HTTP garantiza; con esto se       │
+     │ cumple sin importar el punto de                                         │
+     │ entrada (form individual, carrito, futuro caller).                      │
+     │ 3. reduceStock($currentQuantity, $dto) → fail-fast (auto-desactiva el   │
+     │ origen si llega a 0 — ya                                                │
+     │ existente, LOCATION_UPDATE lo gana gratis en vez de su propio           │
+     │ desactiveInventory()).                                                  │
+     │ 4. updateOrCreateInventory($dto, $sourceInventory) en destino →         │
+     │ fail-fast.                                                              │
+     │ 5. $destinationId = $destinationResult->getValue()->getId(); (seguro    │
+     │ tras el fix del punto 2).                                               │
+     │ 6. $movementDTO = $this->recordMovement($dto) (heredado — usa           │
+     │ $dto->getReason() y                                                     │
+     │ $dto->getQuantity() ya seteados por el caller antes de invocar          │
+     │ relocateStock()).                                                       │
+     │ 7. $movementDTO->setRelocatedFromInventoryId($sourceInventory->getInven │
+     │ toryId()),                                                              │
+     │ setRelocatedToInventoryId($destinationId) — no                          │
+     │ setReversedOf/setReversedBy.                                            │
+     │ 8. saveWarehouseMovement($movementDTO) → fail-fast.                     │
+     │ 9. return ResultPattern::success(true);                                 │
+     │                                                                         │
+     │ 4. InternalRelocationService — usar el método compartido                │
+     │                                                                         │
+     │ app/Application_Layer/Services_Implementation/InternalRelocationService │
+     │ .php                                                                    │
+     │                                                                         │
+     │ - Quitar su propiedad privada $warehouseInventoryQueryService; usar la  │
+     │ heredada.                                                               │
+     │ - __construct() reenvía los 3 params base a                             │
+     │ parent::__construct($warehouseInventoryRepository,                      │
+     │ $warehouseMovementsService, $warehouseInventoryQueryService).           │
+     │ WarehouseStorageServiceInterface                                        │
+     │ sigue siendo propiedad propia de esta subclase (solo la necesita para   │
+     │ el nombre de bodega destino).                                           │
+     │ - processOutput() reordenado: resolver $warehouseDestination →          │
+     │ getInventoryById() (antes que                                           │
+     │ validateStockAvailability, ya que relocateStock() la hace internamente) │
+     │ → checks de rack/nivel                                                  │
+     │ no vacíos (sin cambios) → construir el string de razón actual (mismo    │
+     │ sprintf con los campos                                                  │
+     │ rack/nivel/módulo/bahía/tarima + $warehouseDestination) y               │
+     │ $dto->setReason($reasonString) — antes                                  │
+     │ se pasaba el string literal directo al WarehouseMovementsDTO construido │
+     │ a mano; ahora debe vivir en                                             │
+     │ el DTO porque recordMovement() lo lee de ahí → return                   │
+     │ $this->relocateStock($dto, $sourceInventory);.                          │
+     │ - Se elimina la construcción manual de WarehouseMovementsDTO y el       │
+     │ comentario obsoleto ("Cantidad 0                                        │
+     │ porque solo es cambio de ubicación").                                   │
+     │                                                                         │
+     │ 5. IntraWarehouseTransferStrategy — usar el método compartido + migrar  │
+     │ lineage                                                                 │
+     │                                                                         │
+     │ app/Application_Layer/Strategies/IntraWarehouseTransferStrategy.php     │
+     │                                                                         │
+     │ - Quitar su propiedad privada $warehouseInventoryQueryService; usar la  │
+     │ heredada. Quitar la propiedad                                           │
+     │ $warehouseInventory (ya no se crea una entidad nueva a mano). Quitar    │
+     │ imports que quedan sin uso:                                             │
+     │ App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO,                  │
+     │ App\Enterprise_Layer\WarehouseInventory.                                │
+     │ - __construct() reenvía sus 3 args directo a parent::__construct(...).  │
+     │ - processOutput() reordenado: getInventoryById() → guard hasChanges     │
+     │ (sin cambios) →                                                         │
+     │ $dto->setWarehouseId($sourceInventory->getWarehouseId()) — línea nueva  │
+     │ obligatoria:                                                            │
+     │ RemoveWarehouseInventoryStockDTO::$warehouseId es private int sin       │
+     │ default y                                                               │
+     │ toLocationUpdateDto() nunca lo setea; updateOrCreateInventory() lee     │
+     │ $dto->getWarehouseId()                                                  │
+     │ internamente y lanzaría "must not be accessed before initialization"    │
+     │ sin esto → construir el string                                          │
+     │ de razón actual (mismo sprintf, patrón ya existente) y                  │
+     │ $dto->setReason(...) →                                                  │
+     │ return $this->relocateStock($dto, $sourceInventory);.                   │
+     │ - Se elimina por completo: la construcción de                           │
+     │ WarehouseInventoryRequestDTO, la llamada a                              │
+     │ saveInventory(), la llamada a desactiveInventory(), y las llamadas a    │
+     │ $warehouseMovementDTO->setReversedOf(...)/setReversedBy(...)            │
+     │ (reemplazadas por el lineage nuevo                                      │
+     │ dentro de relocateStock()).                                             │
+     │ - Efecto colateral positivo (no regresión): al pasar por                │
+     │ updateOrCreateInventory() en vez de                                     │
+     │ saveInventory() (INSERT incondicional), dos reubicaciones internas      │
+     │ sucesivas hacia la misma                                                │
+     │ posición para el mismo lote ahora se suman en una sola fila en vez de   │
+     │ crear filas duplicadas.                                                 │
+     │                                                                         │
+     │ 6. WarehouseOutputDtoMapper::toLocationUpdateDto() — una línea          │
+     │                                                                         │
+     │ app/Mappers/WarehouseOutputDtoMapper.php                                │
+     │                                                                         │
+     │ Agregar, igual que ya hace toRelocationDto():                           │
+     │ $dto->setQuantity((int) ($data['quantity'] ?? 0));                      │
+     │ justo después de baseDto(), antes de los setters de posición. Este      │
+     │ único cambio cubre                                                      │
+     │ automáticamente tanto el flujo individual como el de carrito            │
+     │ (CartOutputService usa el mismo                                         │
+     │ toDto()/switch).                                                        │
+     │                                                                         │
+     │ 7. OutputController — validación                                        │
+     │                                                                         │
+     │ app/Http/Controllers/OutputController.php                               │
+     │                                                                         │
+     │ - processLocationUpdate(): agregar 'quantity' =>                        │
+     │ 'required|integer|min:1' a las reglas (mismo                            │
+     │ patrón que processRelocation()).                                        │
+     │ - processCart(): cambiar 'items.*.quantity' => 'nullable|integer|min:0' │
+     │ a                                                                       │
+     │ 'items.*.quantity' => 'nullable|integer|min:1'.                         │
+     │                                                                         │
+     │ 8. UI — resources/views/module/output/create.blade.php                  │
+     │                                                                         │
+     │ Solo modo individual (no carrito, por decisión de negocio ya            │
+     │ confirmada). En                                                         │
+     │ toggleMovementFields(), caso 'LOCATION_UPDATE' (hoy líneas 809-819):    │
+     │ quitar                                                                  │
+     │ input-quantity.disabled = true / input-quantity.value = 0. En su lugar, │
+     │ gateado por                                                             │
+     │ mode === 'single' && state.product (igual que ya limita otras ramas de  │
+     │ este archivo), precargar                                                │
+     │ input-quantity.value = state.product.quantity (cantidad actual del      │
+     │ lote) para que un envío sin                                             │
+     │ modificar el campo siga moviendo el lote completo por default —         │
+     │ preserva el comportamiento actual — y                                   │
+     │ el operador pueda reducirlo para mover solo una parte. El campo ya es   │
+     │ required en su markup y ya es                                           │
+     │ el mismo name="quantity" compartido por todos los tipos de movimiento,  │
+     │ así que no se toca el HTML,                                             │
+     │ solo la lógica de toggleMovementFields().                               │
+     │                                                                         │
+     │ El modo carrito no requiere ningún cambio:                              │
+     │ renderCart()/clampQuantity()/submitCart() ya son                        │
+     │ agnósticos al tipo de movimiento y ya envían quantity: item.quantity    │
+     │ por ítem; con la decisión de                                            │
+     │ mantener el default en 1, no hace falta resincronizar nada al elegir    │
+     │ LOCATION_UPDATE.                                                        │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Fuera de alcance (anotado, no se toca)                                  │
+     │                                                                         │
+     │ - El botón "Revertir" en create.blade.php (generarBotonReversal) sigue  │
+     │ apareciendo para                                                        │
+     │ RELOCATION/LOCATION_UPDATE aunque ReversalStrategyFactory no los        │
+     │ soporte todavía — problema                                              │
+     │ preexistente ligado a la implementación de reversa pendiente para estos │
+     │ tipos, se documenta pero no                                             │
+     │ se toca en este cambio.                                                 │
+     │ - RemoveWarehouseInventoryStockDTO::getLevel(): int vs la propiedad     │
+     │ subyacente ?int — riesgo latente                                        │
+     │ de TypeError, preexistente, no relacionado con este cambio.             │
+     │ - El badge "Revertido" en create.blade.php está muerto                  │
+     │ (WarehouseMovementsListDetailDTO::jsonSerialize()                       │
+     │ nunca emite isReversed) — bug preexistente separado, no se toca.        │
+     │ - Falta de validación de warehouseInventoryId en                        │
+     │ processRelocation()/processLocationUpdate() —                           │
+     │ gap preexistente, no introducido por este cambio.                       │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ Manual vía /output, inspeccionando warehouse_inventories y              │
+     │ warehouse_inventory_movements                                           │
+     │ directamente (tinker o cliente DB) después de cada caso:                │
+     │                                                                         │
+     │ 1. LOCATION_UPDATE parcial: lote con stock ≥ 10 en R1/L1, mover         │
+     │ cantidad=4 a R2/L1 (modo                                                │
+     │ individual). Verificar: fila origen reducida en 4, sigue activa; fila   │
+     │ destino en R2/L1 con                                                    │
+     │ cantidad=4 (nueva si no existía). Repetir el mismo movimiento una       │
+     │ segunda vez hacia R2/L1 para                                            │
+     │ confirmar que se suma en la misma fila (no duplica). Movimiento         │
+     │ registrado: movement_type= LOCATION_UPDATE, quantity=4,                 │
+     │ relocated_from_inventory_id=id origen,                                  │
+     │ relocated_to_inventory_id=id destino,                                   │
+     │ reversal_of/reversed_by/is_reversed sin tocar (null/false),             │
+     │ transfer_folio propagado (no null).                                     │
+     │ 2. LOCATION_UPDATE completo: mover la cantidad total de un lote.        │
+     │ Verificar que la fila origen                                            │
+     │ queda en cantidad 0 y active_inventory=false (vía el auto-desactivado   │
+     │ de reduceStock(), antes                                                 │
+     │ nunca se ejercitaba en este flujo). Destino con la cantidad completa.   │
+     │ Repetir vía carrito con un                                              │
+     │ solo ítem, escribiendo manualmente la cantidad completa (el default del │
+     │ carrito es 1).                                                          │
+     │ 3. RELOCATION regresión: reubicación completa entre bodegas como hoy —  │
+     │ mismo comportamiento                                                    │
+     │ externo, más relocated_from_inventory_id/relocated_to_inventory_id      │
+     │ ahora poblados (nuevo, antes                                            │
+     │ RELOCATION no registraba lineage). Confirmar que                        │
+     │ reversal_of/reversed_by/is_reversed siguen en                           │
+     │ su estado normal (sin tocar) y que el botón de reversa en               │
+     │ create.blade.php sigue comportándose                                    │
+     │ igual que hoy (sigue fallando igual que antes para este tipo, sin       │
+     │ cambios). Reubicación parcial                                           │
+     │ entre bodegas (capacidad ya existente) para confirmar que el refactor   │
+     │ de constructor/propiedades no                                           │
+     │ la rompió.                                                              │
+     │ 4. Casos límite: LOCATION_UPDATE con cantidad mayor al stock disponible │
+     │ → falla vía                                                             │
+     │ validateStockAvailability(), sin escrituras en BD (transacción          │
+     │ envolvente de                                                           │
+     │ WarehouseInventoryServiceImplementation::processInventoryOutput()).     │
+     │ Carrito LOCATION_UPDATE con                                             │
+     │ varios lotes, alguno con cantidad inválida → confirmar que el resto se  │
+     │ procesa igual (cada ítem                                                │
+     │ tiene su propia transacción, sin rollback cruzado, según el diseño ya   │
+     │ documentado de                                                          │
+     │ CartOutputService).                                                     │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Worked for 1m 21s
+
+※ recap: We're planning a refactor to let internal lot relocations move partial quantities, sharing logic with cross-warehouse relocation. You already added the new lineage columns to MySQL manually; I need you to confirm their exact names before I finish the plan.

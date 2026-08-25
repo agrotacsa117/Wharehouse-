@@ -50,14 +50,6 @@ class InternalRelocationService extends BaseOutputService
                 $removeWarehouseInventoryStockDTO->getWarehouseId()
             );
 
-        $this->result = $this->validateStockAvailability(
-            $removeWarehouseInventoryStockDTO
-        );
-
-        if ($this->result->isFailure()) {
-            return $this->result;
-        }
-
         $this->result = $this->warehouseInventoryQueryService
             ->getInventoryById(
                 $removeWarehouseInventoryStockDTO->getWarehouseInventoryId()
@@ -86,71 +78,32 @@ class InternalRelocationService extends BaseOutputService
             );
         }
 
-        $this->warehouseInventoryOutDetailDTO = $this->result->getValue();
+        $this->warehouseInventoryOutDetailDTO = $inventoryDTO;
 
-        $successfulReduction = $this->reduceStock(
-            $this->warehouseInventoryOutDetailDTO->getQuantity(),
-            $removeWarehouseInventoryStockDTO
+        $removeWarehouseInventoryStockDTO->setReason(
+            sprintf(
+                'Reubicación por bodega: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
+                $removeWarehouseInventoryStockDTO->getReason(),
+                $inventoryDTO->getRack(),
+                $removeWarehouseInventoryStockDTO->getRack(),
+                $inventoryDTO->getLevel(),
+                $removeWarehouseInventoryStockDTO->getLevel(),
+                $removeWarehouseInventoryStockDTO->getModule(),
+                $removeWarehouseInventoryStockDTO->getBay(),
+                $removeWarehouseInventoryStockDTO->getPlatform(),
+                $warehouseDestination
+            )
         );
 
-        if ($successfulReduction->isFailure()) {
-            return $successfulReduction;
-        }
-
         try {
-
-            if (
-                $removeWarehouseInventoryStockDTO
-                    ->getWarehouseId()
-            ) {
-                $result = $this->warehouseInventoryQueryService
-                    ->updateOrCreateInventory(
-                        $removeWarehouseInventoryStockDTO,
-                        $this->warehouseInventoryOutDetailDTO
-                    );
-
-                if ($result->isFailure()) {
-                    return $result;
-                }
-            }
-
-            $folio = $this->warehouseMovementsService
-                ->generateMovementFolio();
-
-            $movementDTO = new WarehouseMovementsDTO(
-                $folio,
-                $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
-                $this->getType(),
-                $removeWarehouseInventoryStockDTO->getQuantity(), // Cantidad 0 porque solo es cambio de ubicación
-                sprintf(
-                    'Reubicación por bodega: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
-                    $removeWarehouseInventoryStockDTO->getReason(),
-                    $inventoryDTO->getRack(),
-                    $removeWarehouseInventoryStockDTO->getRack(),
-                    $inventoryDTO->getLevel(),
-                    $removeWarehouseInventoryStockDTO->getLevel(),
-                    $removeWarehouseInventoryStockDTO->getModule(),
-                    $removeWarehouseInventoryStockDTO->getBay(),
-                    $removeWarehouseInventoryStockDTO->getPlatform(),
-                    $warehouseDestination
-                ),
-                $removeWarehouseInventoryStockDTO->getUserId()
+            return $this->relocateStock(
+                $removeWarehouseInventoryStockDTO,
+                $this->warehouseInventoryOutDetailDTO,
+                $this->warehouseInventoryQueryService
             );
-
-            $this->result =
-            $this->warehouseMovementsService->saveWarehouseMovement(
-                $movementDTO
-            );
-
-            if ($this->result->isFailure()) {
-                return $this->result;
-            }
-
         } catch (\Throwable $th) {
             return ResultPattern::failure($th->getMessage());
         }
-
-        return ResultPattern::success($this);
     }
 
     public function getType(): string

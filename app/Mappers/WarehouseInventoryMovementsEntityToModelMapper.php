@@ -44,6 +44,14 @@ class WarehouseInventoryMovementsEntityToModelMapper implements WarehouseInvento
         $model->reversal_of = $warehouseInventoryMovements
             ->getReversalOf();
 
+        if ($warehouseInventoryMovements->getRelocatedFromInventoryId() !== null) {
+            $model->relocated_from_inventory_id = $warehouseInventoryMovements->getRelocatedFromInventoryId();
+        }
+
+        if ($warehouseInventoryMovements->getRelocatedToInventoryId() !== null) {
+            $model->relocated_to_inventory_id = $warehouseInventoryMovements->getRelocatedToInventoryId();
+        }
+
         return $model;
     }
 }

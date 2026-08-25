@@ -136,6 +136,10 @@ Route::post('/output/process', [
     OutputController::class,
     'processOutput'])->name('output.inventory.process');
 
+Route::post('/output/process-cart', [
+    OutputController::class,
+    'processCart'])->name('output.inventory.process.cart');
+
 Route::get('/reports/products/warehouse/{id}', [ReportController::class, 'getProductosByWarehouse'])
     ->name('reports.products.warehouse');
 Route::get(
@@ -149,6 +153,26 @@ Route::get(
     [ReportController::class,
         'getStocksByProductAndWarehouse']
 )->name('reports.filter.by.product.warehouse');
+
+Route::post(
+    '/reports/products/lots/export/excel',
+    [ReportController::class, 'exportProductLotsExcel']
+)->name('reports.products.lots.export.excel');
+
+Route::post(
+    '/reports/products/lots/export/pdf',
+    [ReportController::class, 'exportProductLotsPdf']
+)->name('reports.products.lots.export.pdf');
+
+Route::post(
+    '/reports/products/physical-count/export/excel',
+    [ReportController::class, 'exportPhysicalCountExcel']
+)->name('reports.products.physicalcount.export.excel');
+
+Route::post(
+    '/reports/products/physical-count/export/pdf',
+    [ReportController::class, 'exportPhysicalCountPdf']
+)->name('reports.products.physicalcount.export.pdf');
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [Dashboard::class, 'index'])->name('home');

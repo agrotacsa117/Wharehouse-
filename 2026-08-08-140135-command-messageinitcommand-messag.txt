@@ -1,0 +1,699 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+
+❯ /init                                                                         
+
+● I'll check the existing CLAUDE.md against the current repo state and look for
+  AGENTS.md, README.md, and other rule files to see what improvements are
+  needed.
+
+  Searched for 9 patterns, read 2 files, listed 1 directory (ctrl+o to expand)
+
+● Everything in the existing CLAUDE.md checks out against the actual code — the
+  classes, routes, and export files it references all exist exactly as
+  described. It's already accurate and comprehensive, in sync with AGENTS.md,
+  and correctly documents the in-progress cart/export work.
+
+  Since this CLAUDE.md is already thorough and verified accurate, I only have
+  minor improvements to suggest rather than a rewrite:
+
+● User answered Claude's questions:
+  ⎿  · The existing CLAUDE.md is already comprehensive, accurate, and verified 
+     against the current code (including the in-progress cart/export work). How 
+     would you like to proceed? → Leave it as-is (Recommended)
+
+● The existing CLAUDE.md is already accurate, well-organized, and covers
+  commands, architecture, and conventions per the init guidelines — I verified
+  its claims (strategy classes, cart flow, export files, routes) all match the
+  current code. No changes needed.
+
+✻ Sautéed for 36s
+
+❯ Analiza la arquitectura para comprender el contexto del sistema               
+
+  Read 1 file, ran 5 shell commands (ctrl+o to expand)
+
+● Ya tengo suficiente contexto verificado contra el código real (además de lo
+  que ya documentan CLAUDE.md/AGENTS.md). Aquí está el análisis:
+
+  Visión general
+
+  Laravel 8 / PHP 7.4. Es un sistema de gestión de almacenes en transición:
+  convive una arquitectura DDD por capas (para almacenes/inventario/movimientos,
+  lo nuevo) con una arquitectura legacy procedural en español (ventas,
+  productos, categorías, proveedores, usuarios — lo viejo). No se está migrando
+  lo legacy, solo se sigue el patrón que ya tenga cada archivo.
+
+  Las 4 capas (DDD)
+
+  Enterprise_Layer  →  Application_Layer  →  Infrastructure  →  Contracts
+  (entidades puras)    (servicios/repos)      (validación/       (interfaces,
+                                                factories)         DI)
+  - Enterprise_Layer/ (10 archivos): entidades PHP puras, cero Illuminate\*.
+  Warehouse, WarehouseInventory, WarehouseInventoryMovements, Location,
+  WarehouseType, WarehouseSalesEntity, Branch. Patrón Builder
+  (Warehouse::builder()->setX()->build()). Excepciones de dominio en Exception/
+  (extienden RuntimeException).
+  - Application_Layer/: Services_Implementation/ (18) +
+  Repository_Implementation/ (11) implementan las interfaces de Contracts/.
+  Strategies/ tiene el patrón Strategy para reversión/transferencia.
+  ManagesInventoryStock da helpers estáticos de stock.
+  - Contracts/ (57 interfaces): el punto más notable es la inconsistencia de 
+  sufijos — XxxServiceInterface, XxxServiceI, XxxMapperI coexisten sin regla
+  clara de cuándo usar cada uno.
+  - Infrastructure/: FormRequest, excepciones de infraestructura, y 3 factories
+  (MovementFactory, ReversalStrategyFactory, WarehouseOutputStrategyFactory) que
+  seleccionan Strategy en runtime.
+  - Mappers/: 21 mappers + 30 DTOs, uno por dirección de conversión
+  (Model↔Entity↔DTO).
+
+  Punto de atención arquitectónica (confirmado en AppServiceProvider)
+
+  Hay dos jerarquías paralelas para inventario de almacén que suenan casi
+  idénticas pero son implementaciones distintas:
+  - WarehouseInventoryServiceInterface → WarehouseInventoryServiceImplementation
+  - WarehouseInventoryServiceI → WarehouseInventoryService
+
+  Esto es una fuente real de confusión al navegar el código — hay que fijarse en
+  cuál interface importa cada archivo antes de asumir cuál es "la nueva".
+
+  Modelos: triple set (confirmado)
+
+  - Nuevo (XxxModel): WarehouseModel, WarehouseInventoryModel, ProductModel,
+  etc.
+  - Legacy español: Bodega, Producto, Proveedor, Usuario, Ventas, Categoria,
+  Rol.
+  - Tercer set, inglés sin sufijo: Product, Category, Role, User — no son ni
+  XxxModel ni el legacy español. ProductController usa Product;
+  ProductRepositoryImplementation usa ProductModel.
+
+  Controladores (23 en Http/Controllers/)
+
+  Mixto: DDD (WarehouseRegistrationController, MovementsController,
+  OutputController, ReportController, etc.) devuelven redirects basados en
+  ResultPattern; legacy (Categorias, Productos, Proveedores, Usuarios, Ventas,
+  Reportes_productos, DetalleVentas, TemporaryProducts) hablan directo con
+  Eloquent.
+
+  Rutas (routes/web.php)
+
+  Agrupadas por prefijo + middleware: categorias, reportes_productos,
+  proveedores, managment requieren role:admin; productos, salida-productos,
+  racks, ventas solo requieren auth.
+
+  Flujos de negocio clave
+
+  1. Output Strategy (por qué sale stock): BaseOutputService abstracta →
+  SimpleOutputService (OUT), SaleOutputService (SALE), InternalRelocationService
+  (RELOCATION), más IntraWarehouseTransferStrategy (LOCATION_UPDATE) que
+  implementa la interfaz directo. Seleccionado vía
+  WarehouseOutputStrategyFactory::make(tipo).
+  2. Cart/batch output (trabajo en curso, aún sin commitear):
+  OutputController::processCart → CartOutputService::processBatch() procesa
+  múltiples líneas best-effort (sin transacción envolvente), devuelve resultado
+  por ítem.
+  3. Result Pattern: en vez de excepciones hacia afuera, todo devuelve
+  ResultPattern::success()/failure(); mensajes de usuario siempre en español.
+  4. Reversión de movimientos: nunca se edita en sitio — se crea un nuevo
+  movimiento REV-{folio} vía InReversalStrategy/OutReversalStrategy (ledger
+  inmutable).
+  5. Exportes de reportes (también en curso): ReportController →
+  Exports/ProductLotsExport (Excel) o Blade en reports/exports/ (PDF vía
+  dompdf).
+
+  ¿Quieres que profundice en algún flujo específico (por ejemplo, el flujo de
+  cart/output que está sin commitear, o la duplicidad
+  WarehouseInventoryService*) o esto cubre lo que necesitabas?
+
+✻ Brewed for 43s
+
+※ recap: We're mapping the warehouse system's DDD architecture to build shared context; just finished reviewing layers, models, and controllers. Next: dig into the uncommitted cart/output batch flow or the duplicate WarehouseInventoryService interfaces, whichever you want to prioritize. (disable recaps in /config)
+
+❯ Ok ahora que ya analizaste la arquitectura que cosas innovadoras sería bueno  
+  implementar para no ser un crm más del monton. Te recuerdo que la empresa     
+  donde trabajo se dedica a la venta de agrofertilizantes.                      
+
+● Buena pregunta — antes de tirar una lista larga, la idea central es: el
+  diferencial no está en "features de CRM genérico" (contactos, pipeline,
+  recordatorios) sino en explotar lo que ya tenés de sobra en esta arquitectura
+  — lotes, movimientos, ubicaciones de rack — y cruzarlo con el conocimiento
+  agronómico del rubro, que ningún CRM de escritorio maneja.
+
+  Tres apuestas concretas, de menor a mayor esfuerzo:
+
+  1. Trazabilidad regulatoria "campo-lote-venta" — ya tenés fecha de fabricación
+  y folios de movimiento; conectar cada venta con el lote de agroquímico y el
+  cliente/parcela destino te da trazabilidad exigible por SENASA/autoridad
+  sanitaria (útil en auditorías y en caso de reclamo por producto defectuoso).
+  Esto es prácticamente extender lo que ya existe en
+  WarehouseInventoryMovements, no una feature nueva desde cero.
+  2. Alertas de vencimiento + incompatibilidad de almacenamiento — los
+  agroquímicos tienen clasificación de peligrosidad (corrosivo, oxidante, etc.)
+  y reglas de no-coubicación. Un motor simple que valide al momento de la
+  reubicación interna ("no colocar X junto a Y en el mismo rack") previene
+  incidentes reales, no es cosmético.
+  3. Forecast de demanda por ciclo agrícola (siembra/cosecha por región/cultivo)
+  en vez de forecast genérico por histórico de ventas — esto es lo que
+  realmente te distanciaría de "un CRM más": nadie compra fertilizante por
+  impulso, compra por ventana de aplicación agronómica.
+
+  ¿Cuál de estas tres direcciones te interesa explorar primero, o preferís que
+  arme un menú más amplio (incluyendo cosas como crédito estacional a
+  productores o portal de autoservicio para agrónomos) antes de aterrizar en
+  una?
+
+✻ Churned for 32s
+
+❯ Este punto me parece interesante 3. Forecast de demanda por ciclo agrícola    
+  (siembra/cosecha por región/cultivo) como sugieres hacerlo según tu           
+
+● Mi enfoque sería en fases, porque el cuello de botella real no es el algoritmo
+  sino que hoy el sistema no sabe qué cultivo ni qué región hay detrás de cada 
+  venta — solo sabe qué producto salió de qué almacén. Sin ese dato, cualquier
+  forecast sofisticado sería ruido.
+
+  Fase 1 — Calendario agrícola como capa de referencia (bajo esfuerzo, ya valida
+  la idea)
+  Agregar una entidad de dominio nueva, ej. AgriculturalCycle en
+  Enterprise_Layer/ (cultivo, región, ventana de siembra, ventana de cosecha, y
+  las "etapas de fertilización" típicas con offset en días — pre-siembra,
+  macollamiento, etc.). Es dato estático/semilla, no requiere IA. Con eso ya
+  podés cruzar tus movimientos históricos (WarehouseMovements tipo OUT/SALE)
+  agrupados por mes-producto contra las ventanas del calendario y generar un
+  reporte de "estacionalidad esperada vs. real" — reusando el patrón de reportes
+  que ya existe (ReportController + Exports/). Esto es literalmente días de
+  trabajo, no un proyecto de ML.
+
+  Fase 2 — Etiquetar cliente↔región↔cultivo
+  Sin esto, el forecast queda a nivel país/producto, que es poco accionable.
+  Necesitás una tabla de asociación cliente-zona-cultivo (puede vivir cerca de
+  Location, que ya tiene ciudad/estado). Esta es la pieza que más valor agrega y
+  la que probablemente falte discutir con el equipo comercial: ¿ya se registra
+  en algún lado qué cultiva cada cliente, o hay que empezar a capturarlo?
+
+  Fase 3 — Proyección real
+  Recién acá tiene sentido un forecast estadístico (media móvil o suavizado
+  exponencial por producto-región-ciclo). No haría falta un stack de ML pesado
+  al inicio — con 2-3 campañas de histórico ya cruzadas con el calendario
+  alcanza para proyecciones útiles; se puede evaluar Python/servicio aparte más
+  adelante si el volumen de SKUs lo justifica.
+
+  El trade-off principal: la Fase 1 es rápida pero de valor limitado sola; el
+  verdadero diferencial (Fase 2) depende de un dato que quizás hoy nadie está
+  capturando en el negocio.
+
+  ¿Querés que arranque diseñando la Fase 1 en concreto (entidad + reporte de
+  estacionalidad), o preferís primero confirmar con el equipo comercial si
+  existe el dato de cliente-cultivo-región para saltar directo a algo más
+  accionable?
+
+✻ Crunched for 37s
+
+※ recap: Analizamos la arquitectura del sistema de warehouse y estamos explorando features innovadoras para agrofertilizantes, enfocados en forecast de demanda por ciclo agrícola. Próximo paso: confirmar si ya existe dato de cliente-cultivo-región, o arrancar diseñando la Fase 1 (calendario agrícola + reporte de estacionalidad). (disable recaps in /config)
+
+❯ Pense en un suavizado exponencial pero no creo que con los movimientos que    
+  tengo ahora alcance para hacer predicciones verdad?                           
+
+● Buena pregunta — en vez de especular, déjame revisar cuántos datos históricos
+  hay realmente en la base.
+
+  Ran 5 shell commands (ctrl+o to expand)
+
+● Confirmado con los datos reales: la tabla warehouse_inventory_movements tiene
+  290 registros abarcando solo ~85 días (13 mayo – 5 agosto 2026), y
+  warehouse_sales apenas 8 registros. Las tablas legacy de
+  ventas/productos/compras (productos, compras, detalle_venta, salidas) están
+  vacías. Con eso no alcanza, tenés razón.
+
+  Por qué no alcanza específicamente:
+  - El suavizado exponencial simple ya es débil con tan poca serie; pero para lo
+  que necesitás — capturar el patrón estacional del ciclo agrícola
+  (Holt-Winters u otro con componente estacional) — el mínimo aceptado en la
+  práctica es 2-3 ciclos estacionales completos. Si tus cultivos tienen un ciclo
+  anual (siembra-cosecha una vez al año), eso son 2-3 años de histórico limpio,
+  no 3 meses.
+  - Con menos de un ciclo completo, el modelo no tiene forma de distinguir
+  "tendencia" de "estacionalidad" — literalmente no vio nunca la temporada baja
+  ni la alta.
+
+  Qué haría mientras tanto, en vez de esperar 2-3 años:
+  1. Arrancar solo con el calendario agrícola (Fase 1) como indicador líder — es
+  conocimiento de dominio externo, no depende de tu histórico interno, y ya da
+  valor día uno.
+  2. Empezar a acumular la serie ahora en la granularidad correcta (producto ×
+  región × mes) aunque el forecast estadístico no sea viable todavía — si no
+  capturás el dato desde ya, en un año vas a estar en la misma posición.
+  3. Si necesitás algo cuantitativo antes de tener histórico propio, considerar
+  fuentes públicas (calendarios de siembra/cosecha oficiales del INTA/Ministerio
+  de Agricultura u organismo equivalente en tu país) para calibrar un modelo
+  inicial en lugar de depender solo de tus propias ventas.
+
+  ¿Tiene sentido este orden — arrancar por calendario agrícola y dejar el
+  forecast estadístico como algo a revisar en 1-2 campañas?
+✻ Cogitated for 1m 1s
+
+※ recap: Estamos definiendo features diferenciadoras para el sistema de agrofertilizantes; ya descartamos el forecast estadístico por falta de histórico (solo 3 meses de datos). Próximo paso: confirmar si arrancamos por el calendario agrícola como indicador líder. (disable recaps in /config)
+
+❯ Ok como ya nos dimos cuenta de que lo del forecast no es viable hay otras     
+  cosas innovadoras que puede hacerse? O solo era eso porque pues forecast      
+  quedan desacartados completamente                                             
+
+● Aclaro un matiz importante: el forecast no queda descartado del todo, solo su
+  capa estadística (Fase 3). El calendario agrícola (Fase 1) sigue siendo viable
+  y valioso ya, porque no depende de tu histórico interno — es conocimiento de
+  dominio externo. Lo único que se cae, por ahora, es predecir volúmenes con
+  suavizado exponencial.
+
+  Dicho eso, acá va el menú más amplio que había ofrecido, agrupado por qué tan
+  reutilizable es lo que ya existe en tu arquitectura:
+
+  Construible directo sobre lo que ya tenés (bajo esfuerzo):
+  1. Trazabilidad campo-lote-venta — conectar cada venta con el lote y el
+  cliente/parcela destino, exigible en auditorías sanitarias. Extiende
+  WarehouseInventoryMovements, no es feature nueva.
+  2. Alertas de incompatibilidad de almacenamiento — validar en
+  IntraWarehouseTransferStrategy/reubicación que no se coloquen sustancias
+  incompatibles (corrosivo + oxidante, etc.) en el mismo rack. Previene
+  incidentes reales de seguridad.
+
+  Aprovecha el flujo de carrito/pedido que ya construiste:
+  3. Simulador de pedido por hectárea — el productor (o el vendedor) ingresa
+  hectáreas + cultivo + etapa, el sistema calcula la dosis/mezcla recomendada y
+  arma automáticamente el carro de salida usando el CartOutputService que ya
+  existe. Esto es genuinamente diferencial: ningún CRM genérico calcula
+  "necesitás 3.2 ton de esto para 40 ha de soja en macollamiento."
+
+  Requiere la misma inversión de datos que el forecast (cliente↔cultivo↔región) 
+  — por eso conviene evaluarlos juntos:
+  4. Crédito estacional — en agro es común vender a cobrar en cosecha; ligar el
+  vencimiento de crédito a la fecha de cosecha esperada del cultivo del cliente
+  en vez de un plazo fijo genérico, para anticipar riesgo de cobranza.
+  5. Panel de rentabilidad por zona/cultivo — margen cruzado con mezcla de
+  cultivo/región, para saber dónde realmente conviene poner esfuerzo comercial.
+
+  Más ambicioso (fase posterior):
+  6. Portal de autoservicio para agrónomos/distribuidores — consulta de
+  stock/disponibilidad por región y cotización, saca carga operativa del equipo
+  interno.
+
+  Mi recomendación honesta: la 3 (simulador de pedido por hectárea) es la que
+  más "no somos un CRM más" transmite y menos dato nuevo requiere para arrancar,
+  porque reusa el carrito existente. ¿Querés que la desarrolle en más detalle,
+  o te interesa más alguna de las otras?
+
+✻ Crunched for 27s
+
+❯ Creo que esas no son viables puesto que el objetivo del sofware es enfocarnos 
+  en  evitar mermas y trazabilidad pero como tal no darían a luz verde con lo   
+  de cuidado con los componentes químicos                                       
+
+● Entendido, me ciño estrictamente a mermas y trazabilidad. Y de hecho revisando
+  el código encontré un hueco concreto que confirma por dónde ir: hoy no existe
+  un tipo de movimiento para merma. Los tipos que ya tenés en
+  WarehouseOutputStrategyFactory son OUT, SALE, RELOCATION, LOCATION_UPDATE,
+  TRANSFER — ninguno captura "esto se perdió/degradó/rompió". Si no se registra
+  como evento propio, hoy una merma probablemente se disfraza de ajuste manual o
+  ni se registra, lo cual es exactamente lo opuesto a trazabilidad.
+
+  Tres cosas, en orden de dependencia:
+
+  1. Tipo de movimiento MERMA con causa obligatoria (fundacional)
+  Nueva estrategia (MermaOutputService o similar) que implementa el mismo patrón
+  que SimpleOutputService/InternalRelocationService — pero exige una causa
+  tipificada: humedad/apelmazamiento (los fertilizantes como la urea son
+  higroscópicos y pierden peso/calidad con humedad), rotura de empaque, derrame
+  en manipuleo, vencimiento. Sin esto medido como evento de primera clase, no
+  hay forma de saber dónde se pierde plata. Encaja 1 a 1 con el patrón que ya
+  seguís ("cuando agregues una nueva razón para que salga stock, agregá un caso
+  acá").
+
+  2. FEFO automático al sugerir lote de salida
+  Ya tenés la lógica de fecha de fabricación (vi el commit reciente sobre
+  modificarla en reubicación interna). El paso natural es que al procesar una
+  salida, el sistema sugiera el lote más antiguo primero en vez de dejarlo a
+  criterio del operario — la causa #1 de merma por vencimiento/degradación en
+  agroquímicos suele ser justamente vender el lote nuevo y dejar el viejo
+  estancado en el rack.
+
+  3. Dashboard de merma por causa/rack/producto
+  Una vez que el tipo MERMA exista y tenga causa, esto es un reporte más
+  reusando el patrón de ReportController + Exports/ que ya está armado — nada
+  nuevo arquitectónicamente, solo agregación. Ahí es donde aparecen los patrones
+  reales: "el rack 4 tiene 3x más merma por humedad que el resto."
+
+  El trade-off: el punto 1 es el que habilita todo lo demás — sin el evento
+  MERMA medido, el dashboard (3) no tiene datos y el FEFO (2) es una mejora a
+  ciegas. Empezaría por ahí.
+
+  ¿Avanzo con el diseño del tipo de movimiento MERMA (entidad, DTO, estrategia,
+  causa tipificada) o preferís que primero valide con vos qué causas de merma
+  son reales en tu operación antes de tipificarlas en código?
+
+✻ Sautéed for 41s
+
+※ recap: Buscamos features diferenciadoras enfocadas en mermas y trazabilidad para el sistema de agrofertilizantes. Propuse agregar un tipo de movimiento MERMA con causa tipificada; siguiente paso: confirmar contigo qué causas reales de merma existen antes de diseñarlo en código.
+
+❯ Tengo una duda que beneficios tiene el tipo de movimiento merma a que se haga 
+  un movimiento de salid normal y escribar en motivo y le ponga merma ?         
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+● Excelente pregunta para cuestionar, y de hecho fui a mirar los datos reales de
+  tu tabla para no responder en abstracto. Esto es lo que hay ahora mismo en
+  reason (que ya es un varchar(255) libre, ya existe):
+
+  OUT | Extraoficial
+  OUT | Paso algo
+  OUT | Chido
+  OUT | Yambare pronimo
+  OUT | Ey me queda viendo
+
+  Eso es exactamente el problema: reason ya es texto libre hoy, y ya se está
+  usando como cajón de sastre. Si "merma" fuera solo una palabra dentro de ese
+  campo, dependés de que cada operario escriba consistentemente "merma" (no
+  "Merma", no "se dañó", no "perdida") para poder filtrar. Con datos así, un
+  reporte de "% de merma por rack" tendría que hacer LIKE '%merma%' sobre texto
+  libre y aun así se te va a escapar todo lo que la gente escribió distinto.
+
+  El beneficio real no es el patrón Strategy en sí — es dos cosas concretas:
+
+  1. movement_type es un ENUM en la base (IN, OUT, ADJUSTMENT, TRANSFER, SALE, 
+  RELOCATION, LOCATION_UPDATE). Agregar MERMA ahí convierte "¿esto fue una
+  merma?" de una pregunta de interpretación de texto a un filtro exacto: WHERE 
+  movement_type = 'MERMA'. Eso es lo que te garantiza que el dashboard de causas
+  no se pierda ningún registro por typo.
+  2. La causa deja de ser opcional. Hoy reason es nullable y de facto opcional
+  (mirá "Chido" — no dice nada). Si MERMA es su propio tipo, podés forzar en el
+  FormRequest/validación que la causa venga de una lista cerrada (humedad,
+  rotura, derrame, vencimiento) y sea obligatoria — estructuralmente imposible
+  de saltear. Con "OUT + reason" nunca vas a poder obligar eso sin romper todos
+  los OUT normales que no necesitan esa validación.
+
+  Honestamente: no hace falta una clase MermaOutputService gigante ni lógica
+  distinta de reducción de stock — reutiliza casi todo lo que ya tiene
+  SimpleOutputService. La única razón real para que sea su propio "tipo" en vez
+  de un OUT con reason es justamente esa: la restricción de causa obligatoria + 
+  la garantía de filtrado exacto. Si más adelante necesitás además una
+  aprobación de supervisor antes de dar de baja por merma (auditoría de pérdidas
+  suele pedir eso), ahí sí ya no lo podrías hacer con un OUT normal sin
+  bifurcar por texto en todos lados — que es justo la anti-práctica que tu
+  propio CLAUDE.md ya evita para los demás tipos de salida.
+
+  ¿Tiene sentido con esa evidencia, o preferís explorar primero si ya hay una
+  convención informal de "reason" que el equipo comercial usa y que convendría
+  formalizar antes de tocar el enum?
+
+✻ Worked for 53s
+
+❯ Ok va tienes un punto a favor mi otra duda es que de necesario es tener tipo  
+  de movimiento merma. Con la intención hacer reportes de mermas si en teoría   
+  podría solo hacer una diferencia de días con la fecha de actual y la de       
+  vencimientos. Y con eso hacer filtro sql de productos que tengan dias         
+  negativo y ya con eso sale el reporte no. Que de hecho que yo sepa si está.   
+  Solo es un cuestionamientos para ver si es necesario agregar tipo de          
+  movimiento merma                                                              
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Tenés razón en una parte, y ahí sí no hace falta nada nuevo: confirmé que
+  warehouse_inventory ya tiene expiration_date. Un reporte de "productos
+  vencidos" con DATEDIFF(expiration_date, NOW()) < 0 es una consulta que podés
+  hacer hoy mismo, sin tocar arquitectura, reusando el patrón de reportes que ya
+  existe. Eso es un quick win real y deberíamos hacerlo independientemente de
+  lo demás.
+
+  Pero ojo, esa consulta responde una pregunta distinta a la que resuelve el
+  tipo MERMA:
+
+  Lo que te da el diff de fechas: una foto de "qué está vencido ahora mismo, 
+  todavía en inventario" — es un reporte de riesgo/alerta preventiva, calculado
+  sobre lo que sigue en el rack. De hecho esto encaja mejor todavía con tu
+  objetivo de "evitar mermas" (te avisa antes de que se pierda del todo).
+
+  Lo que NO te da:
+  1. Historial. El día que ese producto vencido se tira/se da de baja, sale de
+  warehouse_inventory (o se marca active_inventory = 0). Ese registro deja de
+  existir para el diff. Dentro de 3 meses no vas a poder preguntar "¿cuánto
+  perdimos en agosto?" — porque ya no hay fila con expiration_date para restar,
+  se fue. El diff solo sirve mientras el producto sigue físicamente ahí.
+  2. Causas que no tienen fecha dura. Rotura de empaque, derrame en manipuleo,
+  apelmazamiento por humedad antes de vencer (la urea se apelmaza sin necesidad
+  de estar vencida) — ninguna de estas tiene un campo de fecha contra el cual
+  restar. El diff solo cubre la causa "vencimiento", que es una de varias.
+  3. El acto de dar de baja sigue sin resolverse. Detectar que algo venció no lo
+  saca del stock. En algún momento alguien decide "esto se pierde" y eso es una
+  salida de inventario. Si esa salida se registra como OUT + texto libre,
+  volvés al problema de la vez pasada (reason inconsistente) y perdés el vínculo
+  entre "se detectó vencido" → "se dio de baja efectivamente."
+
+  Conclusión: no son ideas competidoras, son dos capas distintas. El reporte de
+  vencimiento por diff de fechas es el radar preventivo — hacelo ya, es barato.
+  El tipo MERMA es el registro del hecho consumado — cuando ese producto
+  detectado (o uno roto, o uno derramado) efectivamente se retira, para poder
+  sumar merma real por causa/período con confiabilidad.
+
+  ¿Armamos primero el reporte de vencimiento (rápido, sin tocar el modelo) y
+  dejamos MERMA en espera hasta que valga la pena por volumen, o preferís
+  definir ya el tipo MERMA para que el flujo de "detecté vencido → lo doy de
+  baja" quede completo desde el principio?
+
+✻ Crunched for 54s
+
+❯ MMMm ya tienes razón entonces el campo de merma es necesario para que cuando  
+  los almacenistas ya decidan renovar inventario verdad por eso debe ser un     
+  movimiento manual y no automática en el sistema.                              
+
+● Exacto, es correcto por varias razones:
+
+  1. El sistema no puede saber si el producto físicamente sigue ahí, se usó, o 
+  ya se descartó solo porque pasó la expiration_date. El vencimiento es una
+  fecha teórica; la decisión de "esto ya no sirve, lo saco de inventario" es un
+  juicio físico que solo puede hacer alguien que lo tiene enfrente en el rack.
+  Si el sistema diera de baja stock automáticamente al pasar la fecha, el
+  inventario del sistema podría desincronizarse de la realidad física — justo lo
+  contrario de la trazabilidad que buscás.
+  2. Es una decisión con responsabilidad/autorización, no un evento pasivo. Dar
+  de baja stock por merma normalmente implica que alguien lo autoriza (aunque
+  sea el mismo almacenista). Ya tenés user_id en la tabla de movimientos — eso
+  importa acá: cada MERMA queda ligada a quién decidió la baja, cuándo, y por
+  qué causa. Si fuera automático, perdés ese "quién decidió" que es justo lo que
+  hace auditable el registro.
+  3. Evita que "merma" se use para tapar otra cosa. Si el proceso es manual y
+  con causa tipificada obligatoria, cada baja por merma queda documentada y
+  revisable. Automatizarlo (o dejarlo como texto libre, como vimos antes) abre
+  la puerta a que se use como cajón de sastre para ajustes que en realidad son
+  otra cosa (error de conteo, robo, etc.) sin que nadie lo note.
+
+  Entonces el flujo completo queda así: el reporte de vencimiento (el diff de
+  fechas que charlamos) actúa como radar/alerta que le dice al almacenista "esto
+  está en riesgo o ya venció" — pero la baja real (el movimiento MERMA) la
+  ejecuta la persona, a mano, desde el flujo de salida (reusando el carrito que
+  ya tenés), eligiendo causa y cantidad. El sistema nunca decide solo.
+
+  ¿Seguimos con el diseño concreto del tipo MERMA (entidad, causa tipificada,
+  dónde engancha en WarehouseOutputStrategyFactory), o preferís primero validar
+  con los almacenistas cuáles son las causas reales que usan para no inventarlas
+  nosotros?
+
+✻ Worked for 25s
+
+❯ Ok si claro tienes razón ese punrto es valido velo agregando a los puntos que 
+  son necesarios. Aparte de estos que otras cosas carece el sistema y que       
+  sería muy innovadoras para aplicarlas aquí                                    
+
+  Read 2 files, ran 3 shell commands (ctrl+o to expand)
+
+● Antes de sumar ideas nuevas, encontré algo mientras miraba ADJUSTMENT que es
+  más urgente que cualquier feature nueva — es un hueco real en lo que ya
+  existe:
+
+  Hallazgo crítico: hay una vía sin control para reducir stock
+
+  Miré WarehouseInventoryServiceImplementation (línea ~338) y la pantalla de
+  "editar inventario" no pasa por el patrón Output Strategy que sí tienen
+  OUT/SALE/RELOCATION/etc. Si alguien edita la cantidad de un registro de
+  inventario directamente, el sistema:
+  $reason = 'Edición: ' . $updateInventoryDTO->getReason();
+  // genera un movimiento tipo ADJUSTMENT con esa reason libre
+  Es decir: hoy existe una puerta trasera de facto para bajar (o subir) cantidad
+  de stock sin pasar por ninguna disciplina de causa tipificada, sin
+  aprobación, con texto libre otra vez. Esto es más grave que la falta del tipo
+  MERMA que charlamos, porque aunque creemos MERMA bien hecho, esta vía de
+  "editar inventario" seguiría permitiendo camuflar cualquier ajuste como
+  "Edición: conteo" sin dejar rastro real de la causa. Recomendaría resolver 
+  esto junto con MERMA, no después — o se restringe esa pantalla, o se le exige
+  la misma disciplina (causa tipificada obligatoria).
+
+  Otras carencias reales para mermas/trazabilidad (verifiqué en 
+  composer.json/package.json — no están instaladas)
+
+  1. No hay auditoría de cambios a nivel de registro. No hay ningún paquete de
+  audit log instalado. Los movements son el log de negocio, pero no existe un
+  "quién cambió qué campo, valor anterior→nuevo" a nivel granular. Para
+  defenderte ante una auditoría o un reclamo, eso pesa.
+  2. No hay evidencia fotográfica en los movimientos. Cero soporte de adjuntos.
+  Para una merma por rotura/derrame, poder adjuntar una foto al momento de
+  registrar el movimiento es lo que te resuelve una disputa con el transportista
+  o el proveedor — y además te da data para detectar patrones (¿siempre se
+  rompe el mismo tipo de empaque?).
+  3. No hay lectura de código de barras/QR. Revisé package.json y las vistas —
+  todo el registro de movimiento parece ser tipeo manual. Eso es una fuente real
+  de "merma fantasma": diferencias de inventario que en realidad son errores de
+  captura, no pérdidas físicas. Esto es probablemente la mejora de mayor ROI
+  para trazabilidad, porque ataca el error humano en la raíz del dato, no
+  después.
+
+  ¿Querés que profundice en el hallazgo de la puerta trasera de ADJUSTMENT
+  primero (es el más urgente), o preferís que sigamos armando la lista completa
+  antes de priorizar?
+
+✻ Crunched for 1m 18s
+
+❯ Ok y solo eso o hay más                                                       
+
+  Ran 4 shell commands (ctrl+o to expand)
+● Sí, hay más — y encontré algo que es más grande que todo lo anterior.
+
+  El hallazgo más importante: dos sistemas de inventario en paralelo, 
+  desconectados
+
+  Revisé el controlador legacy Ventas (ruta salida-productos,
+  ->middleware(['auth']), sin role:admin) y opera completamente sobre 
+  Producto/Salida — modelos legacy, sin ninguna relación con
+  WarehouseInventoryModel/WarehouseInventoryMovements, que es el sistema nuevo
+  del que venimos hablando todo este rato.
+
+  Si ese módulo salida-productos sigue activo en producción en paralelo al
+  OutputController nuevo, tenés dos fuentes de verdad de stock que no se hablan 
+  entre sí. Eso significa:
+  - Todo lo que diseñemos de MERMA, causa tipificada, reportes, etc. del lado
+  nuevo (WarehouseInventoryMovements) queda ciego a cualquier movimiento que 
+  pase por el lado viejo.
+  - No hay forma de saber si el stock real coincide entre los dos sistemas — la
+  trazabilidad se rompe justo en la frontera entre ambos, que es un problema más
+  fundamental que cualquier tipo de movimiento que agreguemos.
+
+  Esto cambia el orden de prioridades: antes de invertir en MERMA bien diseñado,
+  valdría la pena confirmar si salida-productos (legacy) sigue vivo en el día a
+  día, o si ya está en desuso y todo pasa por OutputController. ¿Sabés si ese
+  módulo viejo todavía se usa, o es un remanente que ya nadie toca?
+
+  Segundo hallazgo: no hay scheduler ni notificaciones activas
+
+  app/Console/Kernel.php tiene el schedule() vacío, y no existe ninguna clase
+  Notification/Mail en el proyecto. Esto confirma algo del reporte de
+  vencimiento que charlamos: hoy no hay forma de que el sistema avise 
+  proactivamente a nadie de nada — ni "este lote vence en 15 días", ni "esta
+  semana hubo 3 mermas en el rack 4". Todo depende de que alguien entre
+  manualmente a mirar un reporte. Buena noticia: Laravel ya trae scheduler y
+  notifications de fábrica, no hace falta instalar nada nuevo — es solo
+  activarlo.
+
+  Lo que sí está bien resuelto (para no pintar todo negativo)
+
+  Verifiqué el flujo de salida del lado nuevo y sí usa lockForUpdate() + 
+  DB::transaction() correctamente en WarehouseInventoryServiceImplementation. No
+  hay riesgo de condición de carrera generando mermas "fantasma" por dos
+  movimientos simultáneos sobre el mismo inventario — eso ya está bien hecho.
+
+  ¿Confirmás si el módulo legacy de salida-productos sigue en uso? De eso
+  depende si el hallazgo #1 es urgente o es historia vieja que ya no importa.
+
+✻ Churned for 1m 2s
+
+※ recap: We're scoping innovative features for your agrofertilizantes warehouse system, focused on mermas and trazabilidad. I found the legacy salida-productos module uses a separate stock system from the new one — I need you to confirm whether it's still actively used before we prioritize next steps.
+
+❯ Ok y otras cosas que le falten e impacten al negocio para evitar mermas.      
+  Porque el objetivo es ese. Ya que de momento no podemos tener series de       
+  tiempo                                                                        
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Sí, hay más — y esta vez fui a buscar específicamente qué le falta al modelo
+  de datos para prevenir merma, no solo para registrarla.
+
+  1. El inventario nuevo no sabe quién es el proveedor del lote
+
+  Revisé warehouse_inventory y WarehouseInventoryModel — no tienen proveedor_id
+  en ningún lado. Ese campo solo existe en la tabla legacy productos
+  (proveedor_id con FK a proveedores), completamente separada del sistema nuevo.
+
+  Impacto directo en mermas: sin ese vínculo, no podés responder "¿qué proveedor
+  me está generando más pérdida?" (bolsas que llegan rotas, producto con vida
+  útil ya corta al recibirlo, empaque de mala calidad). Sin ese dato:
+  - No podés negociar devolución/crédito con el proveedor — todo lo que se
+  pierde, se pierde como costo tuyo, nunca se lo trasladás a quien originó el
+  problema.
+  - No hay forma de detectar patrones ("el proveedor X causa 3x más merma que el
+  resto") para dejar de comprarle o exigirle mejor empaque.
+
+  Esto es más accionable que cualquier reporte de causas internas, porque ataca
+  la causa raíz antes de que el producto entre al almacén.
+
+  2. No existe punto de reorden / stock mínimo-máximo
+
+  Revisé warehouse_inventory, warehouses y warehouse_type — ningún campo de
+  umbral de stock. Comprar de más es una causa silenciosa de merma: si el
+  almacén recibe más de lo que puede rotar antes del vencimiento, la pérdida ya
+  está sentenciada desde el momento de la compra, no en el almacén. Sin un
+  umbral por producto (o al menos por categoría), no hay ninguna señal
+  sistemática que frene el sobre-stock antes de que se convierta en merma.
+
+  3. Falta un reporte de "antigüedad de inventario" (no solo vencimiento)
+
+  El diff de fecha de vencimiento (que ya charlamos) avisa cuando algo está por
+  vencer, pero no cubre productos que se degradan sin fecha de vencimiento dura
+  — la urea se apelmaza con humedad aunque falte tiempo para vencer. Un reporte
+  de "días sin movimiento por lote" complementa al de vencimiento: capital
+  inmovilizado y riesgo de degradación que la fecha de vencimiento sola no
+  detecta.
+
+  Estos tres — proveedor, punto de reorden, antigüedad — atacan la merma antes 
+  de que ocurra (en la compra y en la rotación), a diferencia de
+  MERMA/ADJUSTMENT que la registran después. De estos, el vínculo con proveedor
+  (#1) es el que más impacto de negocio tiene porque te permite trasladar el
+  costo a quien lo origina en vez de absorberlo siempre vos.
+
+  ¿Cuál de estos tres te interesa que desarrolle primero, o seguimos buscando
+  más?
+
+✻ Churned for 48s
+
+※ recap: Estamos definiendo mejoras al sistema de almacén enfocadas en evitar mermas y trazabilidad, ya descartado el forecast por falta de datos. Encontramos que falta vincular proveedor al lote, punto de reorden y reporte de antigüedad de inventario; próximo paso es que elijas cuál priorizar.
+
+❯ Y otras que nos puedan ser utiliz                                             
+
+  Ran 4 shell commands (ctrl+o to expand)
+
+● Dos más, y estos son bien concretos:
+
+  1. El control de capacidad de rack existe pero está desconectado del sistema 
+  nuevo
+
+  Encontré cantidad_max en la tabla rack — pero esa relación de capacidad está
+  atada al modelo legacy Producto (Rack::productosCount() cuenta Producto, no
+  WarehouseInventoryModel). En warehouse_inventory, el campo rack es solo un
+  número entero sin ninguna validación de capacidad. Es decir: el límite de 
+  carga por rack existe en el sistema viejo pero el nuevo no lo respeta. Apilar
+  de más es una causa física real de merma (bolsas de abajo que revientan por
+  peso), y hoy no hay nada que lo frene del lado nuevo.
+
+  2. Los traslados entre almacenes no reconcilian cantidad enviada vs. recibida
+
+  Leí transferInventory() completo — mueve la cantidad de origen a destino en un
+  solo paso atómico, sin ningún punto intermedio de "confirmar recepción con lo
+  que realmente llegó". El sistema asume que lo que salió es exactamente lo que
+  llegó. Para una empresa de agroinsumos con traslados entre sucursales por
+  caminos rurales, la merma en tránsito (derrame, rotura, robo parcial) es un
+  punto ciego clásico — y hoy es completamente invisible para el sistema, porque
+  nunca se compara envío contra recepción.
+
+  ---
+  Con esto ya tenemos una lista bastante sólida (9 hallazgos). Antes de seguir
+  cavando, ¿te sirve que te arme un resumen consolidado y priorizado de todo lo
+  que encontramos hasta ahora, para que decidas por dónde arrancar? O si
+  preferís seguís pidiendo más y seguimos escarbando.
+
+✻ Worked for 51s

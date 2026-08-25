@@ -1,0 +1,1328 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+
+❯ Lee este archivo de una sesion que tuvimos el sabado para que tengas el       
+  contexto: 2026-08-08-140135-command-messageinitcommand-messag.txt             
+  ⎿  ⧉ Selected 699 lines from 
+     2026-08-08-140135-command-messageinitcommand-messag.txt in Visual Studio 
+     Code
+
+  Read 1 file (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ Lee este archivo 2026-08-08-140135-command-messageinitcommand-messag.txt de   
+  una sesion que tuvimos el sabado para que tengas el contexto. Este se         
+  encuentra en una raíz del proyecto                                            
+
+● He leído el archivo completo de la sesión del sábado. Aquí está el contexto:
+
+  Resumen de lo que discutimos:
+
+  1. Analizamos la arquitectura DDD del sistema (capas
+  Enterprise/Application/Infrastructure/Contracts, el triple set de modelos, la
+  duplicidad WarehouseInventoryServiceInterface vs WarehouseInventoryServiceI).
+  2. Exploramos ideas de features innovadoras para agrofertilizantes, pero
+  fuiste descartando las que tocaban clasificación de componentes químicos (por
+  tema de luz verde regulatoria) y forecast estadístico (solo 290 movimientos en
+  ~85 días, no alcanza para Holt-Winters).
+  3. Definimos el foco: evitar mermas y trazabilidad.
+  4. Llegamos a que sí vale la pena un tipo de movimiento MERMA (manual, con
+  causa tipificada obligatoria) — no automático, porque la decisión de dar de
+  baja stock físico la debe tomar el almacenista.
+  5. Encontré varios hallazgos durante la exploración de código, en orden de
+  aparición:
+    - Puerta trasera en ADJUSTMENT: editar inventario genera un movimiento con
+  reason libre, sin la disciplina de causa tipificada — más urgente que MERMA en
+  sí.
+    - Dos sistemas de inventario en paralelo: el módulo legacy salida-productos
+  (Producto/Salida) no se conecta con
+  WarehouseInventoryModel/WarehouseInventoryMovements nuevo — pendiente de
+  confirmar si ese módulo legacy sigue vivo en producción.
+    - Sin scheduler/notificaciones activas (Kernel vacío).
+    - Inventario nuevo sin proveedor_id (no se puede rastrear qué proveedor
+  genera más merma).
+    - Sin punto de reorden / stock mínimo-máximo.
+    - Sin reporte de "antigüedad de inventario" (más allá de vencimiento).
+    - cantidad_max de rack existe pero solo aplica al modelo legacy Producto, no
+  al nuevo.
+    - transferInventory() no reconcilia cantidad enviada vs. recibida (merma en
+  tránsito invisible).
+
+  Quedó pendiente: confirmar si el módulo legacy salida-productos sigue en uso,
+  y decidir si armaba un resumen consolidado/priorizado de los 9 hallazgos o
+  seguíamos escarbando más.
+
+  ¿Querés que retome desde ahí — armo el resumen consolidado, o seguimos por
+  donde lo dejamos?
+
+✻ Sautéed for 11s
+
+❯ Seguimos donde nos quedamos porfa                                             
+
+● Antes de seguir, quedaron dos cosas abiertas en la sesión del sábado:
+
+● User answered Claude's questions:
+  ⎿  · ¿El módulo legacy 'salida-productos' (controlador Ventas, modelos 
+     Producto/Salida) todavía se usa en el día a día, o ya está en desuso? → Ya 
+     no se usa
+     · ¿Cómo seguimos con los 9 hallazgos que encontramos (ADJUSTMENT sin 
+     control, doble sistema, sin proveedor_id, sin punto de reorden, etc.)? → 
+     Seguir escarbando
+
+● Entendido — el módulo legacy queda como historia vieja (no urgente), y
+  seguimos escarbando por más carencias antes de armar el resumen. Voy a revisar
+  el flujo de entrada de mercancía (recepción/compras) y otras áreas que no
+  cubrimos el sábado.
+
+  Searched for 4 patterns, read 1 file (ctrl+o to expand)
+
+● Encontré algo concreto: en InventoryManagementController::transfer() (línea
+  108-111) hay un return prematuro que devuelve "éxito" antes de llamar a
+  $this->warehouseInventoryService->transferInventory($dto) — el código real de
+  la transferencia (líneas 113-126) es inalcanzable, dead code.
+
+  Searched for 3 patterns, ran 2 shell commands (ctrl+o to expand)
+
+● Espera — encontré algo que puede cambiar lo que dijimos el sábado sobre
+  traslados. Hay una entidad StockInTransit en el historial de git que suena
+  exactamente al problema de "merma en tránsito" que identificamos. Voy a
+  verificar si existe y si está en uso.
+
+  Ran 7 shell commands (ctrl+o to expand)
+
+● Dos hallazgos concretos más, buscando en el código real (no solo en lo que ya
+  habíamos hablado):
+
+  1. Bug real en InventoryManagementController::transfer() (línea 108-111)
+  Hay un return de éxito antes de la llamada a
+  $this->warehouseInventoryService->transferInventory($dto). El código que
+  realmente ejecuta la transferencia (líneas 113-126) es inalcanzable — dead
+  code. Si este endpoint está en uso, el frontend recibe "transferencia
+  realizada correctamente" sin que el stock se haya movido. Esto es exactamente
+  el tipo de discrepancia fantasma que genera "merma" que en realidad es un bug,
+  no una pérdida física.
+
+  2. Ya existe un intento de resolver "merma en tránsito", pero quedó en una 
+  rama experimental sin mergear
+  Encontré el commit 6276096 "Beta from out warehouse" (8 abr 2026) que vive
+  únicamente en origin/third-experimental — nunca llegó a main ni a
+  functional_version. Ahí ya habías construido (o alguien construyó) exactamente
+  el patrón de dos pasos que identificamos como faltante el sábado:
+  - Entidad StockInTransit con estados PENDING_RECEPTION → RECEIVED / CANCELLED
+  - createTransfer(): descuenta stock de origen, genera movimiento OUT, deja el
+  traslado "pendiente"
+  - confirmReception(): solo al confirmar recepción se genera el movimiento IN y
+  aparece el inventario en destino
+
+  Pero tiene una limitación importante: confirmReception() no recibe una
+  cantidad distinta a la enviada — siempre acredita
+  $stockInTransit->getQuantity() (lo que salió), no lo que realmente llegó
+  contado por el receptor. O sea, resuelve el "¿llegó o no llegó?" pero no el
+  "¿llegó completo?" — seguiría sin capturar merma parcial en tránsito (derrame
+  de 2 de 10 bolsas, por ejemplo).
+
+  ¿Seguimos escarbando, o con esto y lo del sábado ya armo el resumen
+  consolidado y priorizado?
+
+✻ Worked for 1m 43s
+
+❯ Ok dejemos eso por un lado en que soluciones innovadoras crees que le hace    
+  falta más a este sistema                                                      
+
+● Con el foco estricto en mermas + trazabilidad (sin tocar nada de
+  manejo/dosificación de químicos), la que más se destaca es FEFO automático al 
+  momento de la salida.
+
+  Por qué esta y no las demás: es la única de la lista que ataca la causa raíz
+  de la merma por vencimiento antes de que ocurra, en vez de solo registrarla o
+  reportarla después (MERMA, dashboard, reporte de vencimiento). Ya tenés todos
+  los ingredientes servidos — expiration_date en warehouse_inventory, el
+  CartOutputService/OutputController que ya arma la salida — así que es
+  "conectar dos piezas existentes", no una feature nueva desde cero. Y es
+  genuinamente diferencial: ningún CRM genérico sabe que la urea se apelmaza y
+  prioriza sacar el lote viejo del rack correcto; eso es conocimiento de dominio
+  aplicado, no una casilla de checkbox.
+
+  El trade-off: solo hace algo si el operario respeta la sugerencia. Por eso lo
+  emparejaría con algo de bajo costo — que el sistema advierta (no bloquee) si
+  eligen un lote más nuevo habiendo uno más viejo disponible, y quede esa
+  advertencia/decisión en el reason del movimiento. Eso te da la mejora de
+  comportamiento y de paso otra señal de trazabilidad (por qué se saltearon el
+  FEFO).
+
+  Segunda opción, si preferís cerrar un hueco en vez de prevenir: completar
+  confirmReception() en el StockInTransit de la rama experimental para que
+  acepte cantidad realmente recibida distinta a la enviada — cierra el punto
+  ciego de merma en tránsito que ya identificamos, y el 80% del código ya existe
+  sin mergear.
+
+  ¿Vamos por el FEFO, por cerrar la recepción con discrepancia, o querés que
+  compare ambas en más detalle antes de elegir?
+✻ Crunched for 29s
+
+❯ Si el fefo está muy bien hay que planearlo pero tengo una duda solo eso hay   
+  por innovaren este sistema                                                    
+
+● No, no es la única — dentro del alcance estricto que definiste (mermas +
+  trazabilidad, sin tocar dosificación química) hay 2-3 más que quedaron en el
+  radar, ordenadas por qué tan innovadoras y accionables son:
+
+  1. FEFO automático (la elegida) — previene la merma antes de que ocurra.
+  2. Cerrar la recepción con discrepancia en StockInTransit (la rama
+  experimental sin mergear) — cierra el punto ciego de merma en tránsito,
+  capturando cantidad enviada vs. recibida.
+  3. Lectura de código de barras/QR al registrar movimientos — la señalé el
+  sábado como probablemente la de mayor ROI, porque ataca la "merma fantasma"
+  que en realidad es error de tipeo en la captura, no pérdida física. Es más
+  grande de implementar (requiere hardware/lector + flujo distinto), por eso
+  quedó tercera.
+  4. Activar scheduler + notificaciones — Laravel ya lo trae de fábrica, solo
+  falta usarlo para que las alertas de vencimiento sean proactivas en vez de
+  depender de que alguien entre a mirar un reporte.
+
+  FEFO sigue siendo la mejor primera apuesta: menor esfuerzo, cero
+  infraestructura nueva, y reusa el cart/output que ya existe. Vamos a planearla
+  — arranco explorando el flujo de salida actual para ver dónde engancha mejor
+  la sugerencia de lote.
+
+● 2 background agents launched (↓ to manage)
+   ├ Explore output/cart backend flow
+   └ Explore output frontend blade/JS flow
+
+● Los dos agentes de exploración están corriendo en paralelo (backend del flujo
+  de salida/cart y frontend del blade/JS). Te aviso en cuanto terminen para
+  pasar a la fase de diseño del plan de FEFO.
+
+✻ Churned for 47s
+
+● Agent "Explore output frontend blade/JS flow" finished · 2m 2s
+
+● El agente de frontend terminó — buen material, incluyendo el punto clave de
+  que hoy la tabla de inventario no está ordenada por fecha de vencimiento
+  (findInventoryByWarehouseId() no tiene orderBy). Sigo esperando al agente de
+  backend.
+
+✻ Brewed for 3s
+
+● Agent "Explore output/cart backend flow" finished · 2m 19s
+
+● Ambos agentes de exploración confirmaron el panorama completo. Voy a lanzar un
+  agente de diseño (Plan) para validar el enfoque antes de escribir el plan
+  final.
+
+● Plan(Design FEFO suggestion implementation plan)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+● El agente de diseño está trabajando en el plan detallado (backend + frontend +
+  trazabilidad del override). Te aviso cuando termine para revisarlo contigo
+  antes de escribir el plan final.
+
+✻ Churned for 1m 44s
+
+● Agent "Design FEFO suggestion implementation plan" finished · 4m 0s
+
+● El plan del agente es sólido — encontró que el flujo de item único
+  (prepSalida) es código muerto (sin ningún call site) y una forma de lograr
+  trazabilidad sin tocar el backend, aprovechando un array_merge existente. Voy
+  a verificar los puntos más críticos yo mismo antes de cerrar el plan.
+
+  Searched for 3 patterns, read 4 files (ctrl+o to expand)
+
+● Verificado todo lo esencial contra el código real: array_merge($shared, $item)
+  en CartOutputService::processItem efectivamente permite que un reason por
+  ítem sobrescriba el compartido, processCart pasa $request->items sin filtrar
+  (así que un campo extra reason por ítem llega intacto), y prepSalida no tiene
+  ningún punto de llamada en el archivo — confirmado código muerto. Voy a
+  escribir el plan final.
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ FEFO automático en salida de inventario                                 │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El objetivo del sistema, según lo acordado, es evitar mermas y          │
+     │ garantizar trazabilidad en un almacén de agrofertilizantes —            │
+     │ explícitamente fuera de alcance cualquier cosa relacionada con          │
+     │ manejo/dosificación de químicos. De las alternativas evaluadas          │
+     │ (simulador de dosis por hectárea, crédito estacional, forecast          │
+     │ estadístico — descartadas por no encajar en ese objetivo o por falta de │
+     │ datos históricos), FEFO automático al momento de la salida fue la       │
+     │ elegida: previene la merma por vencimiento antes de que ocurra (en vez  │
+     │ de solo registrarla después, como haría un tipo de movimiento MERMA),   │
+     │ reutiliza el flujo de carrito/salida que ya existe (OutputController +  │
+     │ CartOutputService + create.blade.php), y no requiere infraestructura    │
+     │ nueva.                                                                  │
+     │                                                                         │
+     │ La mecánica: al listar el inventario disponible para armar una salida,  │
+     │ el sistema debe sugerir visualmente el lote más antiguo por vencer de   │
+     │ cada producto, y si el operario elige manualmente un lote más nuevo     │
+     │ habiendo uno más viejo disponible, mostrar una advertencia persistente  │
+     │ y no bloqueante (nunca un tooltip solo-hover, según PRODUCT.md). Esa    │
+     │ desviación debe quedar registrada en el reason del movimiento para no   │
+     │ perder trazabilidad — sin eso, la ventaja "preventiva" del FEFO se      │
+     │ pierde en cuanto alguien la ignora sin dejar rastro.                    │
+     │                                                                         │
+     │ Investigación previa (2 agentes Explore + 1 agente Plan, hallazgos      │
+     │ verificados manualmente leyendo el código real) confirmó:               │
+     │ - El endpoint GET /output/{id}/inventory                                │
+     │ (OutputController::getInventory) devuelve todo el inventario activo del │
+     │ almacén sin ordenar por vencimiento — el patrón                         │
+     │ orderBy('expiration_date', 'asc') ya existe en                          │
+     │ getInventoryByState()/findExpired() de la misma clase, solo falta       │
+     │ aplicarlo aquí.                                                         │
+     │ - Toda la selección de lote es 100% manual/frontend — el backend nunca  │
+     │ elige fila, solo confía en el warehouseInventoryId que llega. Esto es   │
+     │ correcto y no debe tocarse (el warn-no-block vive en la capa de UI, no  │
+     │ en BaseOutputService/bloqueo de stock).                                 │
+     │ - El flujo de un solo producto (prepSalida, formulario nativo a         │
+     │ output.inventory.process) es código muerto — verificado con grep:       │
+     │ prepSalida solo aparece en su propia definición (línea 953), ningún     │
+     │ botón lo invoca. Todo lo que la UI permite hoy pasa por el carrito      │
+     │ (addToCart → renderCart → submitCart → output.inventory.process.cart),  │
+     │ incluso para "un solo producto" (se agrega un solo ítem al carrito).    │
+     │ Por eso este plan implementa FEFO únicamente en el flujo de carrito —   │
+     │ es el único alcanzable.                                                 │
+     │ - Trazabilidad sin tocar el backend: CartOutputService::processItem()   │
+     │ hace $data = array_merge($shared, $item) (línea 54) — si un ítem del    │
+     │ carrito trae su propia clave reason, sobrescribe la del carrito para    │
+     │ ese ítem, y WarehouseOutputDtoMapper::baseDto() ya lee $data['reason']  │
+     │ ?? ''. Además OutputController::processCart() (línea 310) pasa          │
+     │ $request->items crudo (no el array validado/filtrado) a processBatch(), │
+     │ así que una clave extra items.*.reason no declarada en las reglas de    │
+     │ validación llega intacta. Verificado leyendo ambos archivos completos — │
+     │ no hace falta ningún cambio de DTO/mapper/validación para lograr la     │
+     │ trazabilidad.                                                           │
+     │                                                                         │
+     │ Cambios                                                                 │
+     │                                                                         │
+     │ 1. Backend — ordenar por vencimiento (1 línea)                          │
+     │                                                                         │
+     │ Archivo: app/Application_Layer/Repository_Implementation/WarehouseInven │
+     │ toryRepositoryImplementation.php                                        │
+     │ Método: findInventoryByWarehouseId(int $warehouseId): array (línea 113) │
+     │                                                                         │
+     │ Agregar antes de ->get():                                               │
+     │ ->orderByRaw('expiration_date IS NULL, expiration_date ASC')            │
+     │ Se usa orderByRaw con IS NULL primero (no un simple                     │
+     │ orderBy('expiration_date', 'asc')) porque MySQL ordena NULL como el     │
+     │ valor más bajo en ASC — sin este guard, un lote sin fecha de            │
+     │ vencimiento aparecería primero, como si fuera el más urgente. Esto      │
+     │ empuja los lotes sin fecha al final, para que el orden visual de la     │
+     │ tabla coincida con la fila marcada "Sugerido" en el frontend.           │
+     │                                                                         │
+     │ No hay que tocar la interfaz (WarehouseInventoryRepositoryInterface),   │
+     │ el servicio (WarehouseInventoryServiceImplementation::getWarehouseInven │
+     │ toryByWarehouseId, que solo itera y reemplaza elementos sin reordenar)  │
+     │ ni el controlador (OutputController::getInventory, que solo hace        │
+     │ response()->json($inventory)) — el orden fluye sin cambios hasta el     │
+     │ JSON que recibe el frontend.                                            │
+     │                                                                         │
+     │ 2. Frontend — renderInventory(): cachear items + badge "Sugerido"       │
+     │                                                                         │
+     │ Archivo: resources/views/module/output/create.blade.php                 │
+     │                                                                         │
+     │ - Agregar let currentInventoryItems = []; junto a let cart = []; let    │
+     │ mode = 'single'; (línea 990) — hoy el array que devuelve el fetch se    │
+     │ descarta después de armar el HTML; hace falta cachearlo para poder      │
+     │ comparar lotes del mismo producto al hacer clic.                        │
+     │ - Dentro de renderInventory() (línea 918), en el .then(items => {...})  │
+     │ (línea 926): guardar currentInventoryItems = items; y calcular const    │
+     │ fefoSuggested = computeFefoSuggestedIds(items);.                        │
+     │ - Nueva función computeFefoSuggestedIds(items): agrupa por productCode, │
+     │ ignora filas con expirationDate nulo/vacío, encuentra la fecha más      │
+     │ temprana por producto, y solo marca "sugerido" si ese producto tiene 2+ │
+     │ lotes (si hay uno solo, no hay nada que sugerir).                       │
+     │ - En la celda de fecha (línea 934), reemplazar                          │
+     │ ${item.expirationDate.split(' ')[0]} por una versión null-safe que      │
+     │ también agregue el badge cuando corresponda:                            │
+     │ ${item.expirationDate ? item.expirationDate.split(' ')[0] : '<span      │
+     │ class="text-secondary">Sin fecha</span>'}                               │
+     │ ${fefoSuggested.has(item.inventoryId) ? '<span class="badge-info        │
+     │ ms-2">Sugerido</span>' : ''}                                            │
+     │ - Esto reutiliza la clase .badge-info ya definida (línea ~207, gris     │
+     │ #e2e8f0/#475569, radio 6px) — sin CSS nuevo. De paso corrige un bug     │
+     │ latente: hoy .split(' ')[0] sobre un expirationDate nulo rompería la    │
+     │ fila.                                                                   │
+     │                                                                         │
+     │ 3. Frontend — addToCart(): detectar desviación FEFO                     │
+     │                                                                         │
+     │ Archivo: mismo blade, addToCart(item) (línea 993)                       │
+     │                                                                         │
+     │ Antes de hacer cart.push(...), calcular la desviación con una nueva     │
+     │ función evaluateFefoDeviation(pickedItem, currentInventoryItems):       │
+     │ - Busca, entre currentInventoryItems, otro lote del mismo productCode   │
+     │ con expirationDate no nulo y estrictamente anterior al elegido.         │
+     │ - Si existe, arma una nota en español: "Desviación FEFO: se seleccionó  │
+     │ lote {lote elegido} (vence {fecha}) existiendo lote {lote más antiguo}  │
+     │ con vencimiento anterior ({fecha})."                                    │
+     │ - Si no existe (no hay lote más viejo, o el elegido no tiene fecha), no │
+     │ hay desviación.                                                         │
+     │                                                                         │
+     │ Guardar fefoDeviation: bool y fefoNote: string|null en el objeto que se │
+     │ agrega a cart.                                                          │
+     │                                                                         │
+     │ 4. Frontend — renderCart(): advertencia persistente                     │
+     │                                                                         │
+     │ Archivo: mismo blade, renderCart() (línea 1129)                         │
+     │                                                                         │
+     │ Dentro del template de cada cart-item (línea 1144), agregar — solo si   │
+     │ item.fefoDeviation — un bloque reutilizando exactamente el patrón       │
+     │ visual ya existente en el bloque #fields-rehabilitar (línea ~559: fondo │
+     │ #fffbeb, borde 1px solid #f59e0b, radio 8px, ícono                      │
+     │ bi-exclamation-triangle), no un componente nuevo:                       │
+     │ <div class="p-2 mt-2" style="background:#fffbeb; border-radius:8px;     │
+     │ border:1px solid #f59e0b;">                                             │
+     │     <p class="small mb-0" style="color:#92400e;">                       │
+     │         <i class="bi bi-exclamation-triangle me-1"></i>${item.fefoNote} │
+     │     </p>                                                                │
+     │ </div>                                                                  │
+     │ Es texto plano, siempre visible (no depende de :hover), y no bloquea    │
+     │ nada — el operario puede seguir confirmando el carrito con el ítem      │
+     │ marcado.                                                                │
+     │                                                                         │
+     │ 5. Frontend — submitCart(): anotar el reason por ítem                   │
+     │                                                                         │
+     │ Archivo: mismo blade, dentro del items: cart.map(...) (línea 1214)      │
+     │                                                                         │
+     │ Para cada ítem con fefoDeviation === true, construir un reason propio   │
+     │ (motivo del operario + nota FEFO concatenada, truncado a 255            │
+     │ caracteres) y agregarlo como clave reason de ese ítem del payload; los  │
+     │ ítems sin desviación no incluyen la clave, así que siguen usando el     │
+     │ reason compartido del carrito sin cambios:                              │
+     │ items: cart.map(item => {                                               │
+     │     const newLocation = item.newLocation || {};                         │
+     │     const entry = {                                                     │
+     │         warehouseInventoryId: item.inventoryId,                         │
+     │         quantity: item.quantity,                                        │
+     │         new_rack_r: newLocation.rack || null,                           │
+     │         new_level_r: newLocation.level || null,                         │
+     │         new_module_r: newLocation.module || null,                       │
+     │         new_bay_r: newLocation.bay || null,                             │
+     │         new_platform_r: newLocation.platform || null                    │
+     │     };                                                                  │
+     │     if (item.fefoDeviation && item.fefoNote) {                          │
+     │         const baseReason = sharedFields.get('reason') || '';            │
+     │         entry.reason = ((baseReason ? baseReason + ' — ' : '') +        │
+     │ item.fefoNote).slice(0, 255);                                           │
+     │     }                                                                   │
+     │     return entry;                                                       │
+     │ })                                                                      │
+     │ Esto sigue la misma convención ya usada en el código para anotar        │
+     │ contexto en reason (p. ej. el prefijo 'Edición: ' en ajustes de         │
+     │ inventario) — sin agregar campos nuevos a la base de datos ni a los     │
+     │ DTOs.                                                                   │
+     │                                                                         │
+     │ No se toca: RemoveWarehouseInventoryStockDTO, WarehouseOutputDtoMapper, │
+     │ CartOutputService, ni las reglas de validación de                       │
+     │ OutputController::processCart() — la clave extra items.*.reason ya      │
+     │ fluye sin declararse explícitamente (ver Contexto). Como endurecimiento │
+     │ opcional y de bajo riesgo, se puede agregar 'items.*.reason' =>         │
+     │ 'nullable|string|max:255' a las reglas de validación existentes (línea  │
+     │ 285) como defensa en profundidad, ya que el .slice(0, 255) del frontend │
+     │ ya cubre el caso normal.                                                │
+     │                                                                         │
+     │ Fuera de alcance                                                        │
+     │                                                                         │
+     │ - El flujo de un solo producto (prepSalida) no se toca — está           │
+     │ confirmado como código muerto en la UI actual. Si en el futuro se       │
+     │ reactiva, la insignia "Sugerido" ya aparecería gratis (comparte la      │
+     │ tabla #inventory-body), pero la advertencia + anotación de reason       │
+     │ tendrían que replicarse ahí.                                            │
+     │ - No se agrega ningún tipo de movimiento nuevo, estrategia nueva, ni    │
+     │ validación que bloquee la operación — es estrictamente sugerencia +     │
+     │ advertencia + anotación.                                                │
+     │ - No se toca nada de manejo/dosificación química.                       │
+     │                                                                         │
+     │ Verificación (no hay suite de tests real en el repo — solo stubs de     │
+     │ PHPUnit)                                                                │
+     │                                                                         │
+     │ 1. php artisan serve, iniciar sesión, ir a /output/create.              │
+     │ 2. Confirmar (vía tinker o consulta directa, solo lectura) un almacén   │
+     │ con 2+ filas de warehouse_inventory para el mismo product_id,           │
+     │ active_inventory=1, quantity>0, con expiration_date distintas.          │
+     │ 3. Elegir ese almacén → step 2. Verificar en la pestaña Network que GET │
+     │ /output/{id}/inventory ya viene ordenado por expiration_date            │
+     │ ascendente (nulos al final), y que la fila del lote más próximo a       │
+     │ vencer por producto muestra el badge "Sugerido"; productos con un solo  │
+     │ lote no muestran badge.                                                 │
+     │ 4. Hacer clic en "Seleccionar" sobre el lote más nuevo (no el           │
+     │ sugerido). Confirmar que aparece el cuadro ámbar persistente en el      │
+     │ panel del carrito, visible sin necesidad de hover, con el texto         │
+     │ correcto (ambos lotes y fechas).                                        │
+     │ 5. Agregar también el lote más viejo — confirmar que ese ítem no        │
+     │ muestra advertencia.                                                    │
+     │ 6. Completar el motivo en el paso 3, confirmar y enviar (submitCart() → │
+     │ output.inventory.process.cart).                                         │
+     │ 7. En DevTools → Network, revisar el payload POST: el ítem con          │
+     │ desviación debe traer reason = "{motivo del operario} — Desviación      │
+     │ FEFO: ...", el ítem sin desviación no debe traer la clave reason en     │
+     │ absoluto.                                                               │
+     │ 8. Consultar (solo lectura) warehouse_inventory_movements para los      │
+     │ movimientos recién creados y confirmar que el reason persistido         │
+     │ coincide con lo enviado — el ítem sin desviación debe quedar con el     │
+     │ motivo compartido plano.                                                │
+     │ 9. Repetir el envío eligiendo solo el lote correcto (FEFO) — confirmar  │
+     │ que el reason no lleva ninguna nota agregada (prueba negativa).         │
+     │ 10. git diff --stat al terminar: solo debe tocar                        │
+     │ WarehouseInventoryRepositoryImplementation.php y create.blade.php —     │
+     │ nada de rutas, estrategias de movimiento, ni vistas relacionadas a      │
+     │ químicos.                                                               │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Crunched for 10m 31s
+
+※ recap: We're planning a FEFO (oldest-lot-first) suggestion feature for the warehouse output flow to reduce mermas. A design agent is finishing the detailed implementation plan now; next I'll review it with you before finalizing. (disable recaps in /config)
+
+❯ Fijate que mi jefe me dijo esto sobre el plan "no, porque en la planta no     
+  siguen la regla de sacar los lotes mas antiguos"                              
+
+● Eso cambia la premisa del feature — antes de tocar el plan, necesito entender
+  por qué la planta no sigue FEFO hoy, porque la respuesta determina si la
+  funcionalidad tiene sentido tal como está diseñada o si hay que rediseñarla.
+
+● User answered Claude's questions:
+  ⎿  · ¿Por qué no siguen la regla de sacar el lote más antiguo primero en la 
+     planta? → Realmente no estoy muy seguro pero creo que se debe a la falta de
+     disciplina y criterio la verdad
+● Tiene sentido pausar aquí. Con esa incertidumbre, la objeción de tu jefe puede
+  leerse de dos formas muy distintas, y cada una lleva a un plan diferente:
+
+  - Si es pura falta de disciplina (nadie eligió que fuera así, simplemente no
+  hay criterio), la sugerencia FEFO es más valiosa, no menos — es exactamente
+  para eso que sirve un nudge "advertir sin bloquear": introducir un criterio
+  que hoy no existe, sin frenar la operación.
+  - Pero la objeción de tu jefe también puede leerse como "no construyas una
+  función que presupone una regla que la planta nunca adoptó como política" — en
+  ese caso, construir una "advertencia" de algo que no es una regla real sería,
+  desde su perspectiva, el sistema imponiendo un criterio no acordado.
+
+  Dado que coincide con la filosofía que ya usamos para MERMA ("el sistema nunca
+  decide solo", primero visibilidad, después la decisión de negocio), hay una
+  tercera opción que evita adivinar cuál de las dos lecturas es la correcta:
+
+● User answered Claude's questions:
+  ⎿  · ¿Cómo preferís seguir con FEFO dado que tu jefe lo objetó? → Descartar 
+     FEFO y priorizar otro hallazgo
+
+● User answered Claude's questions:
+  ⎿  · ¿Cuál de los hallazgos priorizamos para diseñar ahora en lugar de FEFO? →
+     Tipo de movimiento MERMA (Recomendado)
+
+● Entendido, MERMA como fundación. Vuelvo a la fase de exploración para entender
+  el patrón de Strategy existente y dónde engancha un tipo de movimiento nuevo.
+
+● 2 background agents launched (↓ to manage)
+   ├ Explore output strategy pattern for new movement type
+   └ Explore output form frontend movement type UI
+
+● Descarté el plan de FEFO y lancé dos agentes de exploración en paralelo para
+  el nuevo enfoque (tipo de movimiento MERMA): uno sobre el patrón Strategy del
+  backend (factory, estrategias existentes, enum de movement_type, DTOs), y otro
+  sobre cómo el formulario de salida expone hoy los tipos de movimiento en el
+  frontend. Te aviso cuando terminen.
+
+✻ Crunched for 1m 52s
+
+● Agent "Explore output form frontend movement type UI" finished · 1m 56s
+
+● Buen hallazgo del frontend: no hay que crear ningún diccionario de labels, y
+  el campo causa_merma se integra con una sola línea nueva en el payload del
+  carrito. También detectó que PRODUCT.md exige modal de dos pasos para
+  operaciones destructivas/irreversibles — algo a decidir para MERMA. Sigo
+  esperando el agente de backend.
+
+✻ Worked for 4s
+
+● Agent "Explore output strategy pattern for new movement type" finished · 2m 
+16s
+
+● Hallazgo crítico del backend: el enum movement_type en la migración rastreada
+  (2025_07_15...) solo lista IN, OUT, ADJUSTMENT, TRANSFER — le faltan SALE,
+  RELOCATION, LOCATION_UPDATE, que sabemos que sí funcionan en producción. Eso
+  significa que el enum real de la base de datos vive fuera del control de
+  versiones. Antes de diseñar la migración para agregar MERMA, necesito
+  confirmar los valores reales en la BD — un ALTER ... MODIFY COLUMN con una
+  lista incompleta corrompería silenciosamente cualquier fila existente cuyo
+  valor no esté en la nueva lista.
+
+  Made 2 scratchpad edits +35 -1, ran 5 shell commands (ctrl+o to expand)
+
+● Confirmado el enum real por consulta directa a la base de datos:
+  enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION','LOCATION_UPDATE')
+  — coincide exactamente con la lista de la entidad de dominio, y reason es
+  varchar(255) nullable. Ahora reviso la cadena completa de persistencia del
+  movimiento (DTO → repositorio → modelo → mappers) para saber exactamente dónde
+  agregar la causa tipificada, dado que varios de estos archivos ya aparecen
+  modificados sin commitear.
+
+  Read 7 files (ctrl+o to expand)
+
+● Cadena de persistencia confirmada de punta a punta:
+  RemoveWarehouseInventoryStockDTO → BaseOutputService::recordMovement() →
+  WarehouseMovementsDTO → WarehouseInventoryMovementsMapper (DTO→Entity) →
+  WarehouseInventoryMovements (dominio, valida en el constructor) →
+  WarehouseInventoryMovementsEntityToModelMapper (Entity→Model) →
+  WarehouseInventoryMovementsModel::$fillable. Con esto tengo todo verificado
+  para escribir el plan final de MERMA.
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Tipo de movimiento MERMA con causa tipificada obligatoria               │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El objetivo del sistema es evitar mermas y garantizar trazabilidad en   │
+     │ un almacén de agrofertilizantes. FEFO automático (la alternativa        │
+     │ evaluada primero) quedó descartado: el jefe del usuario señaló que en   │
+     │ planta no se sigue la regla de sacar el lote más antiguo primero, y no  │
+     │ está claro si eso es por falta de disciplina o por una razón operativa  │
+     │ real — construir una función que presupone/advierte sobre una regla que │
+     │ no es política vigente sería prematuro. Se retoma entonces el hallazgo  │
+     │ validado el sábado como el más fundacional: hoy no existe un tipo de    │
+     │ movimiento para registrar merma. Los tipos existentes (OUT, SALE,       │
+     │ RELOCATION, LOCATION_UPDATE, TRANSFER) no capturan "esto se             │
+     │ perdió/degradó/rompió", así que una merma real hoy se disfraza de OUT   │
+     │ con un reason de texto libre — verificado contra datos reales de la     │
+     │ tabla (OUT | Chido, OUT | Ey me queda viendo, etc.), texto libre que ya │
+     │ se usa como cajón de sastre.                                            │
+     │                                                                         │
+     │ Por qué un tipo de movimiento propio y no solo "OUT + reason que diga   │
+     │ merma":                                                                 │
+     │ 1. movement_type es un ENUM real en la base de datos — agregar MERMA    │
+     │ convierte "¿esto fue una merma?" de una interpretación de texto (LIKE   │
+     │ '%merma%', con todas las variantes de tipeo que eso implica) a un       │
+     │ filtro exacto (WHERE movement_type = 'MERMA'), indispensable para el    │
+     │ futuro dashboard de causas.                                             │
+     │ 2. La causa deja de ser opcional. Con reason libre nunca se puede       │
+     │ forzar una causa tipificada sin romper todos los OUT normales que no la │
+     │ necesitan. Con MERMA como su propio tipo, se valida en el dominio       │
+     │ (Enterprise_Layer) que la causa venga de una lista cerrada y sea        │
+     │ obligatoria — estructuralmente imposible de saltear.                    │
+     │                                                                         │
+     │ Decisiones ya acordadas (no relitigar):                                 │
+     │ - Manual, nunca automático: el sistema no puede saber si un producto    │
+     │ físicamente sigue en el rack, se usó, o ya se descartó solo porque pasó │
+     │ expiration_date — la baja la decide una persona que lo tiene enfrente.  │
+     │ Se registra desde el flujo de carrito/salida existente                  │
+     │ (OutputController + CartOutputService + create.blade.php), igual que    │
+     │ los demás tipos.                                                        │
+     │ - Causa tipificada obligatoria: lista cerrada — Humedad/Apelmazamiento, │
+     │ Rotura de empaque, Derrame en manipuleo, Vencimiento (agroquímicos      │
+     │ como la urea se apelmazan con humedad sin necesidad de estar vencidos,  │
+     │ por eso vencimiento es solo una de varias causas).                      │
+     │ - No bypass de stock negativo: a diferencia de SimpleOutputService      │
+     │ (OUT), que permite forceNegativeStock, una merma nunca debe poder dejar │
+     │ el stock en negativo — se modela sobre el patrón más estricto de        │
+     │ SaleOutputService, no sobre SimpleOutputService.                        │
+     │ - Sin manejo/dosificación química — fuera de alcance, como en todo lo   │
+     │ demás.                                                                  │
+     │                                                                         │
+     │ Hallazgo crítico verificado antes de tocar nada: el ENUM real de la     │
+     │ base de datos                                                           │
+     │                                                                         │
+     │ La única migración que toca warehouse_inventory_movements               │
+     │ (2025_07_15_000000_add_transfer_to_movement_type.php) deja el enum en   │
+     │ ('IN','OUT','ADJUSTMENT','TRANSFER') — desactualizada respecto al enum  │
+     │ real, que no tiene ninguna migración de creación rastreada (la tabla se │
+     │ creó fuera del control de versiones, igual que warehouse_inventory).    │
+     │ Se consultó directamente la base de datos (test_warehouse, solo         │
+     │ lectura) para no arriesgar corromper filas existentes con un ALTER ...  │
+     │ MODIFY COLUMN que omitiera valores en uso:                              │
+     │                                                                         │
+     │ movement_type: enum('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATI │
+     │ ON','LOCATION_UPDATE')                                                  │
+     │ reason: varchar(255) NULL                                               │
+     │                                                                         │
+     │ La nueva migración debe partir de esta lista real (7 valores) y agregar │
+     │ MERMA como octavo — nunca de la lista de la migración rastreada, que    │
+     │ está incompleta.                                                        │
+     │                                                                         │
+     │ Cadena de persistencia (verificada archivo por archivo, no supuesta)    │
+     │                                                                         │
+     │ RemoveWarehouseInventoryStockDTO (+ cause)                              │
+     │   → BaseOutputService::recordMovement() construye WarehouseMovementsDTO │
+     │ (+ cause)                                                               │
+     │   → WarehouseMovementsService::saveWarehouseMovement()                  │
+     │   → WarehouseInventoryMovementsMapper::toWarehouseInventoryMovementsEnt │
+     │ ity() [DTO→Entity]                                                      │
+     │   → WarehouseInventoryMovements (dominio; valida causa obligatoria +    │
+     │ lista cerrada en el constructor, cuando movementType === MERMA)         │
+     │   → WarehouseMovementsRepository::save()                                │
+     │   → WarehouseInventoryMovementsEntityToModelMapper::mapToInventoryMovem │
+     │ entsModel() [Entity→Model]                                              │
+     │   → WarehouseInventoryMovementsModel::$fillable (+ cause)               │
+     │                                                                         │
+     │ Cambios — Backend                                                       │
+     │                                                                         │
+     │ 1. Migración                                                            │
+     │                                                                         │
+     │ Nuevo archivo database/migrations/2026_08_11_000000_add_merma_to_moveme │
+     │ nt_type_and_cause_column.php:                                           │
+     │ DB::statement("ALTER TABLE warehouse_inventory_movements                │
+     │     MODIFY COLUMN movement_type                                         │
+     │     ENUM('IN','OUT','ADJUSTMENT','TRANSFER','SALE','RELOCATION','LOCATI │
+     │ ON_UPDATE','MERMA')                                                     │
+     │     NOT NULL");                                                         │
+     │                                                                         │
+     │ DB::statement("ALTER TABLE warehouse_inventory_movements                │
+     │     ADD COLUMN cause                                                    │
+     │ ENUM('HUMEDAD','ROTURA_EMPAQUE','DERRAME','VENCIMIENTO') NULL AFTER     │
+     │ reason");                                                               │
+     │ cause como ENUM (no varchar libre) para replicar el mismo nivel de      │
+     │ disciplina que ya tiene movement_type — nullable porque no aplica a los │
+     │ demás tipos de movimiento. down() revierte ambos cambios a la lista de  │
+     │ 7 valores y elimina la columna.                                         │
+     │                                                                         │
+     │ 2. app/Enterprise_Layer/WarehouseInventoryMovements.php (dominio — aquí │
+     │ vive la regla "obligatoria e imposible de saltear")                     │
+     │                                                                         │
+     │ - public const TYPE_MERMA = 'MERMA';                                    │
+     │ - Agregar self::TYPE_MERMA al array $allowed de validateMovementType(). │
+     │ - Nueva propiedad private ?string $cause = null; + getCause(): ?string. │
+     │ - Constructor: agregar ?string $cause = null como séptimo parámetro, al │
+     │ final (compatible con los call sites existentes que pasan 6 args        │
+     │ posicionales — verificado que solo WarehouseInventoryMovementsMapper::t │
+     │ oWarehouseInventoryMovementsEntity() instancia esta clase).             │
+     │ - Nueva validación privada validateCause(string $movementType, ?string  │
+     │ $cause), invocada junto a validateMovementType/validateQuantity:        │
+     │ private const ALLOWED_MERMA_CAUSES = ['HUMEDAD', 'ROTURA_EMPAQUE',      │
+     │ 'DERRAME', 'VENCIMIENTO'];                                              │
+     │                                                                         │
+     │ private function validateCause(string $movementType, ?string $cause):   │
+     │ void                                                                    │
+     │ {                                                                       │
+     │     if ($movementType !== self::TYPE_MERMA) {                           │
+     │         return;                                                         │
+     │     }                                                                   │
+     │     if ($cause === null || ! in_array($cause,                           │
+     │ self::ALLOWED_MERMA_CAUSES, true)) {                                    │
+     │         throw new InvalidArgumentException('La causa de la merma es     │
+     │ obligatoria y debe ser una de las causas permitidas.');                 │
+     │     }                                                                   │
+     │ }                                                                       │
+     │                                                                         │
+     │ 3. app/Mappers/DTO/WarehouseMovementsDTO.php                            │
+     │                                                                         │
+     │ Agregar private ?string $cause = null; + getCause(): ?string /          │
+     │ setCause(?string $cause): void, siguiendo el patrón ya usado por        │
+     │ setTransferFolio/setSourceWarehouseId (setters opcionales, no en el     │
+     │ constructor).                                                           │
+     │                                                                         │
+     │ 4. app/Mappers/WarehouseInventoryMovementsMapper.php (DTO→Entity)       │
+     │                                                                         │
+     │ Pasar $warehouseMovementsDTO->getCause() como 7° argumento al construir │
+     │ new WarehouseInventoryMovements(...).                                   │
+     │                                                                         │
+     │ 5. app/Mappers/WarehouseInventoryMovementsEntityToModelMapper.php       │
+     │ (Entity→Model)                                                          │
+     │                                                                         │
+     │ Agregar $model->cause = $warehouseInventoryMovements->getCause();.      │
+     │                                                                         │
+     │ 6. app/Models/WarehouseInventoryMovementsModel.php                      │
+     │                                                                         │
+     │ Agregar 'cause', a $fillable.                                           │
+     │                                                                         │
+     │ 7. app/Mappers/DTO/RemoveWarehouseInventoryStockDTO.php                 │
+     │                                                                         │
+     │ Agregar private ?string $cause = null; + getCause()/setCause(), mismo   │
+     │ patrón que sus otros setters opcionales (setInvoiceId, etc.).           │
+     │                                                                         │
+     │ 8. app/Application_Layer/Services_Implementation/BaseOutputService.php: │
+     │ :recordMovement()                                                       │
+     │                                                                         │
+     │ Después de construir $movementDTO, agregar:                             │
+     │ $movementDTO->setCause($removeWarehouseInventoryStockDTO->getCause());  │
+     │                                                                         │
+     │ 9. app/Contracts/WarehouseOutputDtoMapperI.php +                        │
+     │ app/Mappers/WarehouseOutputDtoMapper.php                                │
+     │                                                                         │
+     │ Nuevo método (mismo patrón que toSimpleOutputDto):                      │
+     │ public function toMermaDto(array $data, int $userId):                   │
+     │ RemoveWarehouseInventoryStockDTO                                        │
+     │ {                                                                       │
+     │     $dto = $this->baseDto($data, $userId, 'MERMA');                     │
+     │     $dto->setOperationDate($data['operation_date'] ??                   │
+     │ now()->format('Y-m-d'));                                                │
+     │     $dto->setCause($data['causa_merma'] ?? null);                       │
+     │                                                                         │
+     │     return $dto;                                                        │
+     │ }                                                                       │
+     │ Agregar case 'MERMA': return $this->toMermaDto($data, $userId); en      │
+     │ toDto(). Importante: sin este caso, el default de toDto() mapea         │
+     │ silenciosamente cualquier tipo no reconocido a toSimpleOutputDto        │
+     │ (movementType='OUT', sin causa) — hallazgo ya verificado del switch     │
+     │ actual. Agregar el caso es obligatorio, no opcional.                    │
+     │                                                                         │
+     │ 10. Nuevo                                                               │
+     │ app/Application_Layer/Services_Implementation/MermaOutputService.php    │
+     │                                                                         │
+     │ Extiende BaseOutputService, modelado sobre SaleOutputService (sin       │
+     │ bypass de stock negativo, a diferencia de SimpleOutputService):         │
+     │ class MermaOutputService extends BaseOutputService                      │
+     │ {                                                                       │
+     │     public function processOutput(RemoveWarehouseInventoryStockDTO      │
+     │ $dto): ResultPattern                                                    │
+     │     {                                                                   │
+     │         $result = $this->validateStockAvailability($dto);               │
+     │         if ($result->isFailure()) {                                     │
+     │             return $result;                                             │
+     │         }                                                               │
+     │                                                                         │
+     │         try {                                                           │
+     │             $newQuantity = $this->reduceStock($result->getValue(),      │
+     │ $dto);                                                                  │
+     │             if ($newQuantity->isFailure()) {                            │
+     │                 return $newQuantity;                                    │
+     │             }                                                           │
+     │                                                                         │
+     │             $movementDTO = $this->recordMovement($dto);                 │
+     │             $saveResult =                                               │
+     │ $this->warehouseMovementsService->saveWarehouseMovement($movementDTO);  │
+     │             if ($saveResult->isFailure()) {                             │
+     │                 return $saveResult;                                     │
+     │             }                                                           │
+     │         } catch (\Throwable $th) {                                      │
+     │             return ResultPattern::failure($th->getMessage());           │
+     │         }                                                               │
+     │                                                                         │
+     │         return ResultPattern::success([                                 │
+     │             'message' => 'Merma registrada exitosamente',               │
+     │             'removed' => $dto->getQuantity(),                           │
+     │             'cause' => $dto->getCause(),                                │
+     │         ]);                                                             │
+     │     }                                                                   │
+     │                                                                         │
+     │     public function getType(): string                                   │
+     │     {                                                                   │
+     │         return 'MERMA';                                                 │
+     │     }                                                                   │
+     │ }                                                                       │
+     │ Constructor idéntico al de SimpleOutputService (inventoryRepository,    │
+     │ movementsService — no necesita warehouseSalesService).                  │
+     │                                                                         │
+     │ 11. app/Infrastructure/Factories/WarehouseOutputStrategyFactory.php     │
+     │                                                                         │
+     │ Agregar:                                                                │
+     │ case 'MERMA':                                                           │
+     │     return new MermaOutputService(                                      │
+     │         $this->inventoryRepository,                                     │
+     │         $this->warehouseMovementsService                                │
+     │     );                                                                  │
+     │ No requiere cambios en AppServiceProvider — las estrategias concretas   │
+     │ no están registradas en el contenedor, solo la interfaz del factory.    │
+     │                                                                         │
+     │ 12. app/Http/Controllers/OutputController.php                           │
+     │                                                                         │
+     │ - processOutput(): agregar rama de despacho para MERMA (mismo patrón    │
+     │ que processSimpleOutput/processSale), validando causa_merma inline:     │
+     │ 'causa_merma' => 'required_if:movement_type,MERMA|nullable|string|in:HU │
+     │ MEDAD,ROTURA_EMPAQUE,DERRAME,VENCIMIENTO',                              │
+     │ - processCart(): agregar la misma regla de validación al array          │
+     │ existente (línea ~285). No requiere ningún otro cambio — $shared =      │
+     │ $request->except('items') ya incluye causa_merma automáticamente, y     │
+     │ CartOutputService::processItem() ya hace array_merge($shared, $item),   │
+     │ así que causa_merma llega intacto a                                     │
+     │ WarehouseOutputDtoMapper::toMermaDto() sin tocar CartOutputService.     │
+     │                                                                         │
+     │ No se necesita ningún FormRequest nuevo — no existe precedente de       │
+     │ FormRequest para movimientos de salida en este código                   │
+     │ (StoreWarehouseRequest es la única clase de ese tipo en todo el         │
+     │ proyecto, para registro de almacenes); seguir la convención local de    │
+     │ $request->validate([...]) inline ya usada en processOutput/processCart. │
+     │                                                                         │
+     │ Cambios — Frontend (resources/views/module/output/create.blade.php)     │
+     │                                                                         │
+     │ 1. Select de tipo de movimiento (línea ~467): agregar <option           │
+     │ value="MERMA">Merma</option>.                                           │
+     │ 2. Nuevo bloque de campos <div id="fields-merma" class="d-none          │
+     │ col-12">, insertado junto a fields-sale/fields-transfer/etc. (antes del │
+     │ campo compartido reason, línea ~687), con intro alert alert-danger      │
+     │ (pérdida de inventario) y el select de causa:                           │
+     │ <div id="fields-merma" class="d-none col-12">                           │
+     │     <div class="alert alert-danger">                                    │
+     │         <i class="bi bi-exclamation-triangle"></i> Merma / Pérdida de   │
+     │ Inventario                                                              │
+     │     </div>                                                              │
+     │     <div class="col-12">                                                │
+     │         <label class="form-label small fw-bold">Causa de la merma       │
+     │ *</label>                                                               │
+     │         <select name="causa_merma" id="input-causa-merma"               │
+     │ class="form-select">                                                    │
+     │             <option value="">Seleccione causa...</option>               │
+     │             <option value="HUMEDAD">Humedad / Apelmazamiento</option>   │
+     │             <option value="ROTURA_EMPAQUE">Rotura de empaque</option>   │
+     │             <option value="DERRAME">Derrame en manipuleo</option>       │
+     │             <option value="VENCIMIENTO">Vencimiento</option>            │
+     │         </select>                                                       │
+     │     </div>                                                              │
+     │ </div>                                                                  │
+     │ 2. (Convención confirmada en el mismo archivo:                          │
+     │ label.form-label.small.fw-bold con * literal para requerido,            │
+     │ class="form-select", primera opción vacía como placeholder — igual que  │
+     │ el select de bodega destino de RELOCATION.)                             │
+     │ 3. toggleMovementFields() (línea 760-822):                              │
+     │   - const fieldsMerma = document.getElementById('fields-merma');        │
+     │   - Agregar fieldsMerma.classList.add('d-none'); al bloque de           │
+     │ ocultar-todo.                                                           │
+     │   - Agregar document.getElementById('input-causa-merma').required =     │
+     │ false; al bloque de reset (junto a los otros dos resets existentes — el │
+     │ reset actual es incompleto para RELOCATION/LOCATION_UPDATE, pero para   │
+     │ MERMA sí hay que agregarlo explícitamente para no repetir esa           │
+     │ inconsistencia).                                                        │
+     │   - Nuevo case 'MERMA': — muestra fieldsMerma,                          │
+     │ document.getElementById('input-causa-merma').required = true;,          │
+     │ btnSubmit.textContent = 'Registrar Merma';.                             │
+     │ 4. submitCart() (línea ~1206-1213): agregar causa_merma:                │
+     │ sharedFields.get('causa_merma'), al objeto payload. Como sharedFields   │
+     │ es new FormData(form), el campo se captura automáticamente sin más      │
+     │ cambios.                                                                │
+     │ 5. Modo de un solo producto: no requiere trabajo adicional — al tener   │
+     │ name="causa_merma", el POST nativo del formulario ya lo incluye.        │
+     │ 6. No existe ningún diccionario de labels en español para tipos de      │
+     │ movimiento en este archivo (confirmado, no hay que actualizar nada más  │
+     │ allá del texto del <option> y el btnSubmit.textContent).                │
+     │                                                                         │
+     │ Fuera de alcance / a decidir después                                    │
+     │                                                                         │
+     │ - Modal de confirmación en dos pasos: PRODUCT.md pide ese patrón para   │
+     │ "ajustes manuales" y operaciones destructivas/irreversibles, pero       │
+     │ ningún tipo de movimiento actual (SALE, OUT, TRANSFER, RELOCATION) lo   │
+     │ tiene implementado en este archivo hoy. Las dos salvaguardas ya         │
+     │ acordadas para MERMA (manual + causa obligatoria) son las que se        │
+     │ pidieron explícitamente; agregar un modal de dos pasos sería un patrón  │
+     │ nuevo no solicitado — se deja fuera de este alcance, no como omisión    │
+     │ sino como decisión consciente a validar con el equipo si se quiere      │
+     │ endurecer más adelante.                                                 │
+     │ - Dashboard de merma por causa/rack/producto y aprobación de            │
+     │ supervisor: dependen de que el tipo MERMA exista con datos reales       │
+     │ primero — próximos pasos naturales, no parte de esta entrega.           │
+     │ - FEFO: descartado por ahora (ver Contexto).                            │
+     │                                                                         │
+     │ Verificación (no hay suite de tests real — solo stubs de PHPUnit)       │
+     │                                                                         │
+     │ 1. php artisan migrate — confirmar que corre sin error y que SHOW       │
+     │ COLUMNS FROM warehouse_inventory_movements refleja el enum de 8 valores │
+     │ + la nueva columna cause.                                               │
+     │ 2. Confirmar (solo lectura) que los movimientos existentes con          │
+     │ movement_type en SALE/RELOCATION/LOCATION_UPDATE siguen intactos        │
+     │ después del ALTER (mismo conteo antes/después).                         │
+     │ 3. php artisan serve, iniciar sesión, ir a /output/create, elegir un    │
+     │ almacén con stock disponible.                                           │
+     │ 4. Elegir tipo de movimiento "Merma" — confirmar que aparece el select  │
+     │ de causa y el botón cambia a "Registrar Merma"; intentar enviar sin     │
+     │ elegir causa y confirmar que el campo required bloquea el envío en el   │
+     │ navegador.                                                              │
+     │ 5. Completar causa + cantidad, enviar. Confirmar en Network que el      │
+     │ payload de output.inventory.process.cart incluye movement_type: "MERMA" │
+     │ y causa_merma con el valor elegido.                                     │
+     │ 6. Consultar (solo lectura) el registro creado en                       │
+     │ warehouse_inventory_movements: movement_type = 'MERMA', cause = valor   │
+     │ elegido, quantity reducida correctamente en warehouse_inventory.        │
+     │ 7. Probar el caso negativo: intentar una merma con cantidad mayor al    │
+     │ stock disponible — confirmar que ResultPattern::failure() bloquea la    │
+     │ operación (nunca permite negativo, a diferencia de OUT con              │
+     │ forceNegativeStock).                                                    │
+     │ 8. Cambiar el tipo de movimiento de "Merma" a otro (p. ej. "Venta") sin │
+     │ recargar la página — confirmar que el campo de causa vuelve a quedar    │
+     │ oculto y required=false (verifica el reset agregado en el paso 3 del    │
+     │ frontend).                                                              │
+     │ 9. git diff --stat al terminar — debe tocar únicamente los archivos     │
+     │ listados arriba (migración, entidad de dominio, DTOs, mappers, modelo,  │
+     │ BaseOutputService, nuevo MermaOutputService, factory, OutputController, │
+     │ create.blade.php) — nada de rutas de estrategias de reversión ni        │
+     │ vistas de manejo químico.                                               │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Cogitated for 17m 2s
+
+❯ Ok y dejando eso de lado por un momento con todo lo amplio que existe en este 
+  mundo que yo no se pero que tu sabes que existe porque estás conectado a una  
+  inmensa base de datos que otras cosas innovadoras le hace falta más a este    
+  sistema para ayudar en evitar la merma                                        
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Buen punto de partida: encontré algo concreto en el propio repo que respalda
+  una de las ideas — la tabla legacy salidas ya tiene una columna donado_a
+  (migración 2025_07_02_000002), o sea que el negocio ya tiene la práctica de
+  donar stock en vez de darlo por pérdida total, pero ese concepto no existe
+  todavía en el sistema nuevo (warehouse_inventory_movements/MERMA). Con eso
+  como ancla, van seis ideas — mezclando prácticas conocidas de la industria de
+  agroinsumos con cosas que ya vi en tu propio código:
+
+  1. Recuperación de valor antes de la pérdida total (atado a lo que ya existe)
+  — cuando un lote está por vencer pero aún es vendible, ofrecerlo con descuento
+  o donarlo en vez de esperar a que se convierta en 100% merma. El legacy ya
+  modela "donado_a"; el sistema nuevo no tiene ningún concepto de "salida con
+  recuperación parcial de valor" — hoy solo hay pérdida total (MERMA) o venta
+  normal (SALE), nada en el medio.
+  2. Reconciliación por peso, no solo por unidades — los fertilizantes
+  higroscópicos (urea) ganan o pierden peso por humedad sin que cambie el conteo
+  de bultos. Un sistema que solo cuenta unidades es estructuralmente ciego a
+  ese tipo de merma. Un chequeo periódico de peso real vs. peso teórico por lote
+  (aunque sea muestreo, no cada bulto) detecta una categoría de pérdida que
+  ningún reporte de cantidad puede ver.
+  3. Bitácora de control de plagas/roedores por rack — en almacenes de insumos
+  agrícolas, roedores que perforan empaque son una causa de merma tan común como
+  la humedad, y hoy no hay ningún registro de eso ni cruce con las causas de
+  MERMA que vamos a tipificar. Cruzar "rotura de empaque" con inspecciones de
+  plagas por zona podría revelar que no es empaque de mala calidad sino un
+  problema físico del almacén.
+  4. Sensor de humedad/temperatura por zona (IoT barato) — en vez de reaccionar
+  cuando ya hay merma por humedad, un sensor de bajo costo por rack/zona que
+  alerte cuando se supera un umbral until ataca la causa antes de que el
+  producto se apelmace. No requiere nada sofisticado, son sensores de $20-50 USD
+  con salida a un webhook.
+  5. Análisis ABC de mermas por valor, no por volumen — una vez que MERMA
+  empiece a generar datos, priorizar la atención por el 20% de productos que 
+  concentra el 80% del valor perdido, no por cantidad de incidentes. Es una
+  técnica clásica de gestión de inventario, cero esfuerzo de implementación una
+  vez que hay datos.
+  6. Trazabilidad de empaque por lote de proveedor, no solo por proveedor — ya
+  identificamos que falta proveedor_id en el inventario nuevo; si se agrega,
+  vale la pena ir un paso más allá y registrar el lote de producción del
+  empaque, no solo el proveedor en general — a veces el problema es un lote
+  defectuoso de bolsas, no el proveedor completo.
+
+  ¿Alguna de estas te interesa desarrollar, o seguimos ampliando la lista?
+
+✻ Churned for 1m 3s
+❯ Este me interresa no tienes otras ideas?:  5. Análisis ABC de mermas por      
+  valor, no por volumen                                                         
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+● Antes de las ideas, un hallazgo que afecta directamente la viabilidad de "ABC
+  por valor": revisé los modelos de producto y ProductModel (el que usa el
+  inventario nuevo) no tiene ningún campo de precio/costo — el único que sí lo
+  tiene es Producto (el modelo legacy, con precio y precio_total), que es un
+  sistema separado. Esto es igual al hueco que encontramos con el forecast: la
+  idea es buena, pero hoy no hay con qué calcular "valor perdido" del lado nuevo
+  sin acoplarte al legacy o agregar un campo de costo al producto nuevo. Vale
+  la pena resolver eso primero, aunque sea con un campo simple.
+
+  Con eso como prerequisito, más ideas en la misma línea de análisis de mermas
+  (una vez que haya datos):
+
+  1. Pareto por causa, no solo por producto — cruzar causa
+  (HUMEDAD/ROTURA_EMPAQUE/DERRAME/VENCIMIENTO) × valor perdido, para saber qué
+  causa raíz atacar primero a nivel operativo, no solo qué producto pierde más.
+  2. Tasa de merma normalizada, no absoluta — merma como % del valor
+  movido/vendido de ese producto, no como monto absoluto. Sin esto, el ranking
+  ABC queda sesgado hacia los productos de mayor rotación simplemente porque
+  pasan más veces por el sistema, no porque sean más problemáticos.
+  3. Costo de merma por rack/ubicación física — cruzar valor perdido con la
+  ubicación (rack/módulo/bahía), no solo producto y causa. Si un rack concentra
+  desproporcionadamente el valor perdido, es una señal de infraestructura
+  (filtración, exposición al clima en la puerta de carga), no de producto ni
+  proveedor.
+  4. Serie temporal, no solo foto fija — ver si el valor perdido por causa sube
+  o baja mes a mes. Convierte el ABC en una forma de medir si una intervención
+  (ej. nuevo protocolo, sensor de humedad) realmente está funcionando, en vez de
+  un reporte estático.
+  5. Alerta automática por umbral de costo acumulado — en vez de esperar el
+  reporte mensual, notificar cuando la merma acumulada de un producto/categoría
+  en el mes supera cierto monto en $. Ya identificamos que el scheduler de
+  Laravel está apagado (Kernel::schedule() vacío) — esto le daría el primer uso
+  real.
+
+  ¿Empezamos por resolver el hueco del campo de costo, o preferís profundizar
+  primero en cuál de estos cruces (causa, rack, tiempo) te parece más accionable
+  para tu operación?
+
+✻ Cogitated for 40s
+
+※ recap: We're planning innovations to reduce merma/traceability gaps in the warehouse system; MERMA movement type plan is drafted and awaiting approval. Now exploring ABC-by-value merma analysis, but need to decide: add a cost field to ProductModel first, or dig into causa/rack/time cross-analysis? (disable recaps in /config)
+
+❯ Oye pero en el 4 tu hablas de series temporales que no decias que para eso    
+  necesitabamos de 2 o 4 años como minimo para que funcione?                    
+
+● Buen catch — tenés razón en sospechar, pero son dos cosas distintas y vale la
+  pena que quede clara la diferencia para no confundir "no viable" con "viable":
+
+  Lo que descartamos antes (forecast con Holt-Winters/suavizado exponencial) es
+  predictivo con componente estacional: para separar "tendencia" de
+  "estacionalidad" el modelo necesita ver la temporada alta y baja repetirse
+  varias veces — de ahí el mínimo de 2-3 ciclos agrícolas completos (2-3 años).
+  Eso sigue siendo cierto y sigue sin ser viable con 3 meses de datos.
+
+  Lo que propongo en el punto 4 es descriptivo, no predictivo: no es "predecir
+  cuánta merma va a haber en octubre", es simplemente graficar "cuánto valor
+  perdimos por causa, mes a mes" para ver si sube o baja — típicamente para
+  comparar antes/después de una intervención concreta (ej. "pusimos el sensor de
+  humedad en el rack 4 en julio, ¿bajó la merma por humedad en
+  agosto-septiembre?"). Eso no necesita distinguir tendencia de estacionalidad
+  ni ver un ciclo completo — con 2-3 meses de datos de MERMA ya es una
+  comparación válida, es básicamente una línea de tendencia en un dashboard, no
+  un modelo estadístico.
+
+  Donde sí volvería a aplicar la misma limitación: si quisiera afirmar algo como
+  "la merma por humedad es estacionalmente peor en época de lluvias" — eso sí
+  es una afirmación estacional y necesitaría al menos ver pasar una temporada de
+  lluvias completa (y preferible más de una) para no confundir una racha con un
+  patrón real.
+
+  Entonces, resumen honesto: punto 4 tal como lo planteé (tendencia simple mes a
+  mes) es viable casi de inmediato una vez que MERMA empiece a generar datos;
+  si en algún momento quisiéramos justificar causas estacionales del clima, ahí
+  sí aplicaría la misma restricción de 2-3 años que tumbó el forecast original.
+
+✻ Brewed for 24s
+
+❯ Ok muy bien y dime hay otros puntos que sugieres más                          
+
+  Searched for 4 patterns, read 1 file (ctrl+o to expand)
+
+● Sí, y encontré uno concreto revisando el flujo de recepción:
+  WareouseInventoryController::store() (el formulario que da de alta inventario
+  nuevo) valida cantidad, fechas, lote y ubicación — pero ningún campo de 
+  condición/inspección del producto al recibirlo. Es el punto exacto donde hoy
+  se podría atrapar un problema antes de que entre al almacén y se convierta en
+  merma después.
+
+  Más ideas, en la misma línea de prevención (no solo registro):
+
+  1. Checklist de inspección en la recepción — al dar de alta inventario nuevo,
+  un checklist corto (empaque íntegro / sin humedad visible / sin daño) antes de
+  aceptar el lote. Si algo falla, se puede rechazar o marcar "recibido con
+  observación" desde el día uno, en vez de descubrirlo semanas después como
+  merma.
+  2. Etiquetado físico sincronizado con el sistema — que la etiqueta impresa del
+  lote (código + fecha) quede visible en el rack, no solo en pantalla. Barato,
+  complementa cualquier lectura de código de barras futura, y hace que un
+  almacenista pueda verificar a simple vista sin tener el sistema abierto.
+  3. Regla de apilamiento máximo por tipo de producto — ya vimos que
+  cantidad_max de rack existe en el sistema legacy pero el nuevo no la respeta.
+  Vale la pena no solo "respetarla" sino tipificarla por tipo de producto
+  (bultos de fertilizante no se apilan igual que otros insumos) — apilar de más
+  rompe bolsas de abajo por peso, causa real y física de merma.
+  4. Condiciones durante el traslado — para cuando se complete la reconciliación
+  de StockInTransit (recepción con discrepancia), sumar un campo simple de
+  "condición al llegar" (íntegro / mojado / dañado), no solo cantidad — la merma
+  en tránsito no siempre es por robo o pérdida, a veces es exposición al clima
+  en el camino.
+  5. Índice simple de "riesgo del lote" — combinar días en stock + cercanía a
+  vencimiento + causa histórica de merma en ese rack en un puntaje simple (sin
+  ML, solo una fórmula ponderada) para priorizar qué lotes inspeccionar primero,
+  en vez de revisar todo por igual.
+  6. Puente con el área comercial para producto en riesgo — cuando un lote queda
+  marcado en riesgo (por el reporte de vencimiento que ya planeamos), que
+  aparezca también como sugerencia al equipo de ventas para moverlo antes de
+  perderlo del todo, en vez de que esa información se quede solo en un reporte
+  que nadie mira a tiempo.
+
+  ¿Seguimos ampliando, o ya con todo lo que tenemos armamos el resumen
+  consolidado y priorizado?
+
+✻ Churned for 55s
+
+❯ Sigamos ampliando quiero ver hasta donde podemos llegar                       
+  ⎿  ⧉ Selected 1 lines from 
+     app\Http\Controllers\WareouseInventoryController.php in Visual Studio Code
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Un hallazgo que confirma otro hueco real: busqué en todo app/ cualquier rastro
+  de "devolución de cliente" y no hay absolutamente nada — ni modelo, ni
+  movimiento, ni controlador. Si un cliente devuelve producto (pedido
+  equivocado, dañado en el trayecto, exceso de compra), hoy no hay forma de que
+  el sistema lo reciba de vuelta con ningún control de condición. Eso es un
+  punto ciego clásico de "merma administrativa": el producto puede estar
+  físicamente en el almacén sin que el sistema lo sepa, o viceversa.
+
+  Más ideas, empujando en direcciones que todavía no tocamos:
+
+  1. Devoluciones de cliente con inspección de condición — un flujo de reingreso
+  que registre si el producto vuelve en condición vendible, dañado, o directo a
+  merma. Sin esto, cualquier devolución hoy es invisible para el sistema o se
+  cuela como un ajuste manual sin control (la misma puerta trasera de ADJUSTMENT
+  que ya encontramos).
+  2. Conteo cíclico programado — en vez de solo reaccionar cuando algo ya se
+  perdió, un conteo físico parcial y programado (ej. 10% del inventario por
+  semana, rotando por rack) que compare contra el sistema y genere el ajuste con
+  causa, no a demanda. Usaría el scheduler de Laravel que ya está apagado,
+  dándole un segundo uso real además de las alertas.
+  3. Doble control para bajas de alto valor — que una merma por encima de cierto
+  monto en $ requiera confirmación de una segunda persona (no solo el
+  almacenista que la registra), como separación de funciones. Es la versión
+  concreta de la "aprobación de supervisor" que mencionamos el sábado, mishecha
+  activaría solo cuando el monto lo justifique, no en cada merma.
+  4. Cadena de custodia por lote — como reporte, no como feature nueva: ya tenés
+  user_id en cada movimiento, así que "quién tocó este lote y cuándo, de
+  principio a fin" ya es posible reconstruir con lo que existe. Falta solo
+  exponerlo como vista/reporte propio en vez de tener que ir movimiento por
+  movimiento.
+  5. Registro offline-first para zonas con mala conectividad — si el almacén
+  está en una zona rural con señal irregular, un sistema que exige conexión en
+  vivo para registrar cada movimiento genera su propia causa de "merma
+  fantasma": operaciones que no se registran a tiempo, se acumulan de memoria, y
+  terminan como ajustes imprecisos después.
+  6. Alertas basadas en pronóstico climático regional — antes de invertir en
+  sensores físicos de humedad (idea de la ronda anterior), una alternativa más
+  barata: cruzar el calendario agrícola con pronóstico de lluvias/humedad de la
+  zona (fuente externa, sin hardware) para avisar "próxima semana alta humedad
+  esperada, revisar racks de urea" — más simple de arrancar que instrumentar el
+  almacén.
+  7. Manejo de fraccionamiento de empaque grande — cuando se abre un bulto
+  grande para despachar una cantidad parcial, el remanente queda más expuesto
+  (empaque abierto = más riesgo de humedad/plaga). Hoy el sistema no distingue
+  "lote cerrado" de "lote abierto/fraccionado" — sería una causa de merma con
+  perfil de riesgo distinto a un bulto sellado.
+
+  ¿Seguimos, o con esto ya es un buen punto para armar el resumen consolidado?
+
+✻ Crunched for 57s
+
+❯ Si dale                                                                       
+
+● Con todo lo acumulado (sábado + hoy), acá va el resumen consolidado por nivel
+  de esfuerzo/dependencia — no por orden de aparición:
+
+  Ya en marcha
+
+  - Tipo de movimiento MERMA — plan ya escrito y verificado contra el código
+  real (enum de BD, cadena de persistencia completa), pendiente de tu aprobación
+  para implementar. Es la base de la que dependen varios puntos de abajo.
+
+  Arreglar antes de construir nada nuevo (no son "innovación", son huecos de 
+  control)
+
+  - Puerta trasera en ADJUSTMENT — editar inventario genera un movimiento con
+  reason libre, sin disciplina de causa.
+  - Bug real en InventoryManagementController::transfer() — hay un return de
+  éxito antes de ejecutar la transferencia real; el código que mueve el stock es
+  inalcanzable.
+
+  Quick wins — no requieren dato nuevo ni tocar arquitectura
+
+  - Reporte de vencimiento por diff de fechas — expiration_date ya existe, es
+  una consulta hoy mismo.
+  - Cadena de custodia por lote — user_id ya está en cada movimiento; falta solo
+  exponerlo como reporte.
+  - Serie temporal de valor perdido mes a mes — viable en cuanto MERMA empiece a
+  generar datos (no es forecast, es tendencia descriptiva).
+
+  Activar infraestructura que ya existe pero está apagada
+
+  - Alertas de vencimiento proactivas, conteo cíclico programado, y alertas por
+  umbral de costo acumulado — las tres usan el scheduler de Laravel
+  (Kernel::schedule() vacío hoy).
+
+  Requieren un dato nuevo puntual (bajo esfuerzo estructural, alto 
+  apalancamiento)
+
+  - proveedor_id en el inventario nuevo → habilita rastrear qué proveedor genera
+  más pérdida.
+  - Campo de costo/precio en ProductModel (confirmado ausente — solo existe en
+  el modelo legacy Producto) → habilita ABC de mermas por valor, Pareto por
+  causa, costo por rack.
+  - Punto de reorden / stock mínimo-máximo.
+
+  Flujos nuevos (mayor esfuerzo, pero mismo patrón Strategy que ya usás)
+
+  - Devoluciones de cliente con inspección de condición (confirmado: no existe
+  nada de esto hoy).
+  - Checklist de inspección de calidad en la recepción (confirmado:
+  WareouseInventoryController::store() no tiene ningún campo de condición).
+  - Completar StockInTransit (recepción con discrepancia) — 80% del código ya
+  existe en origin/third-experimental, sin mergear.
+  - Doble control para bajas de alto valor.
+
+  Requieren hardware o infraestructura externa
+
+  - Lectura de código de barras/QR (la señalamos como de mayor ROI para error de
+  captura).
+  - Sensor IoT de humedad/temperatura por zona.
+  - Registro offline-first para zonas con mala conectividad.
+  - Etiquetado físico sincronizado.
+
+  Reglas de proceso / negocio, no técnicas
+
+  - Regla de apilamiento máximo por producto, manejo de fraccionamiento de
+  empaque, donación/venta con descuento para producto en riesgo (ya hay
+  precedente legacy con donado_a), puente con el área comercial para producto en
+  riesgo, bitácora de plagas, reconciliación por peso, integración con
+  pronóstico climático.
+
+  Descartado
+
+  - FEFO automático (tu jefe: no es la práctica real en planta).
+  - Forecast estadístico por ciclo agrícola (faltan 2-3 campañas de histórico).
+
+  ¿Querés que te lo arme como documento para compartir con tu jefe, o seguimos
+  directo con la aprobación del plan de MERMA?
+
+✻ Crunched for 49s
+
+※ recap: We're scoping merma-prevention features for your warehouse system and just wrapped a big brainstorm; the MERMA movement-type plan is written and verified. Next: your go-ahead to implement it, or want the full list as a shareable doc first? (disable recaps in /config)
+
+❯ Solo sería eso o se te ocurren más cosas                                      
+
+  Read 1 file (ctrl+o to expand)
+
+● Revisé InternalRelocationService.php ya que lo tenías abierto — no encontré un
+  hueco nuevo ahí (ya lo habíamos cubierto: construye un reason estructurado
+  automático con origen→destino, es el mismo patrón que aprovechamos para
+  MERMA), pero sí se me ocurren más ángulos que no habíamos tocado:
+
+  1. Deducción fiscal de mermas documentadas — en México, el SAT permite deducir
+  mermas como pérdida fiscal, pero exige que estén debidamente documentadas y
+  justificadas (causa, fecha, cantidad). Si MERMA queda bien registrado desde el
+  día uno, no es solo trazabilidad interna — es dinero real recuperable vía
+  impuestos que hoy probablemente se está perdiendo por no tener el respaldo
+  formal. Vale la pena confirmarlo con tu contador, pero cambia el marco de
+  "esto es control interno" a "esto tiene retorno fiscal directo".
+  2. Clasificar causas como evitables vs no evitables — no toda merma es culpa
+  de alguien (una plaga o una ola de calor extremo no son controlables; apilar
+  mal o no seguir un protocolo sí). Separar esto en el reporte evita que el
+  almacenista sienta que cualquier merma es "su culpa", y enfoca la mejora solo
+  donde realmente hay control humano.
+  3. Cruzar merma con turno/horario — ya tenés user_id y created_at en cada
+  movimiento; cruzarlo por turno (mañana/tarde/noche) o día de la semana podría
+  revelar que la merma no es por producto sino por fatiga/carga de trabajo en
+  cierto horario — un patrón que nadie ve si el reporte solo mira producto y
+  causa.
+  4. Modo de captura rápida para incidentes — a veces la fricción de un
+  formulario completo hace que la gente no registre algo en el momento y se
+  pierda el detalle. Un "reportar ahora, completar después" (foto + causa
+  aproximada en 10 segundos) podría aumentar cuánto se registra de verdad, en
+  vez de perder eventos por pereza del formulario completo.
+  5. Capacitación basada en datos reales del propio almacén — una vez que haya
+  datos de MERMA, usarlos para armar contenido de capacitación específico ("el
+  rack 4 tiene 3x más mermas por humedad, revisemos por qué") en vez de
+  capacitación genérica que no conecta con lo que realmente pasa ahí.
+
+  ¿Seguimos, o seguimos con estas ya llegamos a un buen techo para el resumen
+  final?
+
+✻ Cogitated for 39s
+
+※ recap: We're brainstorming merma-prevention features for your warehouse system after descartar FEFO; latest batch adds ideas like fiscal deduction, turno correlation, and quick-capture reporting. Next: say if we keep expanding or move to finalizing the consolidated summary and the MERMA plan approval.
+❯ Tengo una duda como guardo la sesión para continuar mañana                    
+
+● No hace falta que hagas nada especial para "guardar" — Claude Code guarda
+  automáticamente el historial de la conversación en disco. Para retomarla
+  mañana:
+
+  - Terminal (CLI): en la misma carpeta del proyecto, corré claude --continue (o
+  claude -c) y retoma exactamente esta conversación donde la dejamos.
+  - Si tenés varias conversaciones y querés elegir cuál retomar (no
+  necesariamente la más reciente), usá claude --resume (o claude -r) — te
+  muestra una lista para elegir.
+  - Si estás usando la extensión de VS Code o la app de escritorio, el historial
+  queda listado en el panel de conversaciones — la abrís y seguís donde quedó.
+
+  Independiente de eso, el plan de MERMA que armamos ya está guardado como
+  archivo en disco
+  (C:\Users\Admin\.claude\plans\si-el-fefo-est-modular-prism.md), así que aunque
+  abrieras una sesión nueva sin continuar esta, ese documento no se pierde — lo
+  podés pedir que lo retome desde ahí.
+
+✻ Churned for 20s

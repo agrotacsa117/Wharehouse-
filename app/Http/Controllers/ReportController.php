@@ -6,15 +6,19 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseSalesServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
+use App\Exports\PhysicalCountExport;
+use App\Exports\ProductLotsExport;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use App\Models\Producto;
 use App\Models\Rack;
 use App\Models\WarehouseModel;
 use Carbon\Carbon;
+use Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use PDF;
 
 class ReportController extends Controller
 {
@@ -406,5 +410,155 @@ class ReportController extends Controller
             'products' => $productInventory,
             'kpis' => $metrics,
         ], 200);
+    }
+
+    public function exportProductLotsExcel(Request $request)
+    {
+        $lots = $this->decodeLotsPayload($request);
+        $rows = $this->prepareLotExportRows($lots);
+        $filename = $this->buildExportFilename($lots, 'xlsx', 'Lots');
+
+        return Excel::download(new ProductLotsExport($rows), $filename, \Maatwebsite\Excel\Excel::XLSX, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function exportProductLotsPdf(Request $request)
+    {
+        $lots = $this->decodeLotsPayload($request);
+        $rows = $this->prepareLotExportRows($lots);
+        $filename = $this->buildExportFilename($lots, 'pdf', 'Lots');
+        $context = $this->extractLotsContext($lots);
+
+        $pdf = PDF::loadView('module.reports.exports.lots_pdf', [
+            'productName' => $context['productName'],
+            'productId' => $context['productId'],
+            'warehouseName' => $context['warehouseName'],
+            'rows' => $rows,
+        ]);
+
+        return $pdf->download($filename);
+    }
+
+    public function exportPhysicalCountExcel(Request $request)
+    {
+        $lots = $this->decodeLotsPayload($request);
+        $rows = $this->preparePhysicalCountRows($lots);
+        $filename = $this->buildExportFilename($lots, 'xlsx', 'ConteoFisico');
+
+        return Excel::download(new PhysicalCountExport($rows), $filename, \Maatwebsite\Excel\Excel::XLSX, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function exportPhysicalCountPdf(Request $request)
+    {
+        $lots = $this->decodeLotsPayload($request);
+        $rows = $this->preparePhysicalCountRows($lots);
+        $filename = $this->buildExportFilename($lots, 'pdf', 'ConteoFisico');
+        $context = $this->extractLotsContext($lots);
+
+        $pdf = PDF::loadView('module.reports.exports.physical_count_pdf', [
+            'productName' => $context['productName'],
+            'productId' => $context['productId'],
+            'warehouseName' => $context['warehouseName'],
+            'rows' => $rows,
+        ]);
+
+        return $pdf->download($filename);
+    }
+
+    private function decodeLotsPayload(Request $request): array
+    {
+        $decoded = json_decode((string) $request->input('lots', '[]'), true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function extractLotsContext(array $lots): array
+    {
+        $first = $lots[0] ?? [];
+
+        return [
+            'productName' => $first['productName'] ?? '',
+            'productId' => $first['productId'] ?? '',
+            'warehouseName' => $first['warehouseName'] ?? '',
+            'warehouseId' => $first['warehouseId'] ?? '',
+        ];
+    }
+
+    private function prepareLotExportRows(array $lots): array
+    {
+        $rows = [];
+        foreach ($lots as $index => $lot) {
+            $remainingDays = (int) ($lot['remainingDays'] ?? 0);
+            $rows[] = [
+                'number' => $index + 1,
+                'lotNumber' => $lot['lotNumber'] ?? '-',
+                'location' => $this->formatLotLocation($lot),
+                'quantity' => $lot['quantity'] ?? 0,
+                'expirationDate' => $lot['expirationDate'] ?? '-',
+                'remainingDaysLabel' => $this->formatRemainingDaysLabel($remainingDays),
+                'obsolescence' => number_format((float) ($lot['obsolescence'] ?? 0), 1).'%',
+                'status' => $this->formatLotStatus($remainingDays),
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function formatLotLocation(array $lot): string
+    {
+        $parts = array_filter([
+            ! empty($lot['rack']) ? 'Rack '.$lot['rack'] : null,
+            ! empty($lot['level']) ? 'Nv.'.$lot['level'] : null,
+            ! empty($lot['module']) ? 'Mod.'.$lot['module'] : null,
+            ! empty($lot['bay']) ? 'Bahía '.$lot['bay'] : null,
+            ! empty($lot['platform']) ? 'Plat.'.$lot['platform'] : null,
+        ]);
+
+        return $parts === [] ? 'Sin ubicación' : implode(' · ', $parts);
+    }
+
+    private function formatRemainingDaysLabel(int $days): string
+    {
+        return $days < 0 ? "Vencido hace {$days} días" : "{$days} días";
+    }
+
+    private function formatLotStatus(int $days): string
+    {
+        if ($days < 0) {
+            return 'Vencido';
+        }
+
+        return $days <= 90 ? 'Por caducar' : 'Vigente';
+    }
+
+    private function buildExportFilename(array $lots, string $extension, string $prefix): string
+    {
+        $context = $this->extractLotsContext($lots);
+        $productId = $context['productId'] ?: 'product';
+        $warehouseName = $context['warehouseName'] ?: ($context['warehouseId'] ?: 'warehouse');
+        $safe = preg_replace('/[^A-Za-z0-9_\-]/', '_', "{$prefix}_{$productId}_{$warehouseName}");
+
+        return "{$safe}.{$extension}";
+    }
+
+    private function preparePhysicalCountRows(array $lots): array
+    {
+        $rows = [];
+        foreach ($lots as $lot) {
+            $rows[] = [
+                'productCode' => $lot['productId'] ?? '-',
+                'warehouseName' => $lot['warehouseName'] ?? '-',
+                'location' => $this->formatLotLocation($lot),
+                'productName' => $lot['productName'] ?? '-',
+                'systemQuantity' => $lot['quantity'] ?? 0,
+                'count' => '',
+                'difference' => '',
+            ];
+        }
+
+        return $rows;
     }
 }

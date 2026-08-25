@@ -234,6 +234,21 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         RemoveWarehouseInventoryStockDTO $output
     ): ResultPattern {
 
+        Log::info('processInventoryOutput: iniciando', [
+            'movementType' => $output->getMovementType(),
+            'warehouseInventoryId' => $output->getWarehouseInventoryId(),
+            'warehouseId' => $output->getWarehouseId(),
+            'quantity' => $output->getQuantity(),
+            'reason' => $output->getReason(),
+            'userId' => $output->getUserId(),
+            'rack' => $output->getRack(),
+            'level' => $output->getLevel(),
+            'module' => $output->getModule(),
+            'bay' => $output->getBay(),
+            'platform' => $output->getPlatform(),
+            'forceNegativeStock' => $output->isForceNegativeStock(),
+        ]);
+
         try {
             return DB::transaction(function () use ($output) {
                 $this->warehouseOutputStrategy =
@@ -241,19 +256,46 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                     $output->getMovementType()
                 );
 
+                Log::info('processInventoryOutput: strategy resuelta', [
+                    'movementType' => $output->getMovementType(),
+                    'strategy' => get_class($this->warehouseOutputStrategy),
+                ]);
+
                 $result = $this->warehouseOutputStrategy
                     ->processOutput(
                         $output
                     );
 
                 if ($result->isFailure()) {
+                    Log::error('processInventoryOutput: strategy fallo', [
+                        'movementType' => $output->getMovementType(),
+                        'strategy' => get_class($this->warehouseOutputStrategy),
+                        'warehouseInventoryId' => $output->getWarehouseInventoryId(),
+                        'reason' => $result->getError(),
+                    ]);
+
                     return $result;
                 }
+
+                Log::info('processInventoryOutput: strategy OK', [
+                    'movementType' => $output->getMovementType(),
+                    'strategy' => get_class($this->warehouseOutputStrategy),
+                    'warehouseInventoryId' => $output->getWarehouseInventoryId(),
+                ]);
 
                 return $result;
             });
 
         } catch (\Throwable $th) {
+            Log::error('processInventoryOutput: excepcion', [
+                'movementType' => $output->getMovementType(),
+                'warehouseInventoryId' => $output->getWarehouseInventoryId(),
+                'strategy' => isset($this->warehouseOutputStrategy) ? get_class($this->warehouseOutputStrategy) : null,
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+            ]);
+
             return ResultPattern::failure($th->getMessage());
         }
 

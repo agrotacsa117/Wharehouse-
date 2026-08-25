@@ -31,7 +31,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
             ['inventory.warehouse',
                 'user',
                 'sale']
-        )->orderBy('created_at', 'desc')
+        )->orderBy('id', 'desc')
             ->limit(100)
             ->get();
 

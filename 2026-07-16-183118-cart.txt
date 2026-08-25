@@ -1,0 +1,2774 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+ ▎ Extended through July 19
+ ▎ We're extending Claude Fable 5 access on all paid plans, as well as keeping Claude Code’s weekly rate limits 50% higher, through July 19.
+ ▎
+ ▎ As before, you can use up to half of your weekly usage limit on Fable 5. After that, you can keep using Fable 5 with usage credits, or switch to another model to keep working within your remaining limits.
+ ▎
+ ▎ More details here: https://support.claude.com/en/articles/15424964-claude-fable-5-promotional-access
+   +1 more · /status
+
+❯ /init                                                                         
+
+  Searched for 3 patterns, read 3 files, listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+● Everything checks out — the existing CLAUDE.md accurately reflects
+  composer.json, package.json, .php-cs-fixer.dist.php configs (confirmed only in
+  app/Contracts/, app/Enterprise_Layer/, config/, routes/ — "per-directory
+  configs" is correct), .styleci.yml, and .editorconfig. The README.md is
+  unmodified Laravel boilerplate with nothing project-specific to pull in, and
+  AGENTS.md content is already well-summarized.
+
+  The current CLAUDE.md is accurate, well-scoped, and not redundant with
+  AGENTS.md. No updates needed.
+
+✻ Crunched for 27s
+
+❯ Analiza toda la arquitectura del proyecto                                     
+
+● Voy a explorar la arquitectura completa del proyecto en tres frentes
+  paralelos: las capas del dominio
+  (Enterprise/Application/Contracts/Infrastructure), la capa de presentación
+  (controladores/rutas/vistas), y el modelo de datos (migraciones/modelos
+  Eloquent).
+
+● 3 Explore agents finished (ctrl+o to expand)
+   ├ Explore domain layers architecture · 75 tool uses · 134.7k tokens
+   │ ⎿  Done
+   ├ Explore controllers routes and views · 32 tool uses · 81.0k tokens
+   │ ⎿  Done
+   └ Explore data models and migrations · 55 tool uses · 49.2k tokens
+     ⎿  Done
+
+  Searched for 2 patterns, read 2 files (ctrl+o to expand)
+
+● Updated plan
+  ⎿  /plan to preview
+
+● He completado el análisis de la arquitectura completa del proyecto (documento
+  guardado en
+  C:\Users\Admin\.claude\plans\analiza-toda-la-arquitectura-valiant-riddle.md).
+  Como esto es un análisis, no una tarea de implementación, no se requiere
+  aprobación de un plan de cambios — aquí va el resumen:
+
+  Visión general
+
+  El proyecto está en migración activa desde un estilo legacy (controladores en
+  español, Eloquent directo) hacia una arquitectura DDD por capas:
+  Enterprise_Layer → Application_Layer → Infrastructure → Contracts
+  El módulo activo hoy es el pipeline de inventario/movimientos/salidas
+  (confirmado por los commits recientes sobre relocation y reversión de
+  movimientos).
+
+  Capas de dominio
+
+  - Enterprise_Layer: entidades puras (Warehouse vía Builder,
+  WarehouseInventory, WarehouseInventoryMovements con auto-validación y
+  metadatos de reversión, Location con validadores que lanzan excepciones de
+  dominio).
+  - Application_Layer: WarehouseInventoryServiceImplementation como orquestador
+  central; dos patrones Strategy conviven — uno para reversión de movimientos
+  (InReversalStrategy/OutReversalStrategy, con manejo especial de "stock
+  negativo con dependientes" vía ResultPattern::warning()) y otro para razón de 
+  salida de stock (WarehouseOutputStrategy: SimpleOutputService/SaleOutputServic
+  e/InternalRelocationService/IntraWarehouseTransferStrategy), seleccionados por
+  factories en Infrastructure/Factories/.
+  - ResultPattern (verificado en código): wrapper tipo Result/Either usado en
+  vez de excepciones para fallos esperados. Encontré que runInTransaction() hace
+  DB::rollBack() manual dentro del closure de DB::transaction() en lugar de
+  lanzar excepción — funciona (porque decrementa el contador interno de
+  Laravel), pero es frágil/no idiomático, y hay una excepción
+  RollbackResultException pensada para esto que nunca se usa.
+
+  Capa HTTP
+
+  Controladores DDD (WarehouseRegistrationController, MovementsController,
+  OutputController, etc.) conviven con legacy en español (Categorias, Productos,
+  Ventas...). ReportController y Dashboard son híbridos con lógica duplicada.
+  Detecté código muerto (DetalleVentas, TemporaryProducts,
+  ProductController+vistas paralelas) y dos bugs de "return temprano" que dejan
+  lógica inalcanzable en InventoryManagementController::transfer() y
+  WarehouseManagmentController::update(). La protección por rutas (role:admin)
+  solo cubre los módulos legacy — la mayoría de endpoints DDD no tienen
+  middleware de autorización.
+
+  Capa de datos
+
+  Hallazgo importante verificado por grep: ninguna migración crea las tablas DDD
+  (warehouses, warehouse_inventory, warehouse_inventory_movements, etc.) — solo
+  existe un ALTER sobre warehouse_inventory_movements. Eso significa que el
+  esquema del módulo activo se creó fuera del control de versiones; un
+  migrate:fresh en un entorno limpio no lo reconstruiría. También noté que el
+  concepto "almacén" está representado de 3 formas distintas en el código (tabla
+  nueva warehouses, columna de texto libre rack.bodega/salidas.bodega_destino,
+  y la tabla SAP dbo.OITM vía conexión sqlsrv).
+
+  El documento completo tiene el detalle línea por línea de cada clase, mapper,
+  DTO y ruta si quieres profundizar en alguna sección.
+
+✻ Sautéed for 6m 9s
+
+※ recap: We finished a full architecture analysis of the warehouse system (DDD layers, controllers, data model) and saved it to a plan file. Next: tell me which finding to dig into or fix first, if any. (disable recaps in /config)
+
+❯ /plugin marketplace add pbakaus/impeccable                                    
+  ⎿  Error: EBUSY: resource busy or locked, rm
+     'C:\Users\Admin.claude\plugins\marketplaces\pbakaus-impeccable'
+
+❯ /plugin marketplace add pbakaus/impeccable                                    
+  ⎿  Successfully added marketplace: impeccable
+
+● Unknown command: /impeccable
+
+● Args from unknown skill: init
+
+● Unknown command: /impeccable
+
+● Args from unknown skill: init
+
+❯ /plugin                                                                       
+
+● Unknown command: /impeccable
+
+● Args from unknown skill: init
+
+❯ /plugin marketplace add pbakaus/impeccable                                    
+  ⎿  Successfully added marketplace: impeccable
+
+❯ /plugin                                                                         ⎿  ✓ Installed impeccable. Run /reload-plugins to apply.
+
+● Unknown command: /impeccable
+
+● Args from unknown skill: init
+
+❯ /reload-plugins                                                               
+  ⎿  Reloaded: 1 plugin · 0 skills · 7 agents · 1 hook · 0 plugin MCP servers · 0 plugin LSP servers
+
+❯ /impeccable:impeccable init                                                   
+  ⎿  1 agent type available
+
+  Searched for 3 patterns, read 2 files, ran 2 shell commands (ctrl+o to expand)
+
+● Confirmado: es un panel administrativo interno construido con Laravel +
+  AdminLTE (Bootstrap 4), titulado "Banco de Alimentos" — sin páginas de
+  marketing, todo formularios/tablas/dashboards. Esto es fuerte evidencia de
+  registro = product y plataforma = web, así que no voy a preguntar por esas
+  dos. Antes de escribir PRODUCT.md necesito algunas respuestas estratégicas
+  tuyas.
+
+● User answered Claude's questions:
+  ⎿  · ¿Quiénes son los usuarios principales de este sistema día a día? → 
+     Operadores de almacén/bodega
+     · ¿Cuál es el propósito principal del sistema y cómo se ve el éxito? → 
+     Ambos: control de stock + trazabilidad
+     · En una línea: ¿qué hace este sistema que lo distingue de llevar el 
+     inventario en Excel o en un ERP genérico? → Trazabilidad granular por 
+     ubicación física y lote
+     · ¿Hay requisitos de accesibilidad específicos (nivel WCAG, usuarios con 
+     necesidades particulares) para este panel interno? → No hay requisitos 
+     formales (Recomendado)
+
+● User answered Claude's questions:
+  ⎿  · ¿De los administradores/gerencia, son un público secundario claro de este
+     panel (junto a los operadores de bodéga como primario), o no vale la pena 
+     distinguirlos? → Sí, administradores son público secundario
+     · ¿Cómo describirías la personalidad de este panel en 3 palabras (ej. 
+     "claro, rápido, confiable")? → Preciso, auditable, sobrio
+     · ¿Hay alguna referencia visual (sitio o app) que te guste para este panel,
+     o algo que definitivamente NO quieras que se le parezca? → Quiero dar una 
+     referencia positiva o negativa
+
+● User answered Claude's questions:
+  ⎿  · ¿Cuál es esa referencia (sitio o app), y qué es lo que te gusta o quieres
+     evitar específicamente de ella? → Dar referencia positiva
+
+● ¿Cuál es el sitio o app de referencia, y qué característica específica de él
+  te gustaría para este panel? (por ejemplo: "Linear, por lo limpio de sus
+  tablas" o "Notion, por su navegación lateral").
+
+✻ Cooked for 2m 14s
+
+❯ Ok dime ya pudiste comprender el proyecto que te pedií que analizaras?        
+
+● Sí, ya completé el análisis completo de la arquitectura del proyecto que me
+  pediste antes (guardado en el plan file). En resumen: es un sistema Laravel 8
+  de gestión de almacenes para un banco de alimentos, en migración de un patrón
+  legacy (controladores en español, Eloquent directo) hacia una arquitectura DDD
+  por capas (Enterprise_Layer → Application_Layer → Infrastructure →
+  Contracts), con dos patrones Strategy (reversión de movimientos y motivo de
+  salida de stock), un ResultPattern para manejo de errores, y detecté varios
+  hallazgos concretos: falta el esquema de las tablas DDD en migraciones, dos
+  bugs de "return temprano", y código muerto en varios controladores/vistas.
+
+  Ahora mismo estamos en un flujo distinto: configurando /impeccable init
+  (documentación de diseño del panel), y me falta un dato tuyo para continuar.
+
+● User answered Claude's questions:
+  ⎿  · Para continuar con la referencia visual del panel: ¿qué sitio o app 
+     quieres usar como referencia positiva, y qué característica específica de 
+     él te gusta? → Prefiero no dar una referencia específica
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Análisis de arquitectura — Wharehouse-                                  │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El usuario pidió un análisis completo de la arquitectura del proyecto   │
+     │ (no una tarea de implementación). Este documento es un reporte de       │
+     │ hallazgos, no un plan de cambios de código. Se investigó en 3 frentes   │
+     │ paralelos (capas de dominio, capa HTTP/presentación, capa de datos) y   │
+     │ se verificaron directamente los hallazgos más relevantes                │
+     │ (ResultPattern, migraciones, manejo de transacciones).                  │
+     │                                                                         │
+     │ 1. Visión general                                                       │
+     │                                                                         │
+     │ Laravel 8 (PHP ^7.4.1) en migración activa de un estilo legacy          │
+     │ (controladores con nombres en español, acceso directo a Eloquent) hacia │
+     │ una arquitectura por capas tipo DDD:                                    │
+     │                                                                         │
+     │ Enterprise_Layer  →  Application_Layer  →  Infrastructure  →  Contracts │
+     │    (entidades)         (servicios/repos)      (factories)               │
+     │ (interfaces)                                                            │
+     │                                                                         │
+     │ El módulo activamente desarrollado es el pipeline de                    │
+     │ inventario/movimientos/salidas (confirmado por commits recientes:       │
+     │ "internal relocation", "input/output counter-movement logic"). Los      │
+     │ módulos legacy (ventas, categorías, productos, proveedores, usuarios)   │
+     │ siguen en su patrón original y no deben forzarse al patrón DDD si se    │
+     │ tocan incidentalmente.                                                  │
+     │                                                                         │
+     │ 2. Enterprise_Layer (app/Enterprise_Layer/) — entidades de dominio puro │
+     │                                                                         │
+     │ - Warehouse — construido solo vía WarehouseBuilder (único uso real del  │
+     │ patrón Builder en el repo).                                             │
+     │ - WarehouseInventory — registro de stock (producto, cantidad, ubicación │
+     │ física: rack/nivel/módulo/bahía/plataforma, lote, fechas, flag          │
+     │ activeInventory).                                                       │
+     │ - WarehouseInventoryMovements — el ledger de movimientos. Constantes de │
+     │ tipo (TYPE_IN, TYPE_OUT, TYPE_ADJUSTMENT, TYPE_TRANSFER, TYPE_SALE,     │
+     │ TYPE_RELOCATION, LOCATION_UPDATE), auto-valida en el constructor,       │
+     │ rastrea reversión (isReversed, reversedBy, reversalOf).                 │
+     │ - Location, Branch, WarehouseType, WarehouseSalesEntity — entidades más │
+     │ simples.                                                                │
+     │ - StoreKeyValidator — clase stub/incompleta (solo una propiedad, sin    │
+     │ lógica) — parece código muerto/inconcluso.                              │
+     │ - Excepciones en Exception/: InvalidAddressException,                   │
+     │ InvalidCityNameException, InvalidHeadquartersName,                      │
+     │ InvalidPostalCodeException, InvalidStateNameException — todas lanzadas  │
+     │ por los validadores de Location.                                        │
+     │                                                                         │
+     │ 3. Application_Layer — orquestación de casos de uso                     │
+     │                                                                         │
+     │ Servicios clave                                                         │
+     │                                                                         │
+     │ - WarehouseInventoryServiceImplementation — orquestador central: CRUD   │
+     │ de inventario, processInventoryOutput() (delega a                       │
+     │ WarehouseOutputStrategyFactory dentro de DB::transaction),              │
+     │ transferInventory(), relocateInventory(), reportes, revertMovement()    │
+     │ (delega a ReversalStrategyFactory).                                     │
+     │ - WarehouseMovementsService — ledger: paginación,                       │
+     │ generateMovementFolio() (folios tipo MOV-000123),                       │
+     │ getDependentMovements() (detecta si revertir causaría stock negativo).  │
+     │ - WarehouseInventoryQueryService — helper de lectura/escritura usado    │
+     │ por las estrategias de salida (updateOrCreateInventory() es clave para  │
+     │ relocation).                                                            │
+     │ - ManagesInventoryStock — helper estático compartido:                   │
+     │ validateStockAvailability() y reduceStock().                            │
+     │                                                                         │
+     │ Patrón Strategy — reversión de movimientos (Strategies/)                │
+     │                                                                         │
+     │ - InReversalStrategy — revierte un IN. Si la reversión dejaría stock    │
+     │ negativo y hay movimientos dependientes, retorna                        │
+     │ ResultPattern::warning() con un NegativeStockWarningDTO en vez de       │
+     │ fallar directo — esta es la lógica de seguridad mencionada en el commit │
+     │ reciente "input/output counter-movement logic".                         │
+     │ - OutReversalStrategy — revierte un OUT (reactiva inventario si estaba  │
+     │ desactivado).                                                           │
+     │                                                                         │
+     │ Patrón Strategy — razón de salida de stock (WarehouseOutputStrategy)    │
+     │                                                                         │
+     │ BaseOutputService (abstracta) da la plumbing común                      │
+     │ (validateStockAvailability, reduceStock, recordMovement); subclases:    │
+     │ - SimpleOutputService (OUT) — retiro simple.                            │
+     │ - SaleOutputService (SALE) — igual + crea WarehouseSalesRequestDTO      │
+     │ (folio ↔ factura SAP).                                                  │
+     │ - InternalRelocationService (RELOCATION) — mueve stock a otro almacén   │
+     │ (reduce en origen, updateOrCreateInventory() en destino).               │
+     │ - IntraWarehouseTransferStrategy (LOCATION_UPDATE, en Strategies/) —    │
+     │ mueve un lote dentro del mismo almacén (nueva fila de inventario en la  │
+     │ nueva ubicación, desactiva la anterior, enlaza reversedOf/reversedBy).  │
+     │ - TransferOutputService — clase vacía/stub, sin implementar; el         │
+     │ transfer entre almacenes vive directamente en                           │
+     │ WarehouseInventoryServiceImplementation::transferInventory().           │
+     │                                                                         │
+     │ Selección de estrategia:                                                │
+     │ Infrastructure/Factories/WarehouseOutputStrategyFactory::make(string    │
+     │ $type) (switch por tipo) y ReversalStrategyFactory::make(string $type)  │
+     │ — este es el punto de extensión correcto para añadir un nuevo motivo de │
+     │ salida o tipo de reversión.                                             │
+     │                                                                         │
+     │ ResultPattern (verificado en código,                                    │
+     │ app/Application_Layer/ResultPattern.php)                                │
+     │                                                                         │
+     │ Constructor protected; factories estáticas success(), failure() (lanza  │
+     │ InvalidArgumentException si el mensaje va vacío), y warning() (falla    │
+     │ "suave" que conserva un $value — usado para las advertencias de stock   │
+     │ negativo). isFailure() es !isSuccess, no un flag independiente.         │
+     │                                                                         │
+     │ Hallazgo verificado sobre transacciones:                                │
+     │ WarehouseInventoryServiceImplementation::runInTransaction() (línea      │
+     │ ~617) llama DB::rollBack() manualmente dentro del closure de            │
+     │ DB::transaction() cuando el resultado es failure, y luego hace return   │
+     │ $result (sin lanzar excepción). Esto funciona porque el rollback manual │
+     │ decrementa el contador interno de transacciones de Laravel a 0, así     │
+     │ que el commit() automático posterior se salta (Laravel solo hace commit │
+     │ si $transactions == 1). Es un patrón válido pero frágil/no idiomático   │
+     │ — depende de detalles internos de Illuminate\Database\Connection en vez │
+     │ de lanzar una excepción para forzar el rollback (para eso existe        │
+     │ Infrastructure/Exception/RollbackResultException, pero no se usa en     │
+     │ ningún lugar revisado — sugiere una refactorización a medio terminar).  │
+     │                                                                         │
+     │ 4. Contracts + Infrastructure                                           │
+     │                                                                         │
+     │ - app/Contracts/ — ~54 interfaces, todas enlazadas en                   │
+     │ AppServiceProvider::register(). Un servicio/repositorio/mapper por      │
+     │ interfaz, sin excepciones notables.                                     │
+     │ - app/Infrastructure/Factories/ — WarehouseOutputStrategyFactory,       │
+     │ ReversalStrategyFactory (switch-based, ver arriba), y MovementFactory   │
+     │ (helper estático de armado de DTO que se solapa con                     │
+     │ BaseOutputService::recordMovement() — candidato a duplicación).         │
+     │ - app/Infrastructure/Exception/ — CouldNotDeleteLocationException,      │
+     │ CouldNotPersistLocationException (usada genéricamente, no solo para     │
+     │ Location pese al nombre), InventoryNotFoundException,                   │
+     │ RollbackResultException (no usada actualmente, ver arriba).             │
+     │ - Solo existe un FormRequest: Infrastructure/StoreWarehouseRequest.php  │
+     │ — no hay app/Http/Requests/.                                            │
+     │                                                                         │
+     │ 5. Mappers/DTOs                                                         │
+     │                                                                         │
+     │ Un mapper por dirección de conversión (Model↔Entity↔DTO), todos en      │
+     │ app/Mappers/ plano. DTOs en Mappers/DTO/ (listas/reportes) y            │
+     │ Mappers/DTO/Requests/ (entrada). Piezas clave para el flujo de          │
+     │ salida/relocation: RemoveWarehouseInventoryStockDTO (input de las 4     │
+     │ estrategias de salida), WarehouseMovementsDTO (registro canónico de     │
+     │ movimiento), WarehouseInventoryOutDetailDTO (snapshot que diffean las   │
+     │ estrategias de relocation/transfer), NegativeStockWarningDTO (payload   │
+     │ del warning de reversión).                                              │
+     │                                                                         │
+     │ WarehouseRequestDTO.php (en Requests/) parece stub/muerto: solo declara │
+     │ propiedades (una de ellas, warehousesKey, declarada static — probable   │
+     │ bug), sin constructor ni getters — no se usa en favor de WarehouseDTO.  │
+     │                                                                         │
+     │ 6. Capa HTTP (controladores, rutas, vistas)                             │
+     │                                                                         │
+     │ Controladores DDD (inyectan Contracts/*, usan ResultPattern)            │
+     │                                                                         │
+     │ WarehouseRegistrationController, LocationRegistrationController,        │
+     │ WarehouseTypeController, WarehouseManagmentController,                  │
+     │ WareouseInventoryController, MovementsController, OutputController,     │
+     │ InventoryManagementController — más ReportController y Dashboard, que   │
+     │ son híbridos: llaman servicios DDD pero también consultan modelos       │
+     │ Eloquent legacy directamente en el mismo método (duplicación real entre │
+     │ Dashboard::index y ReportController::index).                            │
+     │                                                                         │
+     │ Controladores legacy (Eloquent directo, sin capa de servicio)           │
+     │                                                                         │
+     │ Categorias, Productos, Proveedores, Usuarios, Ventas (carrito de venta  │
+     │ con sesión + PDF vía DomPDF), Reportes_productos, RackController.       │
+     │                                                                         │
+     │ Código muerto detectado                                                 │
+     │                                                                         │
+     │ - DetalleVentas — stub casi vacío, no referenciado en rutas.            │
+     │ - TemporaryProducts — duplicado de Productos, no referenciado en rutas. │
+     │ - ProductController + resources/views/products/* — módulo paralelo      │
+     │ completo (modelos Product/Category en inglés) no conectado a ninguna    │
+     │ ruta.                                                                   │
+     │                                                                         │
+     │ Bugs en vivo detectados (returns tempranos que hacen la lógica real     │
+     │ inalcanzable)                                                           │
+     │                                                                         │
+     │ - InventoryManagementController::transfer() — un return de depuración   │
+     │ antes de invocar el servicio real.                                      │
+     │ - WarehouseManagmentController::update() — un return temprano rompe el  │
+     │ branching de éxito/error y el logging.                                  │
+     │                                                                         │
+     │ Rutas (routes/web.php)                                                  │
+     │                                                                         │
+     │ Patrón inconsistente de protección: role:admin + auth se aplica a los   │
+     │ módulos legacy en español (categorias, proveedores, usuarios,           │
+     │ reportes_productos) y al prefijo managment; la mayoría de endpoints DDD │
+     │ de warehouse/inventario/movimientos/output no tienen middleware de      │
+     │ rutas (confían en verificación a nivel de controlador, que en la        │
+     │ mayoría de casos no existe). Ruta /crear-admin sin ningún guard —       │
+     │ riesgo de seguridad. Ruta inventory-management está definida dos veces  │
+     │ (una dentro de managment con rol, otra fuera sin rol) — la última       │
+     │ definición gana.                                                        │
+     │                                                                         │
+     │ 7. Capa de datos                                                        │
+     │                                                                         │
+     │ Modelos duplicados por dominio ("almacén" representado 3 veces)         │
+     │                                                                         │
+     │ 1. Tabla nueva warehouses (capa DDD).                                   │
+     │ 2. rack.bodega (columna de texto libre) + salidas.bodega_destino —      │
+     │ nombres de almacén como string suelto en el mundo legacy.               │
+     │ 3. dbo.OITM vía conexión sqlsrv (ProductModel) — integración de solo    │
+     │ lectura con SAP Business One para maestro de productos.                 │
+     │                                                                         │
+     │ Hallazgo verificado — falta el esquema de las tablas DDD en migraciones │
+     │                                                                         │
+     │ Se confirmó por grep (Schema::create en database/migrations/) que       │
+     │ ninguna migración crea warehouses, warehouse_type, location,            │
+     │ warehouse_inventory, warehouse_inventory_movements, warehouse_sales ni  │
+     │ branches. La única migración que toca ese grupo                         │
+     │ (2025_07_15_000000_add_transfer_to_movement_type.php) es un ALTER sobre │
+     │ warehouse_inventory_movements (agrega 'TRANSFER' al enum                │
+     │ movement_type). Esto implica que el esquema DDD se creó directamente en │
+     │ la base de datos fuera del control de versiones — un php artisan        │
+     │ migrate:fresh en un entorno limpio no reconstruiría estas tablas. Vale  │
+     │ la pena señalarlo si el usuario planea usar migrate:fresh o clonar el   │
+     │ entorno.                                                                │
+     │                                                                         │
+     │ Relaciones confirmadas (dominio DDD)                                    │
+     │                                                                         │
+     │ location 1—* warehouses 1—* warehouse_inventory 1—*                     │
+     │ warehouse_inventory_movements 1—1 warehouse_sales (join por folio, no   │
+     │ por PK numérico). Reversión es auto-referencial vía                     │
+     │ is_reversed/reversed_by/reversal_of en la misma tabla de movimientos.   │
+     │                                                                         │
+     │ Conclusión / puntos a decidir con el usuario                            │
+     │                                                                         │
+     │ Este fue un análisis puro, sin cambios de código. Hallazgos que podrían │
+     │ justificar una tarea de seguimiento (a decidir por el usuario, no       │
+     │ asumidos aquí):                                                         │
+     │ - Confirmar si el gap de migraciones DDD es intencional o un problema a │
+     │ corregir.                                                               │
+     │ - Los dos bugs de "return temprano" en InventoryManagementController y  │
+     │ WarehouseManagmentController.                                           │
+     │ - Código muerto candidato a limpieza: DetalleVentas, TemporaryProducts, │
+     │ ProductController+vistas, TransferOutputService (stub),                 │
+     │ WarehouseRequestDTO (stub), StoreKeyValidator (stub).                   │
+     │ - Falta de middleware de autorización en la mayoría de rutas DDD        │
+     │ (role:admin/auth).                                                      │
+     │                                                                         │
+     │ No se requiere verificación adicional (no hubo cambios de código).      │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Plan: /impeccable init — crear PRODUCT.md                               │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El usuario instaló el plugin/skill impeccable y ejecutó /impeccable     │
+     │ init. El script context.mjs confirmó NO_PRODUCT_MD (no existe           │
+     │ PRODUCT.md ni DESIGN.md en el proyecto, ni en ubicaciones alternas      │
+     │ .agents/context/ o docs/). Se exploró el código (layout                 │
+     │ resources/views/layouts/app.blade.php: AdminLTE + Bootstrap 4, sin      │
+     │ páginas de marketing, título "Banco de Alimentos") y se completó la     │
+     │ entrevista estratégica (AskUserQuestion, 3 rondas) requerida por        │
+     │ reference/init.md antes de poder escribir PRODUCT.md. Este plan traduce │
+     │ esas respuestas confirmadas al documento final.                         │
+     │                                                                         │
+     │ Evidencia + respuestas confirmadas                                      │
+     │                                                                         │
+     │ - Registro: product — evidencia fuerte (panel interno, sin              │
+     │ landing/marketing), no se preguntó explícitamente por ser inequívoco.   │
+     │ - Plataforma: web — evidencia fuerte (Blade + Bootstrap 4/AdminLTE, sin │
+     │ señales nativas), no se preguntó por ser inequívoco.                    │
+     │ - Usuarios: primario = operadores de almacén/bodega; secundario =       │
+     │ administradores/gerencia (mismos roles/pantallas, permisos distintos).  │
+     │ - Propósito: control de stock + trazabilidad de movimientos (banco de   │
+     │ alimentos).                                                             │
+     │ - Posicionamiento: trazabilidad granular por ubicación física           │
+     │ (rack/nivel/bahía) y lote — lo que distingue esto de Excel/ERP          │
+     │ genérico.                                                               │
+     │ - Personalidad de marca: preciso, auditable, sobrio.                    │
+     │ - Anti-referencias: ninguna específica — el usuario decidió no dar una  │
+     │ referencia visual, mantener AdminLTE/Bootstrap como base razonable.     │
+     │ - Accesibilidad: sin requisitos formales (WCAG no exigido), herramienta │
+     │ interna.                                                                │
+     │                                                                         │
+     │ Contenido a escribir en PRODUCT.md (raíz del proyecto)                  │
+     │                                                                         │
+     │ # Product                                                               │
+     │                                                                         │
+     │ ## Register                                                             │
+     │                                                                         │
+     │ product                                                                 │
+     │                                                                         │
+     │ ## Platform                                                             │
+     │                                                                         │
+     │ web                                                                     │
+     │                                                                         │
+     │ ## Users                                                                │
+     │                                                                         │
+     │ Operadores de almacén/bodega son el público primario: registran         │
+     │ entradas, salidas,                                                      │
+     │ relocalizaciones y consultan inventario físico durante su operación     │
+     │ diaria (roles                                                           │
+     │ como `tapachula`, `bodega_dorado` en el sistema).                       │
+     │ Administradores/gerencia (rol                                           │
+     │ `admin`) son el público secundario: gestionan almacenes, tipos,         │
+     │ ubicaciones,                                                            │
+     │ usuarios y revisan reportes globales — usan las mismas pantallas con    │
+     │ permisos                                                                │
+     │ distintos, no una interfaz separada.                                    │
+     │                                                                         │
+     │ ## Product Purpose                                                      │
+     │                                                                         │
+     │ Controlar el inventario físico de un banco de alimentos y dar           │
+     │ trazabilidad                                                            │
+     │ completa a cada movimiento de stock. El éxito se ve en dos frentes a la │
+     │ vez:                                                                    │
+     │ saber con precisión cuánto stock hay y dónde                            │
+     │ (rack/nivel/bahía/lote/caducidad),                                      │
+     │ y poder auditar cómo llegó a ese estado — quién movió qué, cuándo y por │
+     │ qué,                                                                    │
+     │ incluyendo reversiones seguras de movimientos.                          │
+     │                                                                         │
+     │ ## Positioning                                                          │
+     │                                                                         │
+     │ Cada unidad de stock se rastrea hasta su ubicación física exacta y su   │
+     │ lote,                                                                   │
+     │ con reversibilidad segura de movimientos — algo que una hoja de cálculo │
+     │ o un                                                                    │
+     │ ERP genérico no sostienen de forma confiable para esta operación.       │
+     │                                                                         │
+     │ ## Brand Personality                                                    │
+     │                                                                         │
+     │ Preciso, auditable, sobrio. Es una herramienta de control, no una       │
+     │ vitrina:                                                                │
+     │ prioriza que un operador entienda el estado del stock de un vistazo y   │
+     │ complete                                                                │
+     │ tareas sin errores costosos, y que cualquier movimiento quede legible y │
+     │ auditable después del hecho.                                            │
+     │                                                                         │
+     │ ## Anti-references                                                      │
+     │                                                                         │
+     │ Ninguna referencia específica dada. Mantener el estilo                  │
+     │ AdminLTE/Bootstrap 4                                                    │
+     │ actual como base razonable; evitar ornamento o estilismo que compita    │
+     │ con la                                                                  │
+     │ legibilidad de tablas y formularios.                                    │
+     │                                                                         │
+     │ ## Design Principles                                                    │
+     │                                                                         │
+     │ Trazabilidad granular sobre velocidad superficial: cada pantalla hace   │
+     │ visible                                                                 │
+     │ la ubicación física exacta y el lote/caducidad de cada unidad de stock. │
+     │ Auditable por diseño: todo movimiento debe quedar legible con folio,    │
+     │ responsable y motivo, y ser fácil de revisar o revertir sin ambigüedad. │
+     │ Sobriedad funcional sobre decoración: prioriza jerarquía, contraste y   │
+     │ tablas                                                                  │
+     │ legibles por encima de elementos ornamentales. Una base para dos roles: │
+     │ la                                                                      │
+     │ misma pantalla sirve al operador (tarea rápida y correcta) y al         │
+     │ administrador                                                           │
+     │ (visión global), diferenciando permisos, no la interfaz. Los errores    │
+     │ costosos                                                                │
+     │ se previenen en la interfaz: advertencias como la de stock negativo al  │
+     │ revertir un movimiento deben ser visibles antes de confirmar una acción │
+     │ irreversible.                                                           │
+     │                                                                         │
+     │ ## Accessibility & Inclusion                                            │
+     │                                                                         │
+     │ Sin requisitos formales de accesibilidad (no se exige un nivel WCAG     │
+     │ certificado), al ser una herramienta interna de uso limitado; aun así,  │
+     │ mantener buen contraste y soporte básico de navegación por teclado.     │
+     │                                                                         │
+     │ Nota: se omite la sección ## Conversion & proof porque es exclusiva del │
+     │ registro brand; este proyecto es product.                               │
+     │                                                                         │
+     │ Pasos después de escribir PRODUCT.md                                    │
+     │                                                                         │
+     │ 1. Escribir el archivo anterior en PROJECT_ROOT/PRODUCT.md.             │
+     │ 2. Preguntar (Step 5 de reference/init.md) si el usuario quiere generar │
+     │ DESIGN.md ahora vía /impeccable document (analizaría el                 │
+     │ AdminLTE/Bootstrap actual: colores, tipografía, componentes) — no se    │
+     │ hace en este mismo paso, es una pregunta de seguimiento.                │
+     │ 3. Preguntar (Step 6) si configurar .impeccable/live/config.json para   │
+     │ modo live (edición visual en navegador) — requiere identificar el entry │
+     │ HTML servido y el dev server; se puede hacer después de confirmar       │
+     │ DESIGN.md.                                                              │
+     │ 4. Ofrecer (cierre del Step 7) agregar un resumen de "Design Context" a │
+     │ CLAUDE.md apuntando a PRODUCT.md.                                       │
+     │                                                                         │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ No aplica ejecución de código; verificar que PRODUCT.md se escribió     │
+     │ correctamente con Read tras crearlo y que el contenido refleja          │
+     │ exactamente las respuestas confirmadas arriba (sin agregar              │
+     │ anti-referencias, audiencias o afirmaciones no confirmadas).            │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Cogitated for 1m 27s
+
+※ recap: You asked for a full architecture analysis (done) and are now running the impeccable plugin's `init` flow to draft PRODUCT.md for this Laravel warehouse admin panel. I'm waiting on you to name a visual reference site/app and what specifically you like about it. (disable recaps in /config)
+
+❯ Excelenete ahora dime las partes de la arquitectura que hacen funcionar al    
+  endpoint /output                                                              
+  Searched for 5 patterns, read 2 files (ctrl+o to expand)
+
+● Ya tengo el trazo completo del endpoint /output. Aquí está el mapa
+  arquitectónico de las piezas que lo hacen funcionar:
+
+  1. Rutas (routes/web.php:108-137)
+
+  GET  /output                    → OutputController::getView          (name:
+  output.get)
+  GET  /output/{id}/inventory     → OutputController::getInventory     (name:
+  output.inventory.get)
+  POST /output/process            → OutputController::processOutput    (name:
+  output.inventory.process)
+  Sin middleware auth/role — confirma el hallazgo del análisis previo: este
+  endpoint DDD no está protegido a nivel de ruta.
+
+  2. Controlador — OutputController.php
+
+  - getView() (línea 85) — arma la vista module.output.create: lista almacenes
+  con inventario (getWarehouseIdsWithInventory) + todos los almacenes
+  (listAllWarehouses) para el <select> de destino en transferencias.
+  - getInventory(int $id) (línea 105) — endpoint AJAX que devuelve el inventario
+  de un almacén en JSON, para poblar el formulario según el almacén elegido.
+  - processOutput(Request $request) (línea 28) — el punto de entrada real. Lee
+  movement_type del request y hace switch a uno de 5 métodos privados según el
+  tipo: RELOCATION, SALE, OUT, TRANSFER, LOCATION_UPDATE. Nota: hay código
+  muerto después del switch (líneas 69-82) — como todos los case tienen return,
+  ese bloque nunca se ejecuta.
+  - Cada método privado (processRelocation, processSale, processSimpleOutput,
+  processLocationUpdate) valida el request, arma un
+  RemoveWarehouseInventoryStockDTO vía el helper
+  buildRemoveWarehouseInventoryStockDTO(), y llama a
+  $warehouseInventoryService->processInventoryOutput($dto).
+  - processTransfer() es la excepción: no usa el DTO de salida sino
+  TransferInventoryDTO + $warehouseInventoryService->transferInventory() — un
+  camino separado (confirma que TRANSFER no pasa por el patrón Strategy de
+  salida, es lógica aparte en el servicio).
+
+  3. Servicio orquestador — 
+  WarehouseInventoryServiceImplementation::processInventoryOutput() (línea 233)
+
+  Envuelve todo en DB::transaction():
+  $strategy =
+  $this->warehouseOutputStrategyFactory->make($output->getMovementType());
+  $result = $strategy->processOutput($output);
+
+  4. Factory — Infrastructure/Factories/WarehouseOutputStrategyFactory
+
+  make(string $type) selecciona por switch:
+  - RELOCATION → InternalRelocationService
+  - OUT → SimpleOutputService
+  - SALE → SaleOutputService
+  - LOCATION_UPDATE → IntraWarehouseTransferStrategy
+
+  5. Estrategias concretas (Contracts/WarehouseOutputStrategy)
+
+  Todas extienden BaseOutputService (validación de stock + reducción + registro
+  de movimiento vía folio), excepto que cada una define su
+  processOutput()/getType() propio: SimpleOutputService (retiro simple),
+  SaleOutputService (+ crea registro en warehouse_sales),
+  InternalRelocationService (mueve a otro almacén),
+  IntraWarehouseTransferStrategy (mueve dentro del mismo almacén, en
+  Strategies/).
+
+  6. Soporte transversal
+
+  - ManagesInventoryStock::validateStockAvailability() / reduceStock() — usados
+  dentro de BaseOutputService.
+  - WarehouseMovementsService::generateMovementFolio() — folio para el registro
+  del movimiento.
+  - RemoveWarehouseInventoryStockDTO — el DTO común que viaja desde el
+  controlador hasta la estrategia.
+  - ResultPattern — cada capa devuelve éxito/fallo; el controlador traduce
+  isFailure() a back()->withErrors().
+
+  En resumen: routes/web.php → OutputController →
+  WarehouseInventoryServiceImplementation::processInventoryOutput() →
+  WarehouseOutputStrategyFactory::make() → estrategia concreta
+  (BaseOutputService + subclase) → ManagesInventoryStock +
+  WarehouseMovementsService para persistir. TRANSFER es la excepción que evita
+  este patrón y va directo a transferInventory().
+
+✻ Brewed for 44s
+
+※ recap: We finished a full architecture analysis of the warehouse app and mapped how the /output endpoint works. Next: waiting on you to confirm whether to write the drafted PRODUCT.md for the /impeccable init setup. (disable recaps in /config)
+
+❯ Pero ya identificaste cual es el module?                                      
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Sí — el módulo de vista es resources/views/module/output/, y contiene un solo
+  archivo: create.blade.php. Es el que renderiza getView() (return 
+  view('module.output.create', ...)), el formulario donde el usuario elige
+  almacén/inventario y tipo de movimiento (RELOCATION, SALE, OUT, TRANSFER,
+  LOCATION_UPDATE) que termina enviándose por POST a /output/process.
+
+✻ Brewed for 12s
+
+❯ Estamos en la vista "Salida de las Bodegas" — paso 2 del wizard (Selección    
+  de Producto). Actualmente el botón "Seleccionar" de cada fila dispara la      
+  salida de un solo producto. Necesito convertir esto en un flujo de carrito    
+  multi-producto: el operador debe poder agregar varios items con sus           
+  respectivas cantidades y confirmar todo en el paso 3.                         
+                                                                                
+  Antes de escribir código:                                                     
+                                                                                
+  1. Usa /impeccable layout para proponerme 3 variantes de dónde colocar        
+     el carrito en esta vista (sidebar derecho, drawer con badge en header,     
+     panel inferior sticky, o fila expandible in-place). Respeta el sistema     
+     visual actual: paleta roja TACSA, chips gris claro para el código de       
+     producto, botones outline rojos, tipografía sobria.                        
+                                                                                
+  2. Para cada variante, dime cómo se ve:                                       
+     - El estado vacío del carrito                                              
+     - Un item agregado (código, descripción, cantidad editable, remover)       
+     - El badge/contador de items                                               
+     - El CTA para avanzar al paso 3 (Confirmar)                                
+                                                                                
+  3. Considera que el usuario es operador de almacén leyendo rápido,            
+     posiblemente en una pantalla de sucursal, no en una laptop. La             
+     cantidad debe estar clampada al stock disponible del item. No quiero       
+     nada de gradientes, badges morados, ni cards flotando con sombra           
+     pesada — esto es una herramienta interna seria.                            
+                                                                                
+  4. Después de que elija variante, usa /impeccable craft para llevarlo         
+     a Blade + Bootstrap 5 + JS vanilla.                                        
+
+  Searched for 3 patterns, read 4 files (ctrl+o to expand)
+
+● El comando /impeccable layout requiere, cuando hay una herramienta de
+  sub-agentes disponible, dos evaluaciones aisladas en paralelo (una de diseño,
+  otra mecánica) antes de proponer nada — así que las lanzo ahora mismo sobre
+  resources/views/module/output/create.blade.php, que es la vista real del
+  wizard "Salida de las Bodegas".
+
+● 2 agents finished (ctrl+o to expand)
+   ├ Explore (Layout assessment for output wizard cart) · 1 tool use · 18.4k tokens
+   │ ⎿  Done
+   └ Agent (Mechanical layout pre-scan) · 10 tool uses · 44.9k tokens
+     ⎿  Done
+
+● Hallazgos de la evaluación
+
+  Sub-agente A (diseño) — el archivo no tiene un sistema de espaciado
+  documentado (solo variables de color en :root), pero es razonablemente
+  consistente por convención (1.5rem en cards, 1rem en celdas). Dato clave: el 
+  paso 3 ya usa el patrón .col-md-8/.col-md-4 para el resumen lateral (líneas
+  354-380) — ese es el precedente propio del archivo para "panel de detalle
+  junto al contenido principal".
+
+  Sub-agente B (mecánico) — el detector no encontró violaciones (no usa
+  utilidades arbitrarias de Tailwind), pero sí hay un z-index: 9999 crudo sin
+  escala en .toast-container (línea 220) — lo anoto como deuda existente, no
+  bloquea esta decisión.
+
+  Descarté la variante "drawer + badge en header": el propio PRODUCT.md describe
+  a los operadores como usuarios que "no son early adopters" y que "todo lo
+  interactivo tiene que ser visible y con label" — un contador escondido en el
+  navbar que abre un panel oculto es exactamente el patrón de estado-invisible
+  que el documento pide evitar. En su lugar te dejo 3 variantes más fuertes, con
+  la de sidebar como la que más se alinea con la convención que ya existe en tu
+  propio código.
+
+● User answered Claude's questions:
+  ⎿  · ¿Dónde colocamos el carrito multi-producto en el paso 2 del wizard de 
+     Salida? → Sidebar derecho (Recomendado)
+
+  Read 3 files (ctrl+o to expand)
+
+● User answered Claude's questions:
+  ⎿  · El carrito multi-producto, ¿aplica a los 5 tipos de movimiento del select
+     actual (Salida Simple, Venta, Traslado, Reubicación de bodega, Reubicación
+     interna) o solo a los que consumen cantidad de stock por producto (Salida 
+     Simple y Venta)? → Solo Salida Simple y Venta (Recomendado)
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Análisis de arquitectura — Wharehouse-                                  │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El usuario pidió un análisis completo de la arquitectura del proyecto   │
+     │ (no una tarea de implementación). Este documento es un reporte de       │
+     │ hallazgos, no un plan de cambios de código. Se investigó en 3 frentes   │
+     │ paralelos (capas de dominio, capa HTTP/presentación, capa de datos) y   │
+     │ se verificaron directamente los hallazgos más relevantes                │
+     │ (ResultPattern, migraciones, manejo de transacciones).                  │
+     │                                                                         │
+     │ 1. Visión general                                                       │
+     │                                                                         │
+     │ Laravel 8 (PHP ^7.4.1) en migración activa de un estilo legacy          │
+     │ (controladores con nombres en español, acceso directo a Eloquent) hacia │
+     │ una arquitectura por capas tipo DDD:                                    │
+     │                                                                         │
+     │ Enterprise_Layer  →  Application_Layer  →  Infrastructure  →  Contracts │
+     │    (entidades)         (servicios/repos)      (factories)               │
+     │ (interfaces)                                                            │
+     │                                                                         │
+     │ El módulo activamente desarrollado es el pipeline de                    │
+     │ inventario/movimientos/salidas (confirmado por commits recientes:       │
+     │ "internal relocation", "input/output counter-movement logic"). Los      │
+     │ módulos legacy (ventas, categorías, productos, proveedores, usuarios)   │
+     │ siguen en su patrón original y no deben forzarse al patrón DDD si se    │
+     │ tocan incidentalmente.                                                  │
+     │                                                                         │
+     │ 2. Enterprise_Layer (app/Enterprise_Layer/) — entidades de dominio puro │
+     │                                                                         │
+     │ - Warehouse — construido solo vía WarehouseBuilder (único uso real del  │
+     │ patrón Builder en el repo).                                             │
+     │ - WarehouseInventory — registro de stock (producto, cantidad, ubicación │
+     │ física: rack/nivel/módulo/bahía/plataforma, lote, fechas, flag          │
+     │ activeInventory).                                                       │
+     │ - WarehouseInventoryMovements — el ledger de movimientos. Constantes de │
+     │ tipo (TYPE_IN, TYPE_OUT, TYPE_ADJUSTMENT, TYPE_TRANSFER, TYPE_SALE,     │
+     │ TYPE_RELOCATION, LOCATION_UPDATE), auto-valida en el constructor,       │
+     │ rastrea reversión (isReversed, reversedBy, reversalOf).                 │
+     │ - Location, Branch, WarehouseType, WarehouseSalesEntity — entidades más │
+     │ simples.                                                                │
+     │ - StoreKeyValidator — clase stub/incompleta (solo una propiedad, sin    │
+     │ lógica) — parece código muerto/inconcluso.                              │
+     │ - Excepciones en Exception/: InvalidAddressException,                   │
+     │ InvalidCityNameException, InvalidHeadquartersName,                      │
+     │ InvalidPostalCodeException, InvalidStateNameException — todas lanzadas  │
+     │ por los validadores de Location.                                        │
+     │                                                                         │
+     │ 3. Application_Layer — orquestación de casos de uso                     │
+     │                                                                         │
+     │ Servicios clave                                                         │
+     │                                                                         │
+     │ - WarehouseInventoryServiceImplementation — orquestador central: CRUD   │
+     │ de inventario, processInventoryOutput() (delega a                       │
+     │ WarehouseOutputStrategyFactory dentro de DB::transaction),              │
+     │ transferInventory(), relocateInventory(), reportes, revertMovement()    │
+     │ (delega a ReversalStrategyFactory).                                     │
+     │ - WarehouseMovementsService — ledger: paginación,                       │
+     │ generateMovementFolio() (folios tipo MOV-000123),                       │
+     │ getDependentMovements() (detecta si revertir causaría stock negativo).  │
+     │ - WarehouseInventoryQueryService — helper de lectura/escritura usado    │
+     │ por las estrategias de salida (updateOrCreateInventory() es clave para  │
+     │ relocation).                                                            │
+     │ - ManagesInventoryStock — helper estático compartido:                   │
+     │ validateStockAvailability() y reduceStock().                            │
+     │                                                                         │
+     │ Patrón Strategy — reversión de movimientos (Strategies/)                │
+     │                                                                         │
+     │ - InReversalStrategy — revierte un IN. Si la reversión dejaría stock    │
+     │ negativo y hay movimientos dependientes, retorna                        │
+     │ ResultPattern::warning() con un NegativeStockWarningDTO en vez de       │
+     │ fallar directo — esta es la lógica de seguridad mencionada en el commit │
+     │ reciente "input/output counter-movement logic".                         │
+     │ - OutReversalStrategy — revierte un OUT (reactiva inventario si estaba  │
+     │ desactivado).                                                           │
+     │                                                                         │
+     │ Patrón Strategy — razón de salida de stock (WarehouseOutputStrategy)    │
+     │                                                                         │
+     │ BaseOutputService (abstracta) da la plumbing común                      │
+     │ (validateStockAvailability, reduceStock, recordMovement); subclases:    │
+     │ - SimpleOutputService (OUT) — retiro simple.                            │
+     │ - SaleOutputService (SALE) — igual + crea WarehouseSalesRequestDTO      │
+     │ (folio ↔ factura SAP).                                                  │
+     │ - InternalRelocationService (RELOCATION) — mueve stock a otro almacén   │
+     │ (reduce en origen, updateOrCreateInventory() en destino).               │
+     │ - IntraWarehouseTransferStrategy (LOCATION_UPDATE, en Strategies/) —    │
+     │ mueve un lote dentro del mismo almacén (nueva fila de inventario en la  │
+     │ nueva ubicación, desactiva la anterior, enlaza reversedOf/reversedBy).  │
+     │ - TransferOutputService — clase vacía/stub, sin implementar; el         │
+     │ transfer entre almacenes vive directamente en                           │
+     │ WarehouseInventoryServiceImplementation::transferInventory().           │
+     │                                                                         │
+     │ Selección de estrategia:                                                │
+     │ Infrastructure/Factories/WarehouseOutputStrategyFactory::make(string    │
+     │ $type) (switch por tipo) y ReversalStrategyFactory::make(string $type)  │
+     │ — este es el punto de extensión correcto para añadir un nuevo motivo de │
+     │ salida o tipo de reversión.                                             │
+     │                                                                         │
+     │ ResultPattern (verificado en código,                                    │
+     │ app/Application_Layer/ResultPattern.php)                                │
+     │                                                                         │
+     │ Constructor protected; factories estáticas success(), failure() (lanza  │
+     │ InvalidArgumentException si el mensaje va vacío), y warning() (falla    │
+     │ "suave" que conserva un $value — usado para las advertencias de stock   │
+     │ negativo). isFailure() es !isSuccess, no un flag independiente.         │
+     │                                                                         │
+     │ Hallazgo verificado sobre transacciones:                                │
+     │ WarehouseInventoryServiceImplementation::runInTransaction() (línea      │
+     │ ~617) llama DB::rollBack() manualmente dentro del closure de            │
+     │ DB::transaction() cuando el resultado es failure, y luego hace return   │
+     │ $result (sin lanzar excepción). Esto funciona porque el rollback manual │
+     │ decrementa el contador interno de transacciones de Laravel a 0, así     │
+     │ que el commit() automático posterior se salta (Laravel solo hace commit │
+     │ si $transactions == 1). Es un patrón válido pero frágil/no idiomático   │
+     │ — depende de detalles internos de Illuminate\Database\Connection en vez │
+     │ de lanzar una excepción para forzar el rollback (para eso existe        │
+     │ Infrastructure/Exception/RollbackResultException, pero no se usa en     │
+     │ ningún lugar revisado — sugiere una refactorización a medio terminar).  │
+     │                                                                         │
+     │ 4. Contracts + Infrastructure                                           │
+     │                                                                         │
+     │ - app/Contracts/ — ~54 interfaces, todas enlazadas en                   │
+     │ AppServiceProvider::register(). Un servicio/repositorio/mapper por      │
+     │ interfaz, sin excepciones notables.                                     │
+     │ - app/Infrastructure/Factories/ — WarehouseOutputStrategyFactory,       │
+     │ ReversalStrategyFactory (switch-based, ver arriba), y MovementFactory   │
+     │ (helper estático de armado de DTO que se solapa con                     │
+     │ BaseOutputService::recordMovement() — candidato a duplicación).         │
+     │ - app/Infrastructure/Exception/ — CouldNotDeleteLocationException,      │
+     │ CouldNotPersistLocationException (usada genéricamente, no solo para     │
+     │ Location pese al nombre), InventoryNotFoundException,                   │
+     │ RollbackResultException (no usada actualmente, ver arriba).             │
+     │ - Solo existe un FormRequest: Infrastructure/StoreWarehouseRequest.php  │
+     │ — no hay app/Http/Requests/.                                            │
+     │                                                                         │
+     │ 5. Mappers/DTOs                                                         │
+     │                                                                         │
+     │ Un mapper por dirección de conversión (Model↔Entity↔DTO), todos en      │
+     │ app/Mappers/ plano. DTOs en Mappers/DTO/ (listas/reportes) y            │
+     │ Mappers/DTO/Requests/ (entrada). Piezas clave para el flujo de          │
+     │ salida/relocation: RemoveWarehouseInventoryStockDTO (input de las 4     │
+     │ estrategias de salida), WarehouseMovementsDTO (registro canónico de     │
+     │ movimiento), WarehouseInventoryOutDetailDTO (snapshot que diffean las   │
+     │ estrategias de relocation/transfer), NegativeStockWarningDTO (payload   │
+     │ del warning de reversión).                                              │
+     │                                                                         │
+     │ WarehouseRequestDTO.php (en Requests/) parece stub/muerto: solo declara │
+     │ propiedades (una de ellas, warehousesKey, declarada static — probable   │
+     │ bug), sin constructor ni getters — no se usa en favor de WarehouseDTO.  │
+     │                                                                         │
+     │ 6. Capa HTTP (controladores, rutas, vistas)                             │
+     │                                                                         │
+     │ Controladores DDD (inyectan Contracts/*, usan ResultPattern)            │
+     │                                                                         │
+     │ WarehouseRegistrationController, LocationRegistrationController,        │
+     │ WarehouseTypeController, WarehouseManagmentController,                  │
+     │ WareouseInventoryController, MovementsController, OutputController,     │
+     │ InventoryManagementController — más ReportController y Dashboard, que   │
+     │ son híbridos: llaman servicios DDD pero también consultan modelos       │
+     │ Eloquent legacy directamente en el mismo método (duplicación real entre │
+     │ Dashboard::index y ReportController::index).                            │
+     │                                                                         │
+     │ Controladores legacy (Eloquent directo, sin capa de servicio)           │
+     │                                                                         │
+     │ Categorias, Productos, Proveedores, Usuarios, Ventas (carrito de venta  │
+     │ con sesión + PDF vía DomPDF), Reportes_productos, RackController.       │
+     │                                                                         │
+     │ Código muerto detectado                                                 │
+     │                                                                         │
+     │ - DetalleVentas — stub casi vacío, no referenciado en rutas.            │
+     │ - TemporaryProducts — duplicado de Productos, no referenciado en rutas. │
+     │ - ProductController + resources/views/products/* — módulo paralelo      │
+     │ completo (modelos Product/Category en inglés) no conectado a ninguna    │
+     │ ruta.                                                                   │
+     │                                                                         │
+     │ Bugs en vivo detectados (returns tempranos que hacen la lógica real     │
+     │ inalcanzable)                                                           │
+     │                                                                         │
+     │ - InventoryManagementController::transfer() — un return de depuración   │
+     │ antes de invocar el servicio real.                                      │
+     │ - WarehouseManagmentController::update() — un return temprano rompe el  │
+     │ branching de éxito/error y el logging.                                  │
+     │                                                                         │
+     │ Rutas (routes/web.php)                                                  │
+     │                                                                         │
+     │ Patrón inconsistente de protección: role:admin + auth se aplica a los   │
+     │ módulos legacy en español (categorias, proveedores, usuarios,           │
+     │ reportes_productos) y al prefijo managment; la mayoría de endpoints DDD │
+     │ de warehouse/inventario/movimientos/output no tienen middleware de      │
+     │ rutas (confían en verificación a nivel de controlador, que en la        │
+     │ mayoría de casos no existe). Ruta /crear-admin sin ningún guard —       │
+     │ riesgo de seguridad. Ruta inventory-management está definida dos veces  │
+     │ (una dentro de managment con rol, otra fuera sin rol) — la última       │
+     │ definición gana.                                                        │
+     │                                                                         │
+     │ 7. Capa de datos                                                        │
+     │                                                                         │
+     │ Modelos duplicados por dominio ("almacén" representado 3 veces)         │
+     │                                                                         │
+     │ 1. Tabla nueva warehouses (capa DDD).                                   │
+     │ 2. rack.bodega (columna de texto libre) + salidas.bodega_destino —      │
+     │ nombres de almacén como string suelto en el mundo legacy.               │
+     │ 3. dbo.OITM vía conexión sqlsrv (ProductModel) — integración de solo    │
+     │ lectura con SAP Business One para maestro de productos.                 │
+     │                                                                         │
+     │ Hallazgo verificado — falta el esquema de las tablas DDD en migraciones │
+     │                                                                         │
+     │ Se confirmó por grep (Schema::create en database/migrations/) que       │
+     │ ninguna migración crea warehouses, warehouse_type, location,            │
+     │ warehouse_inventory, warehouse_inventory_movements, warehouse_sales ni  │
+     │ branches. La única migración que toca ese grupo                         │
+     │ (2025_07_15_000000_add_transfer_to_movement_type.php) es un ALTER sobre │
+     │ warehouse_inventory_movements (agrega 'TRANSFER' al enum                │
+     │ movement_type). Esto implica que el esquema DDD se creó directamente en │
+     │ la base de datos fuera del control de versiones — un php artisan        │
+     │ migrate:fresh en un entorno limpio no reconstruiría estas tablas. Vale  │
+     │ la pena señalarlo si el usuario planea usar migrate:fresh o clonar el   │
+     │ entorno.                                                                │
+     │                                                                         │
+     │ Relaciones confirmadas (dominio DDD)                                    │
+     │                                                                         │
+     │ location 1—* warehouses 1—* warehouse_inventory 1—*                     │
+     │ warehouse_inventory_movements 1—1 warehouse_sales (join por folio, no   │
+     │ por PK numérico). Reversión es auto-referencial vía                     │
+     │ is_reversed/reversed_by/reversal_of en la misma tabla de movimientos.   │
+     │                                                                         │
+     │ Conclusión / puntos a decidir con el usuario                            │
+     │                                                                         │
+     │ Este fue un análisis puro, sin cambios de código. Hallazgos que podrían │
+     │ justificar una tarea de seguimiento (a decidir por el usuario, no       │
+     │ asumidos aquí):                                                         │
+     │ - Confirmar si el gap de migraciones DDD es intencional o un problema a │
+     │ corregir.                                                               │
+     │ - Los dos bugs de "return temprano" en InventoryManagementController y  │
+     │ WarehouseManagmentController.                                           │
+     │ - Código muerto candidato a limpieza: DetalleVentas, TemporaryProducts, │
+     │ ProductController+vistas, TransferOutputService (stub),                 │
+     │ WarehouseRequestDTO (stub), StoreKeyValidator (stub).                   │
+     │ - Falta de middleware de autorización en la mayoría de rutas DDD        │
+     │ (role:admin/auth).                                                      │
+     │                                                                         │
+     │ No se requiere verificación adicional (no hubo cambios de código).      │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Plan: /impeccable init — crear PRODUCT.md                               │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ El usuario instaló el plugin/skill impeccable y ejecutó /impeccable     │
+     │ init. El script context.mjs confirmó NO_PRODUCT_MD (no existe           │
+     │ PRODUCT.md ni DESIGN.md en el proyecto, ni en ubicaciones alternas      │
+     │ .agents/context/ o docs/). Se exploró el código (layout                 │
+     │ resources/views/layouts/app.blade.php: AdminLTE + Bootstrap 4, sin      │
+     │ páginas de marketing, título "Banco de Alimentos") y se completó la     │
+     │ entrevista estratégica (AskUserQuestion, 3 rondas) requerida por        │
+     │ reference/init.md antes de poder escribir PRODUCT.md. Este plan traduce │
+     │ esas respuestas confirmadas al documento final.                         │
+     │                                                                         │
+     │ Evidencia + respuestas confirmadas                                      │
+     │                                                                         │
+     │ - Registro: product — evidencia fuerte (panel interno, sin              │
+     │ landing/marketing), no se preguntó explícitamente por ser inequívoco.   │
+     │ - Plataforma: web — evidencia fuerte (Blade + Bootstrap 4/AdminLTE, sin │
+     │ señales nativas), no se preguntó por ser inequívoco.                    │
+     │ - Usuarios: primario = operadores de almacén/bodega; secundario =       │
+     │ administradores/gerencia (mismos roles/pantallas, permisos distintos).  │
+     │ - Propósito: control de stock + trazabilidad de movimientos (banco de   │
+     │ alimentos).                                                             │
+     │ - Posicionamiento: trazabilidad granular por ubicación física           │
+     │ (rack/nivel/bahía) y lote — lo que distingue esto de Excel/ERP          │
+     │ genérico.                                                               │
+     │ - Personalidad de marca: preciso, auditable, sobrio.                    │
+     │ - Anti-referencias: ninguna específica — el usuario decidió no dar una  │
+     │ referencia visual, mantener AdminLTE/Bootstrap como base razonable.     │
+     │ - Accesibilidad: sin requisitos formales (WCAG no exigido), herramienta │
+     │ interna.                                                                │
+     │                                                                         │
+     │ Contenido a escribir en PRODUCT.md (raíz del proyecto)                  │
+     │                                                                         │
+     │ # Product                                                               │
+     │                                                                         │
+     │ ## Register                                                             │
+     │                                                                         │
+     │ product                                                                 │
+     │                                                                         │
+     │ ## Platform                                                             │
+     │                                                                         │
+     │ web                                                                     │
+     │                                                                         │
+     │ ## Users                                                                │
+     │                                                                         │
+     │ Operadores de almacén/bodega son el público primario: registran         │
+     │ entradas, salidas,                                                      │
+     │ relocalizaciones y consultan inventario físico durante su operación     │
+     │ diaria (roles                                                           │
+     │ como `tapachula`, `bodega_dorado` en el sistema).                       │
+     │ Administradores/gerencia (rol                                           │
+     │ `admin`) son el público secundario: gestionan almacenes, tipos,         │
+     │ ubicaciones,                                                            │
+     │ usuarios y revisan reportes globales — usan las mismas pantallas con    │
+     │ permisos                                                                │
+     │ distintos, no una interfaz separada.                                    │
+     │                                                                         │
+     │ ## Product Purpose                                                      │
+     │                                                                         │
+     │ Controlar el inventario físico de un banco de alimentos y dar           │
+     │ trazabilidad                                                            │
+     │ completa a cada movimiento de stock. El éxito se ve en dos frentes a la │
+     │ vez:                                                                    │
+     │ saber con precisión cuánto stock hay y dónde                            │
+     │ (rack/nivel/bahía/lote/caducidad),                                      │
+     │ y poder auditar cómo llegó a ese estado — quién movió qué, cuándo y por │
+     │ qué,                                                                    │
+     │ incluyendo reversiones seguras de movimientos.                          │
+     │                                                                         │
+     │ ## Positioning                                                          │
+     │                                                                         │
+     │ Cada unidad de stock se rastrea hasta su ubicación física exacta y su   │
+     │ lote,                                                                   │
+     │ con reversibilidad segura de movimientos — algo que una hoja de cálculo │
+     │ o un                                                                    │
+     │ ERP genérico no sostienen de forma confiable para esta operación.       │
+     │                                                                         │
+     │ ## Brand Personality                                                    │
+     │                                                                         │
+     │ Preciso, auditable, sobrio. Es una herramienta de control, no una       │
+     │ vitrina:                                                                │
+     │ prioriza que un operador entienda el estado del stock de un vistazo y   │
+     │ complete                                                                │
+     │ tareas sin errores costosos, y que cualquier movimiento quede legible y │
+     │ auditable después del hecho.                                            │
+     │                                                                         │
+     │ ## Anti-references                                                      │
+     │                                                                         │
+     │ Ninguna referencia específica dada. Mantener el estilo                  │
+     │ AdminLTE/Bootstrap 4                                                    │
+     │ actual como base razonable; evitar ornamento o estilismo que compita    │
+     │ con la                                                                  │
+     │ legibilidad de tablas y formularios.                                    │
+     │                                                                         │
+     │ ## Design Principles                                                    │
+     │                                                                         │
+     │ Trazabilidad granular sobre velocidad superficial: cada pantalla hace   │
+     │ visible                                                                 │
+     │ la ubicación física exacta y el lote/caducidad de cada unidad de stock. │
+     │ Auditable por diseño: todo movimiento debe quedar legible con folio,    │
+     │ responsable y motivo, y ser fácil de revisar o revertir sin ambigüedad. │
+     │ Sobriedad funcional sobre decoración: prioriza jerarquía, contraste y   │
+     │ tablas                                                                  │
+     │ legibles por encima de elementos ornamentales. Una base para dos roles: │
+     │ la                                                                      │
+     │ misma pantalla sirve al operador (tarea rápida y correcta) y al         │
+     │ administrador                                                           │
+     │ (visión global), diferenciando permisos, no la interfaz. Los errores    │
+     │ costosos                                                                │
+     │ se previenen en la interfaz: advertencias como la de stock negativo al  │
+     │ revertir un movimiento deben ser visibles antes de confirmar una acción │
+     │ irreversible.                                                           │
+     │                                                                         │
+     │ ## Accessibility & Inclusion                                            │
+     │                                                                         │
+     │ Sin requisitos formales de accesibilidad (no se exige un nivel WCAG     │
+     │ certificado), al ser una herramienta interna de uso limitado; aun así,  │
+     │ mantener buen contraste y soporte básico de navegación por teclado.     │
+     │                                                                         │
+     │ Nota: se omite la sección ## Conversion & proof porque es exclusiva del │
+     │ registro brand; este proyecto es product.                               │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Plan: /impeccable craft — carrito multi-producto en "Salida de las      │
+     │ Bodegas"                                                                │
+     │                                                                         │
+     │ Contexto                                                                │
+     │                                                                         │
+     │ Se usó /impeccable layout con evaluación en dos sub-agentes aislados    │
+     │ (diseño + escaneo mecánico) sobre                                       │
+     │ resources/views/module/output/create.blade.php. El usuario eligió la    │
+     │ variante Sidebar derecho (reutiliza el patrón col-md-8/col-md-4 que el  │
+     │ paso 3 ya usa para su resumen — la opción con más precedente en el      │
+     │ propio archivo). Se confirmó además que el carrito solo aplica a OUT    │
+     │ (Salida Simple) y SALE (Venta) — Traslado, Reubicación de bodega y      │
+     │ Reubicación interna mueven un lote específico a la vez (quantity se     │
+     │ fuerza a 0 para RELOCATION/LOCATION_UPDATE en                           │
+     │ buildRemoveWarehouseInventoryStockDTO, línea 217-219 del controlador) y │
+     │ no encajan en "agregar varios productos con cantidad", así que          │
+     │ mantienen el flujo actual de un solo producto sin cambios.              │
+     │                                                                         │
+     │ No hay generación nativa de imágenes en este harness — se omite el paso │
+     │ de mocks visuales (Step 3 de craft.md) y se implementa directo del      │
+     │ brief siguiente, sin necesidad de aprobar mocks adicionales.            │
+     │                                                                         │
+     │ Alcance: solo frontend — resources/views/module/output/create.blade.php │
+     │ (Blade + Bootstrap 5 + JS vanilla). No se toca ningún archivo PHP       │
+     │ (controlador/servicio/DTO): el envío al carrito reutiliza la ruta POST  │
+     │ /output/process ya existente, una petición por producto (ver "Envío"    │
+     │ abajo) — el backend ya procesa una RemoveWarehouseInventoryStockDTO a   │
+     │ la vez dentro de su propia transacción, así que enviar N peticiones     │
+     │ secuenciales es compatible sin cambios de backend.                      │
+     │                                                                         │
+     │ Diseño confirmado                                                       │
+     │                                                                         │
+     │ Estructura (#panel-step2)                                               │
+     │                                                                         │
+     │ Se envuelve en .row: .col-md-8 con la tabla existente (sin cambios de   │
+     │ columnas) + .col-md-4 con el nuevo panel #cart-sidebar (mismo           │
+     │ .tacsa-card que ya usa el resumen del paso 3).                          │
+     │                                                                         │
+     │ Acción por fila (split button, Bootstrap 5 btn-group)                   │
+     │                                                                         │
+     │ Reemplaza el botón único "Seleccionar" (línea 849) por un botón         │
+     │ dividido:                                                               │
+     │ <div class="btn-group btn-group-sm">                                    │
+     │   <button class="btn btn-outline-danger"                                │
+     │ onclick="addToCart(item)">Agregar</button>                              │
+     │   <button class="btn btn-outline-danger dropdown-toggle                 │
+     │ dropdown-toggle-split" data-bs-toggle="dropdown"></button>              │
+     │   <ul class="dropdown-menu">                                            │
+     │     <li><a class="dropdown-item" href="#"                               │
+     │ onclick="prepSalida(item,'TRANSFER')">Traslado a otra sucursal</a></li> │
+     │     <li><a class="dropdown-item" href="#"                               │
+     │ onclick="prepSalida(item,'RELOCATION')">Reubicar en otra                │
+     │ bodega</a></li>                                                         │
+     │     <li><a class="dropdown-item" href="#"                               │
+     │ onclick="prepSalida(item,'LOCATION_UPDATE')">Reubicar en la misma       │
+     │ bodega</a></li>                                                         │
+     │   </ul>                                                                 │
+     │ </div>                                                                  │
+     │ Clic principal = agrega al carrito (bulk OUT/SALE). Las 3 opciones del  │
+     │ menú van al flujo actual de un solo producto (prepSalida →              │
+     │ showStep(3)), sin tocar esa lógica — solo se le agrega un segundo       │
+     │ parámetro para preseleccionar el movement_type en el <select> del paso  │
+     │ 3. Es un patrón visible y con label (nada oculto), consistente con la   │
+     │ regla de PRODUCT.md sobre usuarios que no son early adopters.           │
+     │                                                                         │
+     │ Carrito (#cart-sidebar)                                                 │
+     │                                                                         │
+     │ - Tipo (arriba del carrito): segmented control de 2 chips — "Salida     │
+     │ Simple" / "Venta" (btn-group, no <select>, porque solo son 2 valores) — │
+     │ determina cartType, compartido por todos los items del carrito.         │
+     │ - Badge contador: reutiliza la clase .badge-info ya existente (gris     │
+     │ claro, sin inventar un nuevo color de estado).                          │
+     │ - Vacío: mensaje de acción ("Selecciona un producto de la tabla para    │
+     │ agregarlo aquí"), no "no hay nada" — regla explícita de PRODUCT.md.     │
+     │ - Item agregado: chip de código (.badge-info, monoespaciado, igual que  │
+     │ en la tabla), nombre, <input type="number"> de cantidad con min="1" y   │
+     │ max="{item.maxStock}" (clampeado también en JS on-input y on-blur, no   │
+     │ solo vía atributo HTML — un operador tecleando rápido puede pasar el    │
+     │ máximo antes de que el navegador lo valide), botón de remover ✕ (mismo  │
+     │ estilo que el botón de cerrar en #detail-panel, línea 651-652).         │
+     │ - CTA: .btn-tacsa ancho completo, texto "Confirmar ({N}) →"; disabled   │
+     │ (con estilo :disabled ya definido en .btn-tacsa, línea 181-183) cuando  │
+     │ el carrito está vacío.                                                  │
+     │                                                                         │
+     │ Paso 3 (solo cuando se llega desde el carrito)                          │
+     │                                                                         │
+     │ La tarjeta "Resumen de Selección" (col-md-4, línea 356-378) se          │
+     │ reemplaza por un resumen de lista de items del carrito (código +        │
+     │ cantidad, sin editar aquí — para eso ya se editó en el sidebar). El     │
+     │ formulario de la derecha mantiene los mismos campos compartidos ya      │
+     │ existentes (movement_type fijo a cartType, reason, operation_date,      │
+     │ invoice_sap si es Venta) — estos campos aplican una vez para todo el    │
+     │ lote. El flujo de un solo producto (Traslado/Reubicaciones) sigue       │
+     │ usando la tarjeta de resumen actual sin cambios.                        │
+     │                                                                         │
+     │ Envío (solo flujo de carrito)                                           │
+     │                                                                         │
+     │ Al hacer submit con cart.length > 1 (o siempre que se llegue por el     │
+     │ carrito), el JS intercepta el submit del formulario, y por cada item    │
+     │ hace un fetch('/output/process', {method:'POST', body: FormData con     │
+     │ warehouseInventoryId + quantity del item + campos compartidos})         │
+     │ secuencial (await uno antes de enviar el siguiente — evita contención   │
+     │ de locks sobre el mismo almacén y da una traza clara por item). Estado  │
+     │ de carga: el botón cambia a "Enviando... ({i}/{N})" y se deshabilita    │
+     │ durante el envío (estado loading, no solo disabled). Si un item falla,  │
+     │ se continúa con los siguientes (cada envío es atómico en el backend) y  │
+     │ al final se muestra un resumen con éxitos/fallas reutilizando la tabla  │
+     │ "Movimientos Recientes" que ya existe en el archivo (línea 627-646) —   │
+     │ no se aborta el lote completo por un solo fallo.                        │
+     │                                                                         │
+     │ Estados a cubrir (por interaction-design.md)                            │
+     │                                                                         │
+     │ Cantidad input: default, focus (:focus-visible, ya cubierto por         │
+     │ Bootstrap), error (si se intenta exceder maxStock, borde rojo + mensaje │
+     │ corto bajo el input, no alert()). Botón "Agregar": disabled mientras    │
+     │ el item ya está en el carrito (evitar duplicados — si se vuelve a hacer │
+     │ clic en un item ya agregado, se enfoca su fila en el carrito en vez de  │
+     │ duplicarla). Botón "Confirmar": default / disabled (carrito vacío) /    │
+     │ loading (enviando) / vuelta a default tras completar.                   │
+     │                                                                         │
+     │ Archivos a modificar                                                    │
+     │                                                                         │
+     │ - resources/views/module/output/create.blade.php — único archivo.       │
+     │ Cambios: markup de #panel-step2 (grid + sidebar + split button), nuevo  │
+     │ bloque de estilos para .cart-item/.cart-empty/segmented control         │
+     │ (reutilizando variables --tacsa-red/--border-color ya definidas en      │
+     │ :root, sin colores nuevos), y JS: cart state array, cartType,           │
+     │ addToCart(), removeFromCart(), renderCart(), clampQuantity(), submit    │
+     │ interceptor con envío secuencial, y pequeño ajuste a prepSalida(item,   │
+     │ forcedType) para preseleccionar movement_type cuando viene del menú del │
+     │ split button.                                                           │
+     │                                                                         │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ Sin test suite automatizado para vistas (ver AGENTS.md/CLAUDE.md:       │
+     │ tests/ son stubs). Verificación manual en navegador tras implementar:   │
+     │ 1. Paso 1 → elegir bodega → paso 2 muestra tabla + sidebar vacío con    │
+     │ mensaje de acción.                                                      │
+     │ 2. Agregar 2-3 productos distintos vía "Agregar"; confirmar que el      │
+     │ contador y las filas del carrito se actualizan, que la cantidad se      │
+     │ clampea al stock de cada item, y que remover un item funciona.          │
+     │ 3. Cambiar el tipo (Salida Simple ↔ Venta) y confirmar que el campo     │
+     │ Factura SAP aparece solo para Venta.                                    │
+     │ 4. Confirmar el carrito y verificar en Network que se hacen N           │
+     │ peticiones POST secuenciales a /output/process, y que la tabla de       │
+     │ "Movimientos Recientes" refleja los resultados.                         │
+     │ 5. Verificar que el menú del split button (Traslado/Reubicaciones)      │
+     │ sigue funcionando exactamente igual que hoy (un solo producto, paso 3   │
+     │ con el resumen actual).                                                 │
+     │ 6. Probar en una resolución baja/angosta (simulando la terminal de      │
+     │ sucursal descrita en PRODUCT.md) que el sidebar se apila razonablemente │
+     │ y el carrito sigue siendo usable.                                       │
+     │                                                                         │
+     │ Pasos después de escribir PRODUCT.md                                    │
+     │                                                                         │
+     │ 1. Escribir el archivo anterior en PROJECT_ROOT/PRODUCT.md.             │
+     │ 2. Preguntar (Step 5 de reference/init.md) si el usuario quiere generar │
+     │ DESIGN.md ahora vía /impeccable document (analizaría el                 │
+     │ AdminLTE/Bootstrap actual: colores, tipografía, componentes) — no se    │
+     │ hace en este mismo paso, es una pregunta de seguimiento.                │
+     │ 3. Preguntar (Step 6) si configurar .impeccable/live/config.json para   │
+     │ modo live (edición visual en navegador) — requiere identificar el entry │
+     │ HTML servido y el dev server; se puede hacer después de confirmar       │
+     │ DESIGN.md.                                                              │
+     │ 4. Ofrecer (cierre del Step 7) agregar un resumen de "Design Context" a │
+     │ CLAUDE.md apuntando a PRODUCT.md.                                       │
+     │                                                                         │
+     │ Verificación                                                            │
+     │                                                                         │
+     │ No aplica ejecución de código; verificar que PRODUCT.md se escribió     │
+     │ correctamente con Read tras crearlo y que el contenido refleja          │
+     │ exactamente las respuestas confirmadas arriba (sin agregar              │
+     │ anti-referencias, audiencias o afirmaciones no confirmadas).            │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+✻ Churned for 6m 31s
+
+※ recap: Analizamos la arquitectura del proyecto y estamos armando el PRODUCT.md para el skill impeccable. Falta escribir ese archivo en la raíz del proyecto; solo necesito tu confirmación para crearlo.
+
+❯ Ok adelante prosigue                                                          
+● Procedo a implementar el carrito directamente en
+  resources/views/module/output/create.blade.php, siguiendo exactamente el plan:
+  sidebar derecho en el paso 2, split button por fila, y envío secuencial al
+  endpoint existente sin tocar PHP.
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 54 lines
+      241              color: #ffffff;
+      242              background: rgba(255, 255, 255, 0.15);
+      243          }
+      244 +                                                              
+      245 +        /* CARRITO MULTI-PRODUCTO */                          
+      246 +        .cart-type-toggle {                                   
+      247 +            display: flex;                                    
+      248 +            gap: 0.5rem;                                      
+      249 +            margin-bottom: 1rem;                              
+      250 +        }                                                     
+      251 +                                                              
+      252 +        .cart-type-btn {                                      
+      253 +            flex: 1;                                          
+      254 +            border: 1px solid var(--border-color);            
+      255 +            background: #fff;                                 
+      256 +            border-radius: 8px;                               
+      257 +            padding: 0.5rem;                                  
+      258 +            font-size: 0.8125rem;                             
+      259 +            font-weight: 600;                                 
+      260 +            color: var(--text-secondary);                     
+      261 +            transition: 0.2s;                                 
+      262 +        }                                                     
+      263 +                                                              
+      264 +        .cart-type-btn.active {                               
+      265 +            border-color: var(--tacsa-red);                   
+      266 +            color: var(--tacsa-red);                          
+      267 +            background: var(--tacsa-red-light);               
+      268 +        }                                                     
+      269 +                                                              
+      270 +        .cart-empty {                                         
+      271 +            text-align: center;                               
+      272 +            padding: 2rem 1rem;                               
+      273 +            color: var(--text-secondary);                     
+      274 +            font-size: 0.875rem;                              
+      275 +        }                                                     
+      276 +                                                              
+      277 +        .cart-item {                                          
+      278 +            border: 1px solid var(--border-color);            
+      279 +            border-radius: 8px;                               
+      280 +            padding: 0.75rem;                                 
+      281 +            margin-bottom: 0.75rem;                           
+      282 +        }                                                     
+      283 +                                                              
+      284 +        .cart-item-flash {                                    
+      285 +            border-color: var(--tacsa-red);                   
+      286 +            background: var(--tacsa-red-light);               
+      287 +        }                                                     
+      288 +                                                              
+      289 +        .cart-qty-input:invalid,                              
+      290 +        .cart-qty-input.is-invalid {                          
+      291 +            border-color: #dc2626;                            
+      292 +        }                                                     
+      293 +                                                              
+      294 +        #btn-confirm-cart:disabled {                          
+      295 +            background: #d1d5db;                              
+      296 +            cursor: not-allowed;                              
+      297 +        }                                                     
+      298      </style>
+      299  </head>
+      300  
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 53 lines, removed 22 lines
+      377              </div>
+      378          </div>
+      379  
+      380 -        <div id="panel-step2" class="tacsa-card" style="displa
+          -y:none;">                                                     
+      381 -            <div class="d-flex justify-content-between align-i
+          -tems-center mb-4">                                            
+      382 -                <div class="section-header m-0">              
+      383 -                    <h2 class="h5 m-0">Productos en <span id="
+          -current-wh-name" class="text-danger"></span></h2>             
+      380 +        <div id="panel-step2" style="display:none;">          
+      381 +            <div class="row g-3">                             
+      382 +                <div class="col-md-8">                        
+      383 +                    <div class="tacsa-card h-100">            
+      384 +                        <div class="d-flex justify-content-bet
+          +ween align-items-center mb-4">                                
+      385 +                            <div class="section-header m-0">  
+      386 +                                <h2 class="h5 m-0">Productos e
+          +n <span id="current-wh-name" class="text-danger"></span></h2> 
+      387 +                            </div>                            
+      388 +                            <button class="btn-outline btn-sm"
+          + onclick="showStep(1)"><i class="bi bi-arrow-left"></i> Cambia
+          +r                                                             
+      389 +                                Bodega</button>               
+      390 +                        </div>                                
+      391 +                                                              
+      392 +                        <div class="table-responsive">        
+      393 +                            <table class="tacsa-table">       
+      394 +                                <thead>                       
+      395 +                                    <tr>                      
+      396 +                                        <th>Código</th>       
+      397 +                                        <th>Descripción</th>  
+      398 +                                        <th>Ubicación</th>    
+      399 +                                        <th>Stock</th>        
+      400 +                                        <th>Fecha de caducidad
+          +</th>                                                         
+      401 +                                        <th>Acción</th>       
+      402 +                                    </tr>                     
+      403 +                                </thead>                      
+      404 +                                <tbody id="inventory-body">   
+      405 +                                </tbody>                      
+      406 +                            </table>                          
+      407 +                        </div>                                
+      408 +                    </div>                                    
+      409                  </div>
+      385 -                <button class="btn-outline btn-sm" onclick="sh
+          -owStep(1)"><i class="bi bi-arrow-left"></i> Cambiar           
+      386 -                    Bodega</button>                           
+      387 -            </div>                                            
+      410  
+      389 -            <div class="table-responsive">                    
+      390 -                <table class="tacsa-table">                   
+      391 -                    <thead>                                   
+      392 -                        <tr>                                  
+      393 -                            <th>Código</th>                   
+      394 -                            <th>Descripción</th>              
+      395 -                            <th>Ubicación</th>                
+      396 -                            <th>Stock</th>                    
+      397 -                            <th>Fecha de caducidad</th>       
+      398 -                            <th>Acción</th>                   
+      399 -                        </tr>                                 
+      400 -                    </thead>                                  
+      401 -                    <tbody id="inventory-body">               
+      402 -                    </tbody>                                  
+      403 -                </table>                                      
+      411 +                <div class="col-md-4">                        
+      412 +                    <div class="tacsa-card h-100">            
+      413 +                        <div class="d-flex justify-content-bet
+          +ween align-items-center mb-3">                                
+      414 +                            <h2 class="h5 m-0">Carrito</h2>   
+      415 +                            <span class="badge-info" id="cart-
+          +count">0</span>                                               
+      416 +                        </div>                                
+      417 +                                                              
+      418 +                        <div class="cart-type-toggle">        
+      419 +                            <button type="button" class="cart-
+          +type-btn active" data-type="OUT"                              
+      420 +                                onclick="setCartType('OUT')">S
+          +alida Simple</button>                                         
+      421 +                            <button type="button" class="cart-
+          +type-btn" data-type="SALE"                                    
+      422 +                                onclick="setCartType('SALE')">
+          +Venta</button>                                                
+      423 +                        </div>                                
+      424 +                                                              
+      425 +                        <div id="cart-empty" class="cart-empty
+          +">                                                            
+      426 +                            Selecciona un producto de la tabla
+          + para agregarlo aquí.                                         
+      427 +                        </div>                                
+      428 +                                                              
+      429 +                        <div id="cart-items"></div>           
+      430 +                                                              
+      431 +                        <button type="button" class="btn-tacsa
+          + w-100 mt-2" id="btn-confirm-cart" disabled                   
+      432 +                            onclick="confirmCart()">Confirmar 
+          +(<span id="cart-confirm-count">0</span>) →</button>           
+      433 +                    </div>                                    
+      434 +                </div>                                        
+      435              </div>
+      436          </div>
+      437  
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 7 lines, removed 1 line
+      438          <div id="panel-step3" style="display:none;">
+      439              <div class="row">
+      440                  <div class="col-md-4">
+      441 -                    <div class="tacsa-card bg-light">         
+      441 +                    <div class="tacsa-card bg-light" id="summa
+          +ry-single">                                                   
+      442                          <h3 class="h6 fw-bold border-bottom pb
+           -2 mb-3">Resumen de Selección</h3>
+      443                          <div class="mb-3">
+      444                              <label class="d-block small text-s
+           econdary">Código:</label>
+     ...
+      461                              <strong class="text-success h5" id
+           ="form-prod-stock">0</strong>
+      462                          </div>
+      463                      </div>
+      464 +                                                              
+      465 +                    <div class="tacsa-card bg-light" id="summa
+          +ry-cart" style="display:none;">                               
+      466 +                        <h3 class="h6 fw-bold border-bottom pb
+          +-2 mb-3">Resumen del Carrito                                  
+      467 +                            (<span id="cart-summary-count">0</
+          +span>)</h3>                                                   
+      468 +                        <div id="cart-summary-list"></div>    
+      469 +                    </div>                                    
+      470                  </div>
+      471                  <div class="col-md-8">
+      472                      <div class="tacsa-card">
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 14 lines, removed 3 lines
+      937                      <td class="fw-bold">${item.quantity}</td>
+      938                      <td class="fw-bold">${item.expirationDate.
+           split(' ')[0]}</td>
+      939                      <td>
+      940 -                        <button class="btn btn-sm btn-outline-
+          -danger" onclick='prepSalida(${JSON.stringify(item)})'>        
+      941 -                            Seleccionar                       
+      942 -                        </button>                             
+      940 +                        <div class="btn-group btn-group-sm">  
+      941 +                            <button type="button" class="btn b
+          +tn-outline-danger" onclick='addToCart(${JSON.stringify(item)})
+          +'>                                                            
+      942 +                                Agregar                       
+      943 +                            </button>                         
+      944 +                            <button type="button" class="btn b
+          +tn-outline-danger dropdown-toggle dropdown-toggle-split"      
+      945 +                                data-bs-toggle="dropdown" aria
+          +-expanded="false">                                            
+      946 +                                <span class="visually-hidden">
+          +Otras acciones</span>                                         
+      947 +                            </button>                         
+      948 +                            <ul class="dropdown-menu">        
+      949 +                                <li><a class="dropdown-item" h
+          +ref="#" onclick='prepSalida(${JSON.stringify(item)}, "TRANSFER
+          +"); return false;'>Traslado a otra sucursal</a></li>          
+      950 +                                <li><a class="dropdown-item" h
+          +ref="#" onclick='prepSalida(${JSON.stringify(item)}, "RELOCATI
+          +ON"); return false;'>Reubicar en otra bodega</a></li>         
+      951 +                                <li><a class="dropdown-item" h
+          +ref="#" onclick='prepSalida(${JSON.stringify(item)}, "LOCATION
+          +_UPDATE"); return false;'>Reubicar en la misma bodega</a></li>
+      952 +                            </ul>                             
+      953 +                        </div>                                
+      954                      </td>
+      955                  </tr>
+      956              `).join('');
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 1 line
+      750  
+      751      <div class="toast-container" id="toast-area"></div>
+      752  
+      753 +    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/
+          +dist/js/bootstrap.bundle.min.js"></script>                    
+      754      <script>
+      755          const selectMovementType = document.getElementById(
+      756              "movementType");
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 186 lines, removed 2 lines
+      966  
+      967          }
+      968  
+      969 -        function prepSalida(product) {                        
+      969 +        function prepSalida(product, forcedType) {            
+      970  
+      971 +            mode = 'single';                                  
+      972 +            document.getElementById('summary-single').style.di
+          +splay = 'block';                                              
+      973 +            document.getElementById('summary-cart').style.disp
+          +lay = 'none';                                                 
+      974 +            document.getElementById('movementType').disabled =
+          + false;                                                       
+      975 +                                                              
+      976              state.product = product;
+      977              //
+      978  
+     ...
+       990              document.getElementById('current-module').textCon
+            tent = product.module ?? 'SM';
+       991              document.getElementById('current-bay').textConten
+            t = product.bay ?? 'SB';
+       992              document.getElementById('current-platform').textC
+            ontent = product.platform ?? 'ST';
+       988 -                                                             
+       993 +                                                             
+       994              // Reset checkbox rehabilitar al seleccionar nuev
+            o producto
+       995              document.getElementById('checkRehabilitar').check
+            ed = false;
+       996              toggleRehabilitar();
+       997 +                                                             
+       998 +            if (forcedType) {                                
+       999 +                selectMovementType.value = forcedType;       
+      1000 +                toggleMovementFields();                      
+      1001 +            }                                                
+      1002 +                                                             
+      1003              showStep(3);
+      1004          }
+      1005  
+      1006 +        // ══════════════════════════════════════════════════
+           +═════════                                                    
+      1007 +        // CARRITO MULTI-PRODUCTO (Salida Simple / Venta)    
+      1008 +        // ══════════════════════════════════════════════════
+           +═════════                                                    
+      1009 +        let cart = [];                                       
+      1010 +        let cartType = 'OUT';                                
+      1011 +        let mode = 'single';                                 
+      1012 +                                                             
+      1013 +        function setCartType(type) {                         
+      1014 +            cartType = type;                                 
+      1015 +            document.querySelectorAll('.cart-type-btn').forEa
+           +ch(btn => {                                                  
+      1016 +                btn.classList.toggle('active', btn.dataset.ty
+           +pe === type);                                                
+      1017 +            });                                              
+      1018 +        }                                                    
+      1019 +                                                             
+      1020 +        function addToCart(item) {                           
+      1021 +            const existing = cart.find(c => c.inventoryId ===
+           + item.inventoryId);                                          
+      1022 +            if (existing) {                                  
+      1023 +                const row = document.getElementById('cart-ite
+           +m-' + item.inventoryId);                                     
+      1024 +                if (row) {                                   
+      1025 +                    row.scrollIntoView({ behavior: 'smooth', 
+           +block: 'center' });                                          
+      1026 +                    row.classList.add('cart-item-flash');    
+      1027 +                    setTimeout(() => row.classList.remove('ca
+           +rt-item-flash'), 600);                                       
+      1028 +                }                                            
+      1029 +                return;                                      
+      1030 +            }                                                
+      1031 +                                                             
+      1032 +            cart.push({                                      
+      1033 +                inventoryId: item.inventoryId,               
+      1034 +                productCode: item.productCode,               
+      1035 +                productName: item.productName,               
+      1036 +                quantity: 1,                                 
+      1037 +                maxStock: item.quantity,                     
+      1038 +                lotNumber: item.lotNumber,                   
+      1039 +                expirationDate: item.expirationDate          
+      1040 +            });                                              
+      1041 +                                                             
+      1042 +            renderCart();                                    
+      1043 +        }                                                    
+      1044 +                                                             
+      1045 +        function removeFromCart(inventoryId) {               
+      1046 +            cart = cart.filter(c => c.inventoryId !== invento
+           +ryId);                                                       
+      1047 +            renderCart();                                    
+      1048 +        }                                                    
+      1049 +                                                             
+      1050 +        function clampQuantity(inventoryId, inputEl) {       
+      1051 +            const item = cart.find(c => c.inventoryId === inv
+           +entoryId);                                                   
+      1052 +            if (!item) return;                               
+      1053 +                                                             
+      1054 +            let value = parseInt(inputEl.value, 10);         
+      1055 +            if (isNaN(value) || value < 1) value = 1;        
+      1056 +            if (value > item.maxStock) value = item.maxStock;
+      1057 +                                                             
+      1058 +            inputEl.value = value;                           
+      1059 +            item.quantity = value;                           
+      1060 +        }                                                    
+      1061 +                                                             
+      1062 +        function renderCart() {                              
+      1063 +            document.getElementById('cart-count').textContent
+           + = cart.length;                                              
+      1064 +            document.getElementById('cart-confirm-count').tex
+           +tContent = cart.length;                                      
+      1065 +            document.getElementById('btn-confirm-cart').disab
+           +led = cart.length === 0;                                     
+      1066 +                                                             
+      1067 +            const emptyEl = document.getElementById('cart-emp
+           +ty');                                                        
+      1068 +            const container = document.getElementById('cart-i
+           +tems');                                                      
+      1069 +                                                             
+      1070 +            if (cart.length === 0) {                         
+      1071 +                emptyEl.style.display = 'block';             
+      1072 +                container.innerHTML = '';                    
+      1073 +                return;                                      
+      1074 +            }                                                
+      1075 +                                                             
+      1076 +            emptyEl.style.display = 'none';                  
+      1077 +            container.innerHTML = cart.map(item => `         
+      1078 +                <div class="cart-item" id="cart-item-${item.i
+           +nventoryId}">                                                
+      1079 +                    <div class="d-flex justify-content-betwee
+           +n align-items-start gap-2">                                  
+      1080 +                        <div>                                
+      1081 +                            <span class="badge-info">${item.p
+           +roductCode}</span>                                           
+      1082 +                            <div class="small fw-bold mt-1">$
+           +{item.productName}</div>                                     
+      1083 +                        </div>                               
+      1084 +                        <button type="button" class="btn-clos
+           +e" aria-label="Quitar"                                       
+      1085 +                            onclick="removeFromCart(${item.in
+           +ventoryId})"></button>                                       
+      1086 +                    </div>                                   
+      1087 +                    <div class="d-flex align-items-center gap
+           +-2 mt-2">                                                    
+      1088 +                        <label class="small text-secondary m-
+           +0">Cant:</label>                                             
+      1089 +                        <input type="number" class="form-cont
+           +rol form-control-sm cart-qty-input" style="width:80px"       
+      1090 +                            value="${item.quantity}" min="1" 
+           +max="${item.maxStock}"                                       
+      1091 +                            oninput="clampQuantity(${item.inv
+           +entoryId}, this)"                                            
+      1092 +                            onblur="clampQuantity(${item.inve
+           +ntoryId}, this)">                                            
+      1093 +                        <span class="small text-secondary">má
+           +x ${item.maxStock}</span>                                    
+      1094 +                    </div>                                   
+      1095 +                </div>                                       
+      1096 +            `).join('');                                     
+      1097 +        }                                                    
+      1098 +                                                             
+      1099 +        function confirmCart() {                             
+      1100 +            if (cart.length === 0) return;                   
+      1101 +                                                             
+      1102 +            mode = 'cart';                                   
+      1103 +            selectMovementType.value = cartType;             
+      1104 +            selectMovementType.disabled = true;              
+      1105 +            toggleMovementFields();                          
+      1106 +                                                             
+      1107 +            document.getElementById('summary-single').style.d
+           +isplay = 'none';                                             
+      1108 +            document.getElementById('summary-cart').style.dis
+           +play = 'block';                                              
+      1109 +            document.getElementById('cart-summary-count').tex
+           +tContent = cart.length;                                      
+      1110 +            document.getElementById('cart-summary-list').inne
+           +rHTML = cart.map(item => `                                   
+      1111 +                <div class="d-flex justify-content-between al
+           +ign-items-center small border-bottom py-2">                  
+      1112 +                    <span><span class="badge-info">${item.pro
+           +ductCode}</span> ${item.productName}</span>                  
+      1113 +                    <strong>${item.quantity}</strong>        
+      1114 +                </div>                                       
+      1115 +            `).join('');                                     
+      1116 +                                                             
+      1117 +            showStep(3);                                     
+      1118 +        }                                                    
+      1119 +                                                             
+      1120 +        async function submitCart() {                        
+      1121 +            const form = document.getElementById('formSalida'
+           +);                                                           
+      1122 +            const btn = document.getElementById('btn-submit')
+           +;                                                            
+      1123 +            const sharedFields = new FormData(form);         
+      1124 +            sharedFields.delete('warehouseInventoryId');     
+      1125 +            sharedFields.delete('quantity');                 
+      1126 +                                                             
+      1127 +            const total = cart.length;                       
+      1128 +            let successCount = 0;                            
+      1129 +            let failCount = 0;                               
+      1130 +                                                             
+      1131 +            btn.disabled = true;                             
+      1132 +                                                             
+      1133 +            for (let i = 0; i < total; i++) {                
+      1134 +                const item = cart[i];                        
+      1135 +                btn.textContent = `Enviando... (${i + 1}/${to
+           +tal})`;                                                      
+      1136 +                                                             
+      1137 +                const fd = new FormData();                   
+      1138 +                for (const [key, value] of sharedFields.entri
+           +es()) {                                                      
+      1139 +                    fd.append(key, value);                   
+      1140 +                }                                            
+      1141 +                fd.set('warehouseInventoryId', item.inventory
+           +Id);                                                         
+      1142 +                fd.set('quantity', item.quantity);           
+      1143 +                                                             
+      1144 +                try {                                        
+      1145 +                    const response = await fetch(form.action,
+           + {                                                           
+      1146 +                        method: 'POST',                      
+      1147 +                        headers: { 'X-Requested-With': 'XMLHt
+           +tpRequest' },                                                
+      1148 +                        body: fd                             
+      1149 +                    });                                      
+      1150 +                                                             
+      1151 +                    const html = await response.text();      
+      1152 +                    const doc = new DOMParser().parseFromStri
+           +ng(html, 'text/html');                                       
+      1153 +                    const hasError = doc.querySelector('.aler
+           +t-danger');                                                  
+      1154 +                                                             
+      1155 +                    if (hasError) {                          
+      1156 +                        failCount++;                         
+      1157 +                    } else {                                 
+      1158 +                        successCount++;                      
+      1159 +                    }                                        
+      1160 +                } catch (error) {                            
+      1161 +                    failCount++;                             
+      1162 +                }                                            
+      1163 +            }                                                
+      1164 +                                                             
+      1165 +            btn.disabled = false;                            
+      1166 +            btn.textContent = 'Registrar Salida';            
+      1167 +                                                             
+      1168 +            cart = [];                                       
+      1169 +            renderCart();                                    
+      1170 +            selectMovementType.disabled = false;             
+      1171 +                                                             
+      1172 +            notify(`Carrito procesado: ${successCount} de ${t
+           +otal} registrados correctamente` +                           
+      1173 +                (failCount ? `, ${failCount} con error.` : '.
+           +'));                                                         
+      1174 +                                                             
+      1175 +            showStep(2);                                     
+      1176 +            renderInventory(state.warehouseId);              
+      1177 +        }                                                    
+      1178 +                                                             
+      1179          function processSalida(e) {
+      1180              alert(JSON.stringify(state.product));
+      1181  
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 7 lines
+      760              toggleMovementFields();
+      761          });
+      762  
+      763 +        document.getElementById('formSalida').addEventListener
+          +('submit', function(event) {                                  
+      764 +            if (mode === 'cart') {                            
+      765 +                event.preventDefault();                       
+      766 +                submitCart();                                 
+      767 +            }                                                 
+      768 +        });                                                   
+      769  
+      770 +                                                              
+      771          function toggleMovementFields() {
+      772              const movementType = document.getElementById('move
+           mentType').value;
+      773              const fieldsSale = document.getElementById('fields
+           -sale');
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 1 line, removed 1 line
+      493                                          </select>
+      494                                      </div>
+      495  
+      496 -                                    <div class="col-md-6">    
+      496 +                                    <div class="col-md-6" id="
+          +field-quantity">                                              
+      497                                          <label class="form-lab
+           el small fw-bold">Cantidad</label>
+      498                                          <input type="number" n
+           ame="quantity" id="input-quantity"
+      499                                              class="form-contro
+           l" required min="1">
+
+● Ahora actualizo confirmCart() y prepSalida() para ocultar/restaurar ese campo
+  compartido de cantidad (ya que en modo carrito la cantidad vive por-item):
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 2 lines
+      979              document.getElementById('summary-single').style.di
+           splay = 'block';
+      980              document.getElementById('summary-cart').style.disp
+           lay = 'none';
+      981              document.getElementById('movementType').disabled =
+            false;
+      982 +            document.getElementById('field-quantity').style.di
+          +splay = 'block';                                              
+      983 +            document.getElementById('input-quantity').required
+          + = true;                                                      
+      984  
+      985              state.product = product;
+      986              //
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 3 lines
+      1112              selectMovementType.value = cartType;
+      1113              selectMovementType.disabled = true;
+      1114              toggleMovementFields();
+      1115 +            document.getElementById('field-quantity').style.d
+           +isplay = 'none';                                             
+      1116 +            document.getElementById('input-quantity').require
+           +d = false;                                                   
+      1117 +            document.getElementById('input-quantity').value =
+           + '1';                                                        
+      1118  
+      1119              document.getElementById('summary-single').style.d
+            isplay = 'none';
+      1120              document.getElementById('summary-cart').style.dis
+            play = 'block';
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 3 lines
+      1135              const sharedFields = new FormData(form);
+      1136              sharedFields.delete('warehouseInventoryId');
+      1137              sharedFields.delete('quantity');
+      1138 +            // El <select> de tipo de movimiento está disable
+           +d en modo carrito                                            
+      1139 +            // (para que no se edite), y los campos disabled 
+           +no viajan en FormData.                                       
+      1140 +            sharedFields.set('movement_type', cartType);     
+      1141  
+      1142              const total = cart.length;
+      1143              let successCount = 0;
+
+  Read 1 file (ctrl+o to expand)
+
+● Encontré un caso límite: si el fetch recibe un error HTTP real (419 CSRF, 500,
+  etc.) en vez de la redirección normal de Laravel, mi parser de HTML no lo
+  detectaría como fallo. Lo corrijo:
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 5 lines
+      1163                          body: fd
+      1164                      });
+      1165  
+      1166 +                    if (!response.ok) {                      
+      1167 +                        failCount++;                         
+      1168 +                        continue;                            
+      1169 +                    }                                        
+      1170 +                                                             
+      1171                      const html = await response.text();
+      1172                      const doc = new DOMParser().parseFromStri
+            ng(html, 'text/html');
+      1173                      const hasError = doc.querySelector('.aler
+            t-danger');
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Implementación completa. Resumen de lo que cambió en
+  resources/views/module/output/create.blade.php (único archivo tocado, sin
+  cambios de backend):
+
+  Estructura (paso 2) — #panel-step2 ahora es .row con tabla (col-md-8) +
+  carrito (col-md-4), tal como se aprobó.
+
+  Carrito: toggle de tipo (Salida Simple / Venta), estado vacío con mensaje
+  accionable, badge contador (.badge-info existente, sin inventar color nuevo),
+  items con cantidad clampeada al stock del producto (en oninput y onblur, no
+  solo vía atributo HTML), botón remover, y CTA "Confirmar (N) →" deshabilitado
+  con carrito vacío.
+
+  Fila de la tabla: botón dividido de Bootstrap — "Agregar" (va al carrito) +
+  dropdown con Traslado / Reubicación de bodega / Reubicación interna (van al
+  flujo de un solo producto sin tocarlo). Tuve que agregar el <script> de
+  Bootstrap JS bundle que el archivo no cargaba — sin él el dropdown no habría
+  funcionado.
+
+  Paso 3: nueva tarjeta "Resumen del Carrito" que reemplaza el resumen de un
+  solo producto cuando se viene del carrito; el campo compartido de Cantidad se
+  oculta (la cantidad ya vive por-item).
+
+  Envío: como el backend procesa un item por request, el JS hace N peticiones
+  POST secuenciales a la ruta /output/process ya existente (una por producto),
+  reutilizando los campos compartidos del formulario. Corregí dos bugs reales
+  sobre la marcha: (1) el <select> de tipo de movimiento queda disabled en modo
+  carrito para que no se edite, pero los campos disabled no viajan en FormData —
+  lo fuerzo explícitamente; (2) si una petición falla con un error HTTP real
+  (no una redirección normal de Laravel), ahora se cuenta como fallo en vez de
+  leerse como éxito.
+
+  Limitación conocida a flagear: como no se tocó PHP, la detección de
+  éxito/fallo por item se hace parseando el HTML de la respuesta buscando
+  .alert-danger — funciona porque el controlador ya redirige con
+  withErrors()/with('success'), pero es más frágil que si
+  OutputController::processOutput devolviera JSON cuando detecta
+  X-Requested-With: XMLHttpRequest. Si más adelante quieres que sea más robusto,
+  ese sería un cambio pequeño y aislado en el controlador.
+✻ Sautéed for 4m 40s
+
+❯ Fijate que lo que tu creaste está bien hasta un cierto punto pero no me gusto 
+  que eliminastes la funcionalidades pasadas por favor lo que estaba antes      
+  dejalo tal cual lo del carrito oye está muy bien                              
+
+● Tienes razón — el botón dividido con menú reemplazó al "Seleccionar" original,
+  y eso le quitó al operador la posibilidad de ir directo al paso 3 y elegir
+  libremente cualquier tipo de movimiento (incluyendo Venta o Salida Simple de
+  un solo producto) como podía hacer antes. Lo corrijo: dejo "Seleccionar"
+  exactamente como estaba, y agrego el carrito como un botón aparte, no como
+  reemplazo.
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 5 lines, removed 11 lines
+      945                      <td class="fw-bold">${item.quantity}</td>
+      946                      <td class="fw-bold">${item.expirationDate.
+           split(' ')[0]}</td>
+      947                      <td>
+      948 -                        <div class="btn-group btn-group-sm">  
+      949 -                            <button type="button" class="btn b
+          -tn-outline-danger" onclick='addToCart(${JSON.stringify(item)})
+          -'>                                                            
+      950 -                                Agregar                       
+      948 +                        <div class="d-flex gap-1">            
+      949 +                            <button class="btn btn-sm btn-outl
+          +ine-danger" onclick='prepSalida(${JSON.stringify(item)})'>    
+      950 +                                Seleccionar                   
+      951                              </button>
+      952 -                            <button type="button" class="btn b
+          -tn-outline-danger dropdown-toggle dropdown-toggle-split"      
+      953 -                                data-bs-toggle="dropdown" aria
+          --expanded="false">                                            
+      954 -                                <span class="visually-hidden">
+          -Otras acciones</span>                                         
+      952 +                            <button type="button" class="btn b
+          +tn-sm btn-outline-secondary" onclick='addToCart(${JSON.stringi
+          +fy(item)})'>                                                  
+      953 +                                + Carrito                     
+      954                              </button>
+      956 -                            <ul class="dropdown-menu">        
+      957 -                                <li><a class="dropdown-item" h
+          -ref="#" onclick='prepSalida(${JSON.stringify(item)}, "TRANSFER
+          -"); return false;'>Traslado a otra sucursal</a></li>          
+      958 -                                <li><a class="dropdown-item" h
+          -ref="#" onclick='prepSalida(${JSON.stringify(item)}, "RELOCATI
+          -ON"); return false;'>Reubicar en otra bodega</a></li>         
+      959 -                                <li><a class="dropdown-item" h
+          -ref="#" onclick='prepSalida(${JSON.stringify(item)}, "LOCATION
+          -_UPDATE"); return false;'>Reubicar en la misma bodega</a></li>
+      960 -                            </ul>                             
+      955                          </div>
+      956                      </td>
+      957                  </tr>
+
+● Ahora revierto prepSalida a su firma y comportamiento original (sin
+  forcedType, que ya no hace falta):
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 1 line, removed 1 line
+      967  
+      968          }
+      969  
+      970 -        function prepSalida(product, forcedType) {            
+      970 +        function prepSalida(product) {                        
+      971  
+      972              mode = 'single';
+      973              document.getElementById('summary-single').style.di
+           splay = 'block';
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 5 lines
+       998              document.getElementById('checkRehabilitar').check
+            ed = false;
+       999              toggleRehabilitar();
+      1000  
+      1001 -            if (forcedType) {                                
+      1002 -                selectMovementType.value = forcedType;       
+      1003 -                toggleMovementFields();                      
+      1004 -            }                                                
+      1005 -                                                             
+      1001              showStep(3);
+      1002          }
+      1003  
+
+● Y quito el script de Bootstrap JS que agregué solo para el dropdown que ya no
+  existe (el original no lo tenía, no hace falta reintroducir una dependencia
+  que nada más usa):
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 1 line
+      750  
+      751      <div class="toast-container" id="toast-area"></div>
+      752  
+      753 -    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/
+          -dist/js/bootstrap.bundle.min.js"></script>                    
+      753      <script>
+      754          const selectMovementType = document.getElementById(
+      755              "movementType");
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Limpio, sin rastros del split button ni del script extra. Resumen del ajuste:
+
+  - "Seleccionar" vuelve a ser exactamente como antes: un clic va directo al
+  paso 3 con el <select> de tipo de movimiento libre (Salida Simple, Venta,
+  Traslado, Reubicación de bodega, Reubicación interna) — ya no hay menú que
+  fuerce un tipo.
+  - "+ Carrito" es ahora un botón independiente al lado, gris
+  (btn-outline-secondary, no compite visualmente con el rojo de "Seleccionar"),
+  que agrega el producto al carrito sin abandonar el paso 2.
+  - Quité el <script> de Bootstrap JS bundle y el dropdown que solo existían
+  para el flujo que revertí — nada de dependencias nuevas sin uso.
+
+  El resto (sidebar del carrito, clamp de cantidad, envío secuencial a
+  /output/process, resumen del carrito en el paso 3) queda igual, tal como te
+  gustó.
+
+✻ Brewed for 1m 36s
+
+❯ Mmmm no veo que no comprendiste al hacer click en confirmCart() debe          
+  mostraste el menu de anes lo que hicistes ahorita no me gusto para nada       
+
+● User answered Claude's questions:
+  ⎿  · Cuando doy click en 'Confirmar' del carrito y pasamos al paso 3, ¿qué 
+     esperas ver exactamente? Ahora mismo deshabilito el select de 'Tipo de 
+     Movimiento' (lo dejo fijo en Salida/Venta según el toggle del carrito) y 
+     oculto el campo de Cantidad compartido. → El select de Tipo de Movimiento 
+     debe quedar editable, igual que siempre
+
+● Entendido — el select de Tipo de Movimiento no debe tocarse, solo
+  preseleccionar el valor como conveniencia pero dejándolo totalmente editable,
+  exactamente como en el flujo de siempre.
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 1 line
+      1098  
+      1099              mode = 'cart';
+      1100              selectMovementType.value = cartType;
+      1101 -            selectMovementType.disabled = true;              
+      1101              toggleMovementFields();
+      1102              document.getElementById('field-quantity').style.d
+            isplay = 'none';
+      1103              document.getElementById('input-quantity').require
+            d = false;
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 3 lines, removed 3 lines
+      1122              const sharedFields = new FormData(form);
+      1123              sharedFields.delete('warehouseInventoryId');
+      1124              sharedFields.delete('quantity');
+      1125 -            // El <select> de tipo de movimiento está disable
+           -d en modo carrito                                            
+      1126 -            // (para que no se edite), y los campos disabled 
+           -no viajan en FormData.                                       
+      1127 -            sharedFields.set('movement_type', cartType);     
+      1125 +            // El select de Tipo de Movimiento queda editable
+           + (igual que en el                                            
+      1126 +            // flujo de un solo producto), así que se respeta
+           + lo que el                                                   
+      1127 +            // operador haya elegido ahí al momento de confir
+           +mar.                                                         
+      1128  
+      1129              const total = cart.length;
+      1130              let successCount = 0;
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 1 line
+      1174  
+      1175              cart = [];
+      1176              renderCart();
+      1177 -            selectMovementType.disabled = false;             
+      1177  
+      1178              notify(`Carrito procesado: ${successCount} de ${t
+            otal} registrados correctamente` +
+      1179                  (failCount ? `, ${failCount} con error.` : '.
+            '));
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Listo — el <select> de Tipo de Movimiento ya no se deshabilita en ningún caso,
+  solo se preselecciona como conveniencia (según el toggle Salida/Venta del
+  carrito) pero queda 100% editable, igual que en el flujo de siempre. Al
+  confirmar el carrito, el envío ahora respeta el valor real que el operador
+  deje elegido en ese select al momento de enviar, en vez de forzar el tipo
+  silenciosamente.
+
+✻ Crunched for 1m 24s
+
+❯ Si ok pero no entiendo porque ahora pusistes un boton de carrito si antes lo  
+  habías hecho con seleccionar se iba anidando al carrito                       
+
+● Me hice bolas con los cambios de ida y vuelta — mejor te pregunto directo para
+  no volver a fallarle.
+
+● User answered Claude's questions:
+  ⎿  · En la fila de la tabla del paso 2, ¿cuántos botones de acción quieres y 
+     qué hace cada uno? → Un solo botón que agrega al carrito (Recomendado)
+     · Si el carrito absorbe el clic principal de la fila (opción de un solo 
+     botón), ¿cómo quieres llegar al flujo de Traslado / Reubicación de bodega /
+     Reubicación interna para un solo producto? → Ese producto se agrega al 
+     carrito y el tipo se elige después en el paso 3
+● Voy a dejar un solo botón "Seleccionar" por fila que agrega directo al
+  carrito, sin acceso aparte por fila a Traslado/Reubicación (esos tipos se
+  eligen después en el select del paso 3, ya editable).
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 3 lines, removed 8 lines
+      944                      <td class="fw-bold">${item.quantity}</td>
+      945                      <td class="fw-bold">${item.expirationDate.
+           split(' ')[0]}</td>
+      946                      <td>
+      947 -                        <div class="d-flex gap-1">            
+      948 -                            <button class="btn btn-sm btn-outl
+          -ine-danger" onclick='prepSalida(${JSON.stringify(item)})'>    
+      949 -                                Seleccionar                   
+      950 -                            </button>                         
+      951 -                            <button type="button" class="btn b
+          -tn-sm btn-outline-secondary" onclick='addToCart(${JSON.stringi
+          -fy(item)})'>                                                  
+      952 -                                + Carrito                     
+      953 -                            </button>                         
+      954 -                        </div>                                
+      947 +                        <button class="btn btn-sm btn-outline-
+          +danger" onclick='addToCart(${JSON.stringify(item)})'>         
+      948 +                            Seleccionar                       
+      949 +                        </button>                             
+      950                      </td>
+      951                  </tr>
+      952              `).join('');
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Confirmado: ahora hay un solo botón "Seleccionar" por fila que agrega directo
+  al carrito. prepSalida() queda definida pero sin usarse desde la tabla (no la
+  borré, por si la quieres reutilizar después) — nada la llama, así que no
+  afecta el flujo actual. Todo tipo de movimiento (incluyendo Traslado,
+  Reubicación de bodega y Reubicación interna) se elige después en el <select>
+  del paso 3, que ya quedó editable como pediste.
+
+✻ Worked for 1m 49s
+
+※ recap: We're building a multi-product cart for the "Salida de las Bodegas" wizard in create.blade.php. Just simplified step 2 to one "Seleccionar" button per row that adds to cart; next is for you to test the flow in-browser and confirm it works as expected.
+
+❯ Excelente solo que hay cosas que no me gustaron que en la ventanita del       
+  carrito los 2 buttons que tu pusistes cart-type-btn active y cart-type-btn    
+  (salida simple, venta) esos quitalos no tiene sentido                         
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 7 lines
+      415                              <span class="badge-info" id="cart-
+           count">0</span>
+      416                          </div>
+      417  
+      418 -                        <div class="cart-type-toggle">        
+      419 -                            <button type="button" class="cart-
+          -type-btn active" data-type="OUT"                              
+      420 -                                onclick="setCartType('OUT')">S
+          -alida Simple</button>                                         
+      421 -                            <button type="button" class="cart-
+          -type-btn" data-type="SALE"                                    
+      422 -                                onclick="setCartType('SALE')">
+          -Venta</button>                                                
+      423 -                        </div>                                
+      424 -                                                              
+      418                          <div id="cart-empty" class="cart-empty
+           ">
+      419                              Selecciona un producto de la tabla
+            para agregarlo aquí.
+      420                          </div>
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 8 lines
+       992          // CARRITO MULTI-PRODUCTO (Salida Simple / Venta)
+       993          // ══════════════════════════════════════════════════
+            ═════════
+       994          let cart = [];
+       995 -        let cartType = 'OUT';                                
+       995          let mode = 'single';
+       996  
+       998 -        function setCartType(type) {                         
+       999 -            cartType = type;                                 
+      1000 -            document.querySelectorAll('.cart-type-btn').forEa
+           -ch(btn => {                                                  
+      1001 -                btn.classList.toggle('active', btn.dataset.ty
+           -pe === type);                                                
+      1002 -            });                                              
+      1003 -        }                                                    
+      1004 -                                                             
+       997          function addToCart(item) {
+       998              const existing = cart.find(c => c.inventoryId ===
+             item.inventoryId);
+       999              if (existing) {
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 1 line
+      1077              if (cart.length === 0) return;
+      1078  
+      1079              mode = 'cart';
+      1080 -            selectMovementType.value = cartType;             
+      1080              toggleMovementFields();
+      1081              document.getElementById('field-quantity').style.d
+            isplay = 'none';
+      1082              document.getElementById('input-quantity').require
+            d = false;
+
+● Ahora limpio el CSS que quedó sin uso (.cart-type-toggle, .cart-type-btn):
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Removed 24 lines
+      243          }
+      244  
+      245          /* CARRITO MULTI-PRODUCTO */
+      246 -        .cart-type-toggle {                                   
+      247 -            display: flex;                                    
+      248 -            gap: 0.5rem;                                      
+      249 -            margin-bottom: 1rem;                              
+      250 -        }                                                     
+      251 -                                                              
+      252 -        .cart-type-btn {                                      
+      253 -            flex: 1;                                          
+      254 -            border: 1px solid var(--border-color);            
+      255 -            background: #fff;                                 
+      256 -            border-radius: 8px;                               
+      257 -            padding: 0.5rem;                                  
+      258 -            font-size: 0.8125rem;                             
+      259 -            font-weight: 600;                                 
+      260 -            color: var(--text-secondary);                     
+      261 -            transition: 0.2s;                                 
+      262 -        }                                                     
+      263 -                                                              
+      264 -        .cart-type-btn.active {                               
+      265 -            border-color: var(--tacsa-red);                   
+      266 -            color: var(--tacsa-red);                          
+      267 -            background: var(--tacsa-red-light);               
+      268 -        }                                                     
+      269 -                                                              
+      246          .cart-empty {
+      247              text-align: center;
+      248              padding: 2rem 1rem;
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Listo, sin rastros. El toggle "Salida Simple / Venta" del carrito desapareció
+  por completo (markup, JS y CSS) — el tipo de movimiento se define solo en el
+  <select> del paso 3, que ya es editable libremente.
+
+✻ Brewed for 41s
+
+❯ Otra cosa que no gusto fue que en el apartado de la reubicación interna  que  
+  se encargaba de mostrar Ubicación actual del lote: checa eso será bueno que   
+  tuviera la opción de iterar item por item permitiendo visualizar su ubicación 
+  de cada lote no se si me comprendiste                                         
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Buen punto — antes ese bloque solo mostraba la ubicación de UN producto
+  (poblado por prepSalida, que ya no se usa). Ahora que el carrito puede tener
+  varios productos, cada uno con su propia ubicación actual, necesito un
+  navegador "producto X de N" dentro de esa sección. También encontré un bug
+  real preexistente en el archivo: los IDs input-new-rack/input-new-level
+  estaban duplicados entre la sección de Reubicación de bodega y esta de
+  Reubicación interna — lo corrijo de paso porque si no, mi código nuevo
+  apuntaría al campo equivocado.
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 10 lines
+      612                                              bodega
+      613                                          </div>
+      614  
+      615 +                                        <div class="d-flex jus
+          +tify-content-between align-items-center mb-3">                
+      616 +                                            <strong class="sma
+          +ll" id="location-update-position">Producto 1 de 1</strong>    
+      617 +                                            <div class="btn-gr
+          +oup btn-group-sm">                                            
+      618 +                                                <button type="
+          +button" class="btn btn-outline-secondary" id="btn-location-pre
+          +v"                                                            
+      619 +                                                    onclick="g
+          +oToLocationUpdateItem(-1)">&larr; Anterior</button>           
+      620 +                                                <button type="
+          +button" class="btn btn-outline-secondary" id="btn-location-nex
+          +t"                                                            
+      621 +                                                    onclick="g
+          +oToLocationUpdateItem(1)">Siguiente &rarr;</button>           
+      622 +                                            </div>            
+      623 +                                        </div>                
+      624 +                                                              
+      625                                          {{-- Ubicación actual 
+           (referencia) --}}
+      626                                          <div class="mb-3 p-3"
+      627                                              style="background:
+           #f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 16 lines, removed 11 lines
+      642                                              </div>
+      643                                          </div>
+      644  
+      645 -                                        {{-- Nueva ubicación -
+          --}}                                                           
+      645 +                                        {{-- Nueva ubicación (
+          +por producto — ver navegador arriba) --}}                     
+      646                                          <p class="small fw-bol
+           d text-secondary mb-2">Nueva ubicación:</p>
+      647                                          <div class="row g-3">
+      648                                              <div class="col-md
+           -6">
+      649                                                  <label class="
+           form-label small fw-bold">Nuevo Rack</label>
+      650 -                                                <input type="t
+          -ext" name="new_rack_r" id="input-new-rack"                    
+      651 -                                                    class="for
+          -m-control" placeholder="Ej: A-01">                            
+      650 +                                                <input type="t
+          +ext" id="input-lu-rack"                                       
+      651 +                                                    class="for
+          +m-control" placeholder="Ej: A-01"                             
+      652 +                                                    onchange="
+          +saveCurrentLocationUpdateItem()">                             
+      653                                              </div>
+      654                                              <div class="col-md
+           -6">
+      655                                                  <label class="
+           form-label small fw-bold">Nuevo Nivel</label>
+      655 -                                                <input type="n
+          -umber" name="new_level_r" id="input-new-level"                
+      656 -                                                    class="for
+          -m-control" min="1" placeholder="Ej: 1">                       
+      656 +                                                <input type="n
+          +umber" id="input-lu-level"                                    
+      657 +                                                    class="for
+          +m-control" min="1" placeholder="Ej: 1"                        
+      658 +                                                    onchange="
+          +saveCurrentLocationUpdateItem()">                             
+      659                                              </div>
+      660                                              <div class="col-md
+           -4">
+      661                                                  <label class="
+           form-label small fw-bold">Módulo</label>
+      660 -                                                <input type="n
+          -umber" name="new_module_r" id="input-new-module"              
+      661 -                                                    class="for
+          -m-control" min="1" placeholder="Ej: 1">                       
+      662 +                                                <input type="n
+          +umber" id="input-lu-module"                                   
+      663 +                                                    class="for
+          +m-control" min="1" placeholder="Ej: 1"                        
+      664 +                                                    onchange="
+          +saveCurrentLocationUpdateItem()">                             
+      665                                              </div>
+      666                                              <div class="col-md
+           -4">
+      667                                                  <label class="
+           form-label small fw-bold">Bahía</label>
+      665 -                                                <input type="n
+          -umber" name="new_bay_r" id="input-new-bay"                    
+      666 -                                                    class="for
+          -m-control" min="1" placeholder="Ej: 1">                       
+      668 +                                                <input type="n
+          +umber" id="input-lu-bay"                                      
+      669 +                                                    class="for
+          +m-control" min="1" placeholder="Ej: 1"                        
+      670 +                                                    onchange="
+          +saveCurrentLocationUpdateItem()">                             
+      671                                              </div>
+      672                                              <div class="col-md
+           -4">
+      673                                                  <label class="
+           form-label small fw-bold">Tarima</label>
+      670 -                                                <input type="n
+          -umber" name="new_platform_r" id="input-new-platform"          
+      671 -                                                    class="for
+          -m-control" min="1" placeholder="Ej: 1">                       
+      674 +                                                <input type="n
+          +umber" id="input-lu-platform"                                 
+      675 +                                                    class="for
+          +m-control" min="1" placeholder="Ej: 1"                        
+      676 +                                                    onchange="
+          +saveCurrentLocationUpdateItem()">                             
+      677                                              </div>
+      678                                          </div>
+      679                                      </div>
+
+● Ahora actualizo toggleMovementFields() para usar los nuevos IDs y disparar el
+  render del navegador por-item:
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 5 lines, removed 5 lines
+      804                      fieldsLocationUpdate.classList.remove('d-n
+           one');
+      805                      document.getElementById('input-quantity').
+           disabled = true;
+      806                      document.getElementById('input-quantity').
+           value = 0;
+      807 -                    document.getElementById('input-new-rack').
+          -required = false;                                             
+      808 -                    document.getElementById('input-new-level')
+          -.required = false;                                            
+      809 -                    document.getElementById('input-new-module'
+          -).required = true;                                            
+      810 -                    document.getElementById('input-new-bay').r
+          -equired = true;                                               
+      811 -                    document.getElementById('input-new-platfor
+          -m').required = true;                                          
+      807 +                    document.getElementById('input-lu-module')
+          +.required = true;                                             
+      808 +                    document.getElementById('input-lu-bay').re
+          +quired = true;                                                
+      809 +                    document.getElementById('input-lu-platform
+          +').required = true;                                           
+      810 +                    locationUpdateIndex = 0;                  
+      811 +                    renderLocationUpdateItem();               
+      812                      btnSubmit.textContent = 'Actualizar Ubicac
+           ión';
+      813                      break;
+      814                  default:
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 63 lines, removed 1 line
+      1004                  quantity: 1,
+      1005                  maxStock: item.quantity,
+      1006                  lotNumber: item.lotNumber,
+      1007 -                expirationDate: item.expirationDate          
+      1007 +                expirationDate: item.expirationDate,         
+      1008 +                rack: item.rack,                             
+      1009 +                level: item.level,                           
+      1010 +                module: item.module,                         
+      1011 +                bay: item.bay,                               
+      1012 +                platform: item.platform,                     
+      1013 +                newLocation: null                            
+      1014              });
+      1015  
+      1016              renderCart();
+     ...
+      1019          function removeFromCart(inventoryId) {
+      1020              cart = cart.filter(c => c.inventoryId !== invento
+            ryId);
+      1021              renderCart();
+      1022 +                                                             
+      1023 +            if (locationUpdateIndex >= cart.length) {        
+      1024 +                locationUpdateIndex = Math.max(0, cart.length
+           + - 1);                                                       
+      1025 +            }                                                
+      1026          }
+      1027  
+      1028 +        // ══════════════════════════════════════════════════
+           +═════════                                                    
+      1029 +        // REUBICACIÓN INTERNA — navegar la ubicación actual/
+           +nueva                                                        
+      1030 +        // por cada producto del carrito, uno a la vez       
+      1031 +        // ══════════════════════════════════════════════════
+           +═════════                                                    
+      1032 +        let locationUpdateIndex = 0;                         
+      1033 +                                                             
+      1034 +        function renderLocationUpdateItem() {                
+      1035 +            if (cart.length === 0) return;                   
+      1036 +                                                             
+      1037 +            if (locationUpdateIndex >= cart.length) locationU
+           +pdateIndex = cart.length - 1;                                
+      1038 +            if (locationUpdateIndex < 0) locationUpdateIndex 
+           += 0;                                                         
+      1039 +                                                             
+      1040 +            const item = cart[locationUpdateIndex];          
+      1041 +                                                             
+      1042 +            document.getElementById('location-update-position
+           +').textContent =                                             
+      1043 +                `Producto ${locationUpdateIndex + 1} de ${car
+           +t.length}: ${item.productCode} — ${item.productName}`;       
+      1044 +                                                             
+      1045 +            document.getElementById('current-rack').textConte
+           +nt = item.rack ?? 'SR';                                      
+      1046 +            document.getElementById('current-level').textCont
+           +ent = item.level ?? 'SN';                                    
+      1047 +            document.getElementById('current-module').textCon
+           +tent = item.module ?? 'SM';                                  
+      1048 +            document.getElementById('current-bay').textConten
+           +t = item.bay ?? 'SB';                                        
+      1049 +            document.getElementById('current-platform').textC
+           +ontent = item.platform ?? 'ST';                              
+      1050 +                                                             
+      1051 +            const newLocation = item.newLocation || {};      
+      1052 +            document.getElementById('input-lu-rack').value = 
+           +newLocation.rack ?? '';                                      
+      1053 +            document.getElementById('input-lu-level').value =
+           + newLocation.level ?? '';                                    
+      1054 +            document.getElementById('input-lu-module').value 
+           += newLocation.module ?? '';                                  
+      1055 +            document.getElementById('input-lu-bay').value = n
+           +ewLocation.bay ?? '';                                        
+      1056 +            document.getElementById('input-lu-platform').valu
+           +e = newLocation.platform ?? '';                              
+      1057 +                                                             
+      1058 +            document.getElementById('btn-location-prev').disa
+           +bled = locationUpdateIndex === 0;                            
+      1059 +            document.getElementById('btn-location-next').disa
+           +bled = locationUpdateIndex === cart.length - 1;              
+      1060 +        }                                                    
+      1061 +                                                             
+      1062 +        function saveCurrentLocationUpdateItem() {           
+      1063 +            if (cart.length === 0) return;                   
+      1064 +                                                             
+      1065 +            cart[locationUpdateIndex].newLocation = {        
+      1066 +                rack: document.getElementById('input-lu-rack'
+           +).value,                                                     
+      1067 +                level: document.getElementById('input-lu-leve
+           +l').value,                                                   
+      1068 +                module: document.getElementById('input-lu-mod
+           +ule').value,                                                 
+      1069 +                bay: document.getElementById('input-lu-bay').
+           +value,                                                       
+      1070 +                platform: document.getElementById('input-lu-p
+           +latform').value                                              
+      1071 +            };                                               
+      1072 +        }                                                    
+      1073 +                                                             
+      1074 +        function goToLocationUpdateItem(delta) {             
+      1075 +            saveCurrentLocationUpdateItem();                 
+      1076 +            locationUpdateIndex += delta;                    
+      1077 +            renderLocationUpdateItem();                      
+      1078 +        }                                                    
+      1079 +                                                             
+      1080          function clampQuantity(inventoryId, inputEl) {
+      1081              const item = cart.find(c => c.inventoryId === inv
+            entoryId);
+      1082              if (!item) return;
+● Ahora actualizo submitCart() para que, cuando el tipo sea Reubicación Interna,
+  cada producto envíe su propia ubicación nueva en vez de un valor compartido:
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 14 lines
+      1151          async function submitCart() {
+      1152              const form = document.getElementById('formSalida'
+            );
+      1153              const btn = document.getElementById('btn-submit')
+            ;
+      1154 +            const movementType = selectMovementType.value;   
+      1155 +                                                             
+      1156 +            // Reubicación Interna: la ubicación nueva es por
+           + producto, no                                                
+      1157 +            // compartida — guarda lo que esté en pantalla de
+           +l item actual                                                
+      1158 +            // antes de armar los envíos.                    
+      1159 +            if (movementType === 'LOCATION_UPDATE') {        
+      1160 +                saveCurrentLocationUpdateItem();             
+      1161 +            }                                                
+      1162 +                                                             
+      1163              const sharedFields = new FormData(form);
+      1164              sharedFields.delete('warehouseInventoryId');
+      1165              sharedFields.delete('quantity');
+      1166 +            sharedFields.delete('new_rack_r');               
+      1167 +            sharedFields.delete('new_level_r');              
+      1168 +            sharedFields.delete('new_module_r');             
+      1169 +            sharedFields.delete('new_bay_r');                
+      1170 +            sharedFields.delete('new_platform_r');           
+      1171              // El select de Tipo de Movimiento queda editable
+             (igual que en el
+      1172              // flujo de un solo producto), así que se respeta
+             lo que el
+      1173              // operador haya elegido ahí al momento de confir
+            mar.
+
+● Update(resources\views\module\output\create.blade.php)
+  ⎿  Added 9 lines
+      1189                  fd.set('warehouseInventoryId', item.inventory
+            Id);
+      1190                  fd.set('quantity', item.quantity);
+      1191  
+      1192 +                if (movementType === 'LOCATION_UPDATE') {    
+      1193 +                    const newLocation = item.newLocation || {
+           +};                                                           
+      1194 +                    fd.set('new_rack_r', newLocation.rack ?? 
+           +'');                                                         
+      1195 +                    fd.set('new_level_r', newLocation.level ?
+           +? '');                                                       
+      1196 +                    fd.set('new_module_r', newLocation.module
+           + ?? '');                                                     
+      1197 +                    fd.set('new_bay_r', newLocation.bay ?? ''
+           +);                                                           
+      1198 +                    fd.set('new_platform_r', newLocation.plat
+           +form ?? '');                                                 
+      1199 +                }                                            
+      1200 +                                                             
+      1201                  try {
+      1202                      const response = await fetch(form.action,
+             {
+      1203                          method: 'POST',
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● No hay más IDs duplicados y todo el nuevo código apunta correctamente a los
+  campos de Reubicación Interna. Resumen del cambio:
+
+  - Bug corregido: input-new-rack/input-new-level estaban duplicados entre
+  Reubicación de bodega y Reubicación interna — ahora esta última tiene sus
+  propios IDs únicos (input-lu-*).
+  - Navegador por producto: dentro de "Reubicación Interna" aparece "Producto X
+  de N: [código] — [nombre]" con botones Anterior/Siguiente. Al cambiar de
+  producto se guarda automáticamente lo que hayas capturado y se muestra la
+  ubicación actual + nueva de ese producto específico.
+  - Cada producto guarda su propia ubicación (no una compartida para todo el
+  carrito): al confirmar, cada envío al backend lleva el
+  rack/nivel/módulo/bahía/tarima que capturaste para ESE producto en particular.
+
+✻ Cooked for 3m 1s
+
+❯ Ahora me gustaría que en lo que acabas de agregar con respecto a la           
+  reubicación interna se fuera esa información en el request. O bueno de        
+  momento no quiero que te lances a implementar algo solo quiero ver tu opción  
+  profesional que implmentarías para gestionar la salida de almancenes de los   
+  items del carrito                                                             
+
+● Buen punto para pausar aquí. Te explico cómo lo veo profesionalmente, sin
+  tocar código todavía.
+
+  El problema real
+
+  Ahora mismo el carrito manda N peticiones POST secuenciales al endpoint
+  existente /output/process (uno por producto), y para Reubicación Interna cada
+  petición sí lleva los campos new_rack_r/new_level_r/etc. propios de ese
+  producto (ya los armo en submitCart()). Funcionalmente esa parte ya viaja en
+  el request. Pero esta arquitectura tiene tres problemas de fondo que no se
+  resuelven solo con JS:
+
+  1. Detección de éxito/fallo frágil: como /output/process responde con una
+  redirección (back()->withErrors() / redirect()->route(...)), mi JS tiene que
+  parsear el HTML de vuelta buscando .alert-danger — funciona, pero es un hack,
+  no un contrato real.
+  2. N viajes de red en vez de uno, con el usuario viendo "Enviando... (3/7)".
+  3. Sin atomicidad de carrito: si el producto 3 de 7 falla, los 2 anteriores ya
+  quedaron aplicados — puede ser correcto o no dependiendo de qué tan "una sola
+  operación" debe sentirse el carrito.
+
+  Lo que recomendaría
+
+  Un endpoint nuevo y aditivo, POST /output/process-cart, que reciba el carrito
+  completo en un solo request y reutilice el 100% de la lógica de negocio que ya
+  existe (nada de duplicar reglas):
+
+  - Request: { movement_type, reason, operation_date, invoice_sap?, items: [{ 
+  warehouseInventoryId, quantity, new_rack_r?, new_level_r?, module?, bay?, 
+  platform? }, ...] } — cada item lleva ya su propia ubicación cuando aplica,
+  tal como los junto hoy en cart[i].newLocation.
+  - Controlador: un método nuevo en OutputController que valida el array
+  (items.*.warehouseInventoryId, etc., con Laravel array validation) y por cada
+  item arma el mismo RemoveWarehouseInventoryStockDTO que ya construye
+  buildRemoveWarehouseInventoryStockDTO(), llamando exactamente al mismo
+  $warehouseInventoryService->processInventoryOutput($dto) que usa el flujo de
+  un solo producto hoy — cero lógica nueva de negocio, solo el loop y el
+  ensamblado.
+  - Respuesta: response()->json(['results' => [{warehouseInventoryId, ok, 
+  message}, ...]]) — reemplaza el parseo de HTML por un contrato real.
+  - Frontend: un solo fetch, no N — más simple y más rápido.
+
+  La decisión que sí es tuya
+
+  ¿El carrito se comporta como "mejor esfuerzo" (cada item se procesa en su
+  propia transacción ya existente, si uno falla los demás igual se aplican — el
+  comportamiento que ya tienes hoy) o como "todo o nada" (un solo
+  DB::transaction() envolviendo el loop completo, si un item falla se revierte
+  todo el carrito)? Yo me inclinaría por mantener "mejor esfuerzo" ya que es lo
+  que aprobaste hasta ahora y evita que un solo error de captura eche para atrás
+  6 productos correctos — pero es una decisión de negocio, no técnica, y vale
+  la pena que la confirmes antes de que implemente algo.
+
+✻ Sautéed for 1m 4s
+
+※ recap: Building a multi-product cart for warehouse output in the TACSA Blade view; the cart UI and per-item location updates are done. Next: decide whether cart submission should be all-or-nothing or best-effort before I build the batch endpoint.

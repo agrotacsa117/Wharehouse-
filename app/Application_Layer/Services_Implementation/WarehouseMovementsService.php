@@ -255,7 +255,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             'folio' => $folio,
             'id' => $id,
             'count' => count($converted),
-            'content' => $converted
+            'content' => $converted,
         ]);
 
         return ResultPattern::success($converted);

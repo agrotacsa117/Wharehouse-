@@ -23,6 +23,8 @@ class WarehouseInventoryMovementsModel extends Model
         'is_reversed',
         'reversed_by',
         'reversal_of',
+        'relocated_from_inventory_id',
+        'relocated_to_inventory_id',
     ];
 
     public function inventory()

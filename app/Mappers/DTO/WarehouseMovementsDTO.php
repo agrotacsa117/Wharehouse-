@@ -28,6 +28,10 @@ class WarehouseMovementsDTO
 
     private ?int $reversedOf = null;
 
+    private ?int $relocatedFromInventoryId = null;
+
+    private ?int $relocatedToInventoryId = null;
+
     private bool $forceNegativeStock;
 
     public function __construct(
@@ -141,6 +145,26 @@ class WarehouseMovementsDTO
     public function setReversedOf(?int $reversedOf): void
     {
         $this->reversedOf = $reversedOf;
+    }
+
+    public function getRelocatedFromInventoryId(): ?int
+    {
+        return $this->relocatedFromInventoryId;
+    }
+
+    public function setRelocatedFromInventoryId(?int $relocatedFromInventoryId): void
+    {
+        $this->relocatedFromInventoryId = $relocatedFromInventoryId;
+    }
+
+    public function getRelocatedToInventoryId(): ?int
+    {
+        return $this->relocatedToInventoryId;
+    }
+
+    public function setRelocatedToInventoryId(?int $relocatedToInventoryId): void
+    {
+        $this->relocatedToInventoryId = $relocatedToInventoryId;
     }
 
     /**

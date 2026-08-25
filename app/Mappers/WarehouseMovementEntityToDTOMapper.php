@@ -26,6 +26,8 @@ class WarehouseMovementEntityToDTOMapper implements WarehouseMovementMapperI
         $dto->setIsReversed($warehouseInventoryMovements->isReversed());
         $dto->setReversedBy($warehouseInventoryMovements->getReversedBy());
         $dto->setReversedOf($warehouseInventoryMovements->getReversalOf());
+        $dto->setRelocatedFromInventoryId($warehouseInventoryMovements->getRelocatedFromInventoryId());
+        $dto->setRelocatedToInventoryId($warehouseInventoryMovements->getRelocatedToInventoryId());
 
         return $dto;
     }

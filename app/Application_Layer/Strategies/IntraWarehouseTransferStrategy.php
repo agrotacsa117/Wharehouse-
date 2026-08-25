@@ -7,10 +7,9 @@ use App\Application_Layer\Services_Implementation\BaseOutputService;
 use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
-use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
-use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
+use Illuminate\Support\Facades\Log;
 
 class IntraWarehouseTransferStrategy extends BaseOutputService
 {
@@ -19,8 +18,6 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
     private ResultPattern $result;
 
     private WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO;
-
-    private WarehouseInventory $warehouseInventory;
 
     public function __construct(
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
@@ -38,6 +35,16 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
 
+        Log::info('IntraWarehouseTransferStrategy: iniciando', [
+            'warehouseInventoryId' => $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+            'userId' => $removeWarehouseInventoryStockDTO->getUserId(),
+            'targetRack' => $removeWarehouseInventoryStockDTO->getRack(),
+            'targetLevel' => $removeWarehouseInventoryStockDTO->getLevel(),
+            'targetModule' => $removeWarehouseInventoryStockDTO->getModule(),
+            'targetBay' => $removeWarehouseInventoryStockDTO->getBay(),
+            'targetPlatform' => $removeWarehouseInventoryStockDTO->getPlatform(),
+        ]);
+
         $this->result = $this->warehouseInventoryQueryService
             ->getInventoryById(
                 $removeWarehouseInventoryStockDTO
@@ -45,12 +52,20 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
             );
 
         if ($this->result->isFailure()) {
+            Log::error('IntraWarehouseTransferStrategy: inventario no encontrado', [
+                'warehouseInventoryId' => $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                'reason' => $this->result->getError(),
+            ]);
+
             return $this->result;
         }
 
         $this->warehouseInventoryOutDetailDTO = $this
             ->result
             ->getValue();
+
+        Log::info('The inventory record is: ',
+            [$this->warehouseInventoryOutDetailDTO]);
 
         $hasChanges = (
             $this
@@ -80,83 +95,19 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
             ->getPlatform());
 
         if (! $hasChanges) {
+            Log::info('IntraWarehouseTransferStrategy: sin cambios de posición', [
+                'warehouseInventoryId' => $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+            ]);
+
             return ResultPattern::failure(
-                '¡No hay cambios 
-                detectados en 
+                '¡No hay cambios
+                detectados en
                 la posición!');
         }
 
-        // var_dump("I supuso!");
-
-        $warehouseInventoryRequestDTO =
-        new WarehouseInventoryRequestDTO(
-            $this
-                ->warehouseInventoryOutDetailDTO
-                ->getProductCode(),
-            $this
-                ->warehouseInventoryOutDetailDTO
-                ->getWarehouseId(),
-            $removeWarehouseInventoryStockDTO->getRack(),
-            $removeWarehouseInventoryStockDTO->getLevel(),
-            $this->warehouseInventoryOutDetailDTO->getQuantity(),
-            new \DateTime($this
-                ->warehouseInventoryOutDetailDTO
-                ->getExpirationDate()),
-            $this->warehouseInventoryOutDetailDTO->getReason(),
-            $this->warehouseInventoryOutDetailDTO->getLotNumber(),
-            $this->warehouseInventoryOutDetailDTO->getTransferFolio()
+        $removeWarehouseInventoryStockDTO->setWarehouseId(
+            $this->warehouseInventoryOutDetailDTO->getWarehouseId()
         );
-
-        $warehouseInventoryRequestDTO
-            ->setModule(
-                $removeWarehouseInventoryStockDTO->getModule()
-            );
-
-        $warehouseInventoryRequestDTO
-            ->setBay(
-                $removeWarehouseInventoryStockDTO
-                    ->getBay()
-            );
-
-        $warehouseInventoryRequestDTO
-            ->setPlatform(
-                $removeWarehouseInventoryStockDTO
-                    ->getPlatform()
-            );
-
-        $stringDate = $this->warehouseInventoryOutDetailDTO->getManufacturingDate();
-        $dateObject = null;
-
-        if ($stringDate !== null && $stringDate !== '') {
-            try {
-                $dateObject = new \DateTime($stringDate);
-            } catch (\Exception $e) {
-                // Aquí podrías loguear el error si la fecha es inválida
-                $dateObject = null;
-            }
-        }
-
-        $warehouseInventoryRequestDTO->setManufacturingDate($dateObject);
-
-        $this->result = $this->warehouseInventoryQueryService
-            ->saveInventory(
-                $warehouseInventoryRequestDTO);
-
-        if ($this->result->isFailure()) {
-            return ResultPattern::failure(
-                'No fue posible realizar
-                 la reubicación interna');
-        }
-
-        $this->warehouseInventory = $this
-            ->result
-            ->getValue();
-
-        $this->warehouseInventoryQueryService
-            ->desactiveInventory(
-                $this->warehouseInventoryOutDetailDTO
-                    ->getInventoryId()
-            );
 
         $removeWarehouseInventoryStockDTO
             ->setReason(
@@ -176,37 +127,32 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
                 )
             );
 
-        $removeWarehouseInventoryStockDTO
-            ->setQuantity($this
-                ->warehouseInventoryOutDetailDTO
-                ->getQuantity());
-
-        $removeWarehouseInventoryStockDTO
-            ->setWarehouseInventoryId(
-                $this->warehouseInventory->getId()
-            );
-
-        $warehouseMovementDTO = $this->recordMovement(
-            $removeWarehouseInventoryStockDTO
+        $relocationResult = $this->relocateStock(
+            $removeWarehouseInventoryStockDTO,
+            $this->warehouseInventoryOutDetailDTO,
+            $this->warehouseInventoryQueryService
         );
 
-        $warehouseMovementDTO->setReversedOf(
-            $this->warehouseInventoryOutDetailDTO->getInventoryId()
-        );
-        $warehouseMovementDTO->setReversedBy(
-            $this->warehouseInventory->getId()
-        );
+        if ($relocationResult->isFailure()) {
+            Log::error('IntraWarehouseTransferStrategy: reubicación fallida', [
+                'warehouseInventoryId' => $removeWarehouseInventoryStockDTO->getWarehouseInventoryId(),
+                'reason' => $relocationResult->getError(),
+            ]);
 
-        $this->result = $this->warehouseMovementsService
-            ->saveWarehouseMovement(
-                $warehouseMovementDTO
-            );
-
-        if ($this->result->isFailure()) {
-            return $this->result;
+            return $relocationResult;
         }
 
-        return ResultPattern::success(true);
+        Log::info('IntraWarehouseTransferStrategy: reubicación exitosa', [
+            'sourceInventoryId' => $this->warehouseInventoryOutDetailDTO->getInventoryId(),
+            'warehouseId' => $removeWarehouseInventoryStockDTO->getWarehouseId(),
+            'rack' => $removeWarehouseInventoryStockDTO->getRack(),
+            'level' => $removeWarehouseInventoryStockDTO->getLevel(),
+            'module' => $removeWarehouseInventoryStockDTO->getModule(),
+            'bay' => $removeWarehouseInventoryStockDTO->getBay(),
+            'platform' => $removeWarehouseInventoryStockDTO->getPlatform(),
+        ]);
+
+        return $relocationResult;
     }
 
     public function getType(): string

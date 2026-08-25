@@ -105,7 +105,7 @@ class WareouseInventoryController extends Controller
         Log::info(
             'Initializing saerching of produdct '
             .$product);
-    
+
         $productsFiltered = $this
             ->warehouseInventoryService
             ->getListFilteredByProductCodeOrName(

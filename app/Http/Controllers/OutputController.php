@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\CartOutputServiceInterface;
 use App\Contracts\WarehouseInventoryServiceInterface;
+use App\Contracts\WarehouseOutputDtoMapperI;
 use App\Contracts\WarehouseStorageServiceInterface;
-use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
-use App\Mappers\DTO\TransferInventoryDTO;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 
 class OutputController extends Controller
 {
@@ -15,14 +14,20 @@ class OutputController extends Controller
 
     private WarehouseInventoryServiceInterface $warehouseInventoryService;
 
-    private RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO;
+    private WarehouseOutputDtoMapperI $outputDtoMapper;
+
+    private CartOutputServiceInterface $cartOutputService;
 
     public function __construct(
         WarehouseStorageServiceInterface $warehouseStorageService,
-        WarehouseInventoryServiceInterface $warehouseInventoryService
+        WarehouseInventoryServiceInterface $warehouseInventoryService,
+        WarehouseOutputDtoMapperI $outputDtoMapper,
+        CartOutputServiceInterface $cartOutputService
     ) {
         $this->warehouseStorageService = $warehouseStorageService;
         $this->warehouseInventoryService = $warehouseInventoryService;
+        $this->outputDtoMapper = $outputDtoMapper;
+        $this->cartOutputService = $cartOutputService;
     }
 
     public function processOutput(Request $request)
@@ -51,40 +56,21 @@ class OutputController extends Controller
 
             case 'TRANSFER':
                 return $this->processTransfer(
-                    $request,
-                    $userId,
-                    $movementType
+                    $request
                 );
 
             case 'LOCATION_UPDATE':
                 return $this->processLocationUpdate(
                     $request,
-                    $userId,
-                    $movementType
+                    $userId
                 );
             default:
                 return back()->withErrors('Tipo de movimiento no válido.');
         }
-
-        $result = $this->warehouseInventoryService
-            ->processInventoryOutput(
-                $this->removeWarehouseInventoryStockDTO
-            );
-
-        if ($result->isFailure()) {
-            return back()
-                ->withErrors($result->getError())
-                ->withInput();
-        }
-
-        return redirect()
-            ->route('output.get')
-            ->with('success', 'Salida registrada correctamente');
     }
 
     public function getView()
     {
-        // DB::enableQueryLog();
         $warehousesId = $this->warehouseInventoryService
             ->getWarehouseIdsWithInventory();
 
@@ -95,7 +81,6 @@ class OutputController extends Controller
         // ✅ AGREGAR LISTA DE TODOS LOS ALMACENES PARA EL SELECT DE TRANSFER
         $allWarehouses = $this->warehouseStorageService->listAllWarehouses();
 
-        // dd(DB::getQueryLog());
         return view(
             'module.output.create',
             compact('warehousesWithLocationsDTO', 'allWarehouses')
@@ -127,7 +112,6 @@ class OutputController extends Controller
         int $userId
     ) {
 
-        $movementType = $request->movement_type;
         $request->validate([
             'new_rack' => 'nullable|integer|max:50',
             'new_level' => 'nullable|integer|min:1',
@@ -138,63 +122,10 @@ class OutputController extends Controller
             'new_manufacturing_date' => 'nullable|date',
         ]);
 
-        $this->removeWarehouseInventoryStockDTO =
-        $this->buildRemoveWarehouseInventoryStockDTO(
-            $request,
-            $userId,
-            $movementType
-        );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setQuantity(
-                $request->quantity
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setRack(
-                $request->new_rack
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setLevel(
-                (int) $request->new_level
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setOperationDate(
-                $request->operation_date
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setWarehouseId(
-                $request->destination_warehouse_id
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setBay(
-                $request->bay
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setModule(
-                $request->module
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setPlatform(
-                $request->platform
-            );
-
-        $this
-            ->removeWarehouseInventoryStockDTO
-            ->setManufacturingDate(
-                $request->new_manufacturing_date
-            );
+        $dto = $this->outputDtoMapper->toRelocationDto($request->all(), $userId);
 
         $result = $this->warehouseInventoryService
-            ->processInventoryOutput(
-                $this->removeWarehouseInventoryStockDTO
-            );
+            ->processInventoryOutput($dto);
 
         if ($result->isFailure()) {
             return back()
@@ -206,27 +137,6 @@ class OutputController extends Controller
             ->route('output.get')
             ->with('success', 'Reubicación registrada correctamente');
 
-    }
-
-    private function buildRemoveWarehouseInventoryStockDTO(
-        Request $request,
-        int $userId,
-        string $movementType
-    ): RemoveWarehouseInventoryStockDTO {
-
-        $quantity = (
-            $movementType === 'RELOCATION'
-        || $movementType === 'LOCATION_UPDATE') ? 0 : (int) $request->quantity;
-        $dto = new RemoveWarehouseInventoryStockDTO(
-            $request->warehouseInventoryId,
-            $quantity,
-            $request->reason
-        );
-
-        $dto->setMovementType($movementType);
-        $dto->setUserId($userId);
-
-        return $dto;
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -241,22 +151,9 @@ class OutputController extends Controller
             'reason' => 'required|string|max:255',
         ]);
 
-        $this->removeWarehouseInventoryStockDTO = $this->buildRemoveWarehouseInventoryStockDTO(
-            $request,
-            $userId,
-            'SALE'
-        );
+        $dto = $this->outputDtoMapper->toSaleDto($request->all(), $userId);
 
-        // Llenar datos específicos de venta
-        if ($request->invoice_sap) {
-            $this->removeWarehouseInventoryStockDTO->setInvoiceId((int) $request->invoice_sap);
-        }
-
-        $this->removeWarehouseInventoryStockDTO->setOperationDate($request->operation_date ?? now()->format('Y-m-d'));
-
-        $result = $this->warehouseInventoryService->processInventoryOutput(
-            $this->removeWarehouseInventoryStockDTO
-        );
+        $result = $this->warehouseInventoryService->processInventoryOutput($dto);
 
         if ($result->isFailure()) {
             return back()
@@ -280,17 +177,9 @@ class OutputController extends Controller
             'reason' => 'required|string|max:255',
         ]);
 
-        $this->removeWarehouseInventoryStockDTO = $this->buildRemoveWarehouseInventoryStockDTO(
-            $request,
-            $userId,
-            'OUT'
-        );
+        $dto = $this->outputDtoMapper->toSimpleOutputDto($request->all(), $userId);
 
-        $this->removeWarehouseInventoryStockDTO->setOperationDate($request->operation_date ?? now()->format('Y-m-d'));
-
-        $result = $this->warehouseInventoryService->processInventoryOutput(
-            $this->removeWarehouseInventoryStockDTO
-        );
+        $result = $this->warehouseInventoryService->processInventoryOutput($dto);
 
         if ($result->isFailure()) {
             return back()
@@ -304,12 +193,10 @@ class OutputController extends Controller
     }
 
     // ═══════════════════════════════════════════════════════════
-    // TRANSFER (Traslado) - PLACEHOLDER
+    // TRANSFER (Traslado)
     // ═══════════════════════════════════════════════════════════
     private function processTransfer(
-        Request $request,
-        int $userId,
-        string $movementType
+        Request $request
     ) {
         $request->validate([
             'warehouseInventoryId' => 'required|integer',
@@ -335,24 +222,10 @@ class OutputController extends Controller
             return back()->withErrors('No se puede transferir al mismo almacén')->withInput();
         }
 
-        // Crear DTO de transferencia
-        $transferDTO = new TransferInventoryDTO(
+        $transferDTO = $this->outputDtoMapper->toTransferDto(
             (int) $request->warehouseInventoryId,
-            $inventory->getWarehouseId(), // Bodega origen
-            $request->destination_warehouse, // Bodega destino
-            '',
-            0,
-            $inventory->getLotNumber(),
-            (int) $request->quantity,
-            $request->reason,
-            (int) $request->folio_transfer
-        );
-
-        $this->removeWarehouseInventoryStockDTO
-        = $this->buildRemoveWarehouseInventoryStockDTO(
-            $request,
-            $userId,
-            $movementType
+            $inventory,
+            $request->all()
         );
 
         // Ejecutar transferencia
@@ -370,12 +243,12 @@ class OutputController extends Controller
         return redirect()->route('output.get')->with('success', 'Traslado registrado correctamente');
     }
 
-    public function processLocationUpdate(
+    private function processLocationUpdate(
         Request $request,
-        int $userId,
-        string $movementType
+        int $userId
     ) {
         $request->validate([
+            'quantity' => 'required|integer|min:1',
             'new_rack_r' => 'nullable|integer|max:50',
             'new_level_r' => 'nullable|integer|min:1',
             'new_module_r' => 'nullable|integer|min:1',
@@ -384,45 +257,10 @@ class OutputController extends Controller
             'reason' => 'nullable|string|max:255',
         ]);
 
-        $this->removeWarehouseInventoryStockDTO = $this
-            ->buildRemoveWarehouseInventoryStockDTO(
-                $request,
-                $userId,
-                $movementType
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setRack($request->new_rack_r);
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setLevel(
-                $request->new_level_r
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setModule(
-                $request->new_module_r
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setBay(
-                $request->new_bay_r
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setPlatform(
-                $request->new_platform_r
-            );
-
-        $this->removeWarehouseInventoryStockDTO
-            ->setReason(
-                $request->reason
-            );
+        $dto = $this->outputDtoMapper->toLocationUpdateDto($request->all(), $userId);
 
         $result = $this->warehouseInventoryService
-            ->processInventoryOutput(
-                $this->removeWarehouseInventoryStockDTO
-            );
+            ->processInventoryOutput($dto);
 
         if ($result->isFailure()) {
             return back()->withErrors(
@@ -434,7 +272,45 @@ class OutputController extends Controller
             ->route('output.get')
             ->with(
                 'success',
-                '¡Reubicación en la misma 
+                '¡Reubicación en la misma
                  bodega registrada correctamente!');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CART BATCH (mejor esfuerzo — cada ítem se procesa
+    // independientemente, sin transacción envolvente)
+    // ═══════════════════════════════════════════════════════════
+    public function processCart(Request $request)
+    {
+        $request->validate([
+            'movement_type' => 'required|string',
+            'reason' => 'nullable|string|max:255',
+            'operation_date' => 'nullable|date',
+            'invoice_sap' => 'nullable|integer',
+            'destination_warehouse' => 'nullable|string|max:255',
+            'destination_warehouse_id' => 'nullable|integer',
+            'folio_transfer' => 'nullable|integer|min:1',
+            'items' => 'required|array|min:1',
+            'items.*.warehouseInventoryId' => 'required|integer',
+            'items.*.quantity' => 'nullable|integer|min:1',
+            'items.*.new_rack_r' => 'nullable|integer',
+            'items.*.new_level_r' => 'nullable|integer',
+            'items.*.new_module_r' => 'nullable|integer',
+            'items.*.new_bay_r' => 'nullable|integer',
+            'items.*.new_platform_r' => 'nullable|integer',
+        ]);
+
+        $movementType = $request->movement_type;
+        $userId = auth()->id();
+        $shared = $request->except('items');
+
+        $results = $this->cartOutputService->processBatch(
+            $movementType,
+            $shared,
+            $request->items,
+            $userId
+        );
+
+        return response()->json(['results' => $results]);
     }
 }

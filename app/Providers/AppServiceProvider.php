@@ -12,6 +12,7 @@ use App\Application_Layer\Repository_Implementation\WarehouseSalesRepository;
 use App\Application_Layer\Repository_Implementation\WarehouseStorageRepositoryImplementation;
 use App\Application_Layer\Repository_Implementation\WarehouseTypeRepositoryImplementation;
 use App\Application_Layer\Services_Implementation\AuthServiceImplementation;
+use App\Application_Layer\Services_Implementation\CartOutputService;
 use App\Application_Layer\Services_Implementation\LocationServiceImplementation;
 use App\Application_Layer\Services_Implementation\ProductServiceImplementation;
 use App\Application_Layer\Services_Implementation\RoleService;
@@ -23,6 +24,7 @@ use App\Application_Layer\Services_Implementation\WarehouseSalesService;
 use App\Application_Layer\Services_Implementation\WarehouseStorageServiceImplementation;
 use App\Application_Layer\Services_Implementation\WarehouseTypeServiceImplementation;
 use App\Contracts\AuthServiceInterface;
+use App\Contracts\CartOutputServiceInterface;
 use App\Contracts\LocationEntityToLocationDetailDTOMapperI;
 use App\Contracts\LocationEntityToLocationModelMapperI;
 use App\Contracts\LocationModelToLocationEntityMapperI;
@@ -51,6 +53,7 @@ use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseMovementMapperI;
 use App\Contracts\WarehouseMovementsRepositoryI;
 use App\Contracts\WarehouseMovementsServiceI;
+use App\Contracts\WarehouseOutputDtoMapperI;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseSalesEntityToModelMapperI;
 use App\Contracts\WarehouseSalesRepositoryI;
@@ -79,6 +82,7 @@ use App\Mappers\WarehouseInventoryMovementsMapper;
 use App\Mappers\WarehouseInventoryRequestDTOToWarehouseInventoryMapper;
 use App\Mappers\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 use App\Mappers\WarehouseMovementEntityToDTOMapper;
+use App\Mappers\WarehouseOutputDtoMapper;
 use App\Mappers\WarehouseSalesEntityToModelMapper;
 use App\Mappers\WarehouseSalesRequestDTOToEntityMapper;
 use App\Mappers\WarehouseToWarehouseModelMapper;
@@ -210,6 +214,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             WarehouseInventoryServiceInterface::class,
             WarehouseInventoryServiceImplementation::class
+        );
+
+        $this->app->bind(
+            WarehouseOutputDtoMapperI::class,
+            WarehouseOutputDtoMapper::class
+        );
+
+        $this->app->bind(
+            CartOutputServiceInterface::class,
+            CartOutputService::class
         );
 
         $this->app->bind(

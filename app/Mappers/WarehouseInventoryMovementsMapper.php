@@ -53,6 +53,18 @@ class WarehouseInventoryMovementsMapper implements WarehouseInventoryMovementsMa
             );
         }
 
+        if ($warehouseMovementsDTO->getRelocatedFromInventoryId() !== null) {
+            $warehouseInventoryMovements->setRelocatedFromInventoryId(
+                $warehouseMovementsDTO->getRelocatedFromInventoryId()
+            );
+        }
+
+        if ($warehouseMovementsDTO->getRelocatedToInventoryId() !== null) {
+            $warehouseInventoryMovements->setRelocatedToInventoryId(
+                $warehouseMovementsDTO->getRelocatedToInventoryId()
+            );
+        }
+
         $warehouseInventoryMovements->setIsReversed(
             $warehouseMovementsDTO->isReversed()
         );

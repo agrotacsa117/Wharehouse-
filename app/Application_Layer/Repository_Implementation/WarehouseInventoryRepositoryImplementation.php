@@ -43,11 +43,27 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 $warehouseInventory
             );
 
+        $auditContext = [
+            'product_id' => $warehouseInventory->getProductId(),
+            'warehouse_id' => $warehouseInventory->getWarehouseId(),
+            'lot_number' => $warehouseInventory->getLotNumber(),
+            'quantity' => $warehouseInventory->getQuantity(),
+        ];
+
+        Log::info('Persisting warehouse inventory.', $auditContext);
+
         try {
             $warehouseInventoryModel->save();
             $warehouseInventory->setId($warehouseInventoryModel->id);
+
+            Log::info('Warehouse inventory persisted successfully.', $auditContext + [
+                'id' => $warehouseInventory->getId(),
+            ]);
         } catch (\Throwable $th) {
-            exit($th->getMessage());
+            Log::error('Error saving warehouse inventory.', $auditContext + [
+                'error' => $th->getMessage(),
+            ]);
+
             throw new CouldNotPersistLocationException(
                 'Error saving inventory',
                 0,
@@ -407,19 +423,6 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         string $lotNumber,
         ?string $manufacturingDate
     ): ?WarehouseInventory {
-        var_dump('Dates Arrived at repository <br>');
-        var_dump([
-            'warehouseId' => $warehouseId,         // ID del Almacén
-            'rack' => $rack,                // Número de estante/rack
-            'level' => $level,               // Nivel de altura
-            'module' => $module,              // Módulo de ubicación
-            'platform' => $platform,            // Plataforma o sector
-            'bay' => $bay,                 // Bahía o posición específica
-            'productId' => $productId,           // Identificador único del producto
-            'lotNumber' => $lotNumber,           // Número de lote de fabricación
-            'manufacturingDate' => $manufacturingDate,    // Fecha de fabricación
-        ]);
-        var_dump('<br>');
         // 1. Ejecutar la consulta con Eloquent
         $model = WarehouseInventoryModel::where('warehouse_id', $warehouseId)
             ->where('rack', $rack)
@@ -523,12 +526,14 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
         $remainingDaysQuery = 'DATEDIFF(expiration_date, CURDATE()) AS days_remaining';
 
-        return WarehouseInventoryModel::select('*') // Mantiene todas las columnas de la tabla
+        return WarehouseInventoryModel::selectRaw('wi.*, w.warehouses_name') // Mantiene todas las columnas de la tabla más el nombre de la bodega
             ->selectRaw($this->getQueryBase())      // Inyecta el CASE de tu método privado
             ->selectRaw($obsolescenceQuery)         // Inyecta el cálculo de obsolescencia
             ->selectRaw($remainingDaysQuery)
-            ->where('product_id', $productId)
-            ->where('warehouse_id', $warehouseId)
+            ->from('warehouse_inventory as wi')
+            ->join('warehouses as w', 'wi.warehouse_id', '=', 'w.id')
+            ->where('wi.product_id', $productId)
+            ->where('wi.warehouse_id', $warehouseId)
             ->get()
             ->toArray();
     }

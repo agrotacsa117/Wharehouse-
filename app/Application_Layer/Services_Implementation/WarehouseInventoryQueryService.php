@@ -11,6 +11,7 @@ use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\Requests\WarehouseInventoryRequestDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
 {
@@ -87,6 +88,15 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
+        Log::info(
+            'The removeWarehouseInventoryStockDTO is: ',
+            [$removeWarehouseInventoryStockDTO]
+        );
+
+        Log::info(
+            'The warehouseInventoryOutDetailDTO is: ',
+            [$warehouseInventoryOutDetailDTO]
+        );
         $manufacturingDate = $warehouseInventoryOutDetailDTO
             ->getManufacturingDate();
 
@@ -95,6 +105,18 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
             $manufacturingDate = $removeWarehouseInventoryStockDTO
                 ->getManufacturingDate();
         }
+
+        Log::info('WarehouseInventoryQueryService::updateOrCreateInventory: buscando destino', [
+            'warehouseId' => $removeWarehouseInventoryStockDTO->getWarehouseId(),
+            'rack' => $removeWarehouseInventoryStockDTO->getRack(),
+            'level' => $removeWarehouseInventoryStockDTO->getLevel(),
+            'module' => $removeWarehouseInventoryStockDTO->getModule(),
+            'bay' => $removeWarehouseInventoryStockDTO->getBay(),
+            'platform' => $removeWarehouseInventoryStockDTO->getPlatform(),
+            'productCode' => $warehouseInventoryOutDetailDTO->getProductCode(),
+            'lotNumber' => $warehouseInventoryOutDetailDTO->getLotNumber(),
+            'manufacturingDate' => $manufacturingDate,
+        ]);
 
         $warehouseInventoryEntity = $this
             ->warehouseInventoryRepository
@@ -110,12 +132,14 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $manufacturingDate
             );
 
-        // var_dump('<br>');
-        // var_dump('The result of consulting: <br>');
-        // var_dump($warehouseInventoryEntity);
-        // var_dump('<br>');
-
         if (! $warehouseInventoryEntity) {
+            Log::info('WarehouseInventoryQueryService::updateOrCreateInventory: destino no existe, se creara uno nuevo', [
+                'warehouseId' => $removeWarehouseInventoryStockDTO->getWarehouseId(),
+                'rack' => $removeWarehouseInventoryStockDTO->getRack(),
+                'level' => $removeWarehouseInventoryStockDTO->getLevel(),
+                'quantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
+            ]);
+
             $timeZone = new \DateTimeZone('America/Mexico_City');
             $now = new \DateTime('now', $timeZone);
             $date = new \DateTime(
@@ -136,7 +160,9 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $warehouseInventoryOutDetailDTO->getLotNumber(),
                 $removeWarehouseInventoryStockDTO->getReason(),
                 $date,
-                null
+                $warehouseInventoryOutDetailDTO->getTransferFolio() !== null
+                    ? (int) $warehouseInventoryOutDetailDTO->getTransferFolio()
+                    : null
             );
 
             //
@@ -164,19 +190,23 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                     ->getManufacturingDate();
             }
 
-            // var_dump(
-            //     'The manufacturing date
-            //     into creation inventory is: <br>');
-            // var_dump($manufacturingDate);
-
             $warehouseInventory->setManufacturingDate(
                 $manufacturingDate ? new \DateTime($manufacturingDate) : null
             );
 
+            Log::info(
+                'The inventory to be stored 
+                in the storage: ',
+                [$warehouseInventory]
+            );
+
             $warehouseInventory = $this->warehouseInventoryRepository
                 ->save($warehouseInventory);
-            // var_dump('The result entity is: <br>');
-            // var_dump($warehouseInventory);
+
+            Log::info('WarehouseInventoryQueryService::updateOrCreateInventory: destino creado', [
+                'destinationInventoryId' => $warehouseInventory->getId(),
+                'quantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
+            ]);
 
             return ResultPattern::success(
                 $warehouseInventory
@@ -188,13 +218,27 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 ->getQuantity()
             + $removeWarehouseInventoryStockDTO->getQuantity();
 
-            $this->warehouseInventoryRepository->updateQuantity(
+            Log::info('WarehouseInventoryQueryService::updateOrCreateInventory: destino existente, se hara merge de cantidad', [
+                'destinationInventoryId' => $warehouseInventoryEntity->getId(),
+                'previousQuantity' => $warehouseInventoryEntity->getQuantity(),
+                'addedQuantity' => $removeWarehouseInventoryStockDTO->getQuantity(),
+                'finalQuantity' => $finalQuantity,
+            ]);
+
+            $updated = $this->warehouseInventoryRepository->updateQuantity(
                 $warehouseInventoryEntity->getId(),
                 $finalQuantity
             );
+
+            if (! $updated) {
+                Log::error('WarehouseInventoryQueryService::updateOrCreateInventory: fallo al actualizar cantidad del destino', [
+                    'destinationInventoryId' => $warehouseInventoryEntity->getId(),
+                    'finalQuantity' => $finalQuantity,
+                ]);
+            }
         }
 
-        return ResultPattern::success(true);
+        return ResultPattern::success($warehouseInventoryEntity);
     }
 
     public function saveInventory(
