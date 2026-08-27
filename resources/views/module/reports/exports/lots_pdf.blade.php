@@ -12,11 +12,18 @@
     </style>
 </head>
 <body>
-    <h1>Lotes de {{ $productName }}</h1>
-    <p>Código: {{ $productId }} &middot; Bodega: {{ $warehouseName }}</p>
+    @if ($isMultiProduct)
+        <h1>Lotes &mdash; Todos los productos</h1>
+        <p>Bodega: {{ $warehouseName }}</p>
+    @else
+        <h1>Lotes de {{ $productName }}</h1>
+        <p>Código: {{ $productId }} &middot; Bodega: {{ $warehouseName }}</p>
+    @endif
     <table>
         <thead>
             <tr>
+                <th>Código</th>
+                <th>Producto</th>
                 <th>#</th>
                 <th>Lote</th>
                 <th>Ubicación</th>
@@ -30,6 +37,8 @@
         <tbody>
             @forelse ($rows as $row)
                 <tr>
+                    <td>{{ $row['productCode'] }}</td>
+                    <td>{{ $row['productName'] }}</td>
                     <td>{{ $row['number'] }}</td>
                     <td>{{ $row['lotNumber'] }}</td>
                     <td>{{ $row['location'] }}</td>
@@ -41,7 +50,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8">Sin lotes registrados</td>
+                    <td colspan="10">Sin lotes registrados</td>
                 </tr>
             @endforelse
         </tbody>

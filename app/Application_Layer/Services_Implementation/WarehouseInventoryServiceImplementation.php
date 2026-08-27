@@ -750,6 +750,19 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         return $inventory;
     }
 
+    public function getWarehouseInventory(int $warehouseId): array
+    {
+        $inventory = $this
+            ->warehouseInventoryRepository
+            ->findByWarehouseId($warehouseId);
+
+        $inventory = $this
+            ->generateWarehouseInventoryDetailDTO(
+                $inventory);
+
+        return $inventory;
+    }
+
     public function getProductExpirationMetrics(
         int $warehouseId,
         string $productId

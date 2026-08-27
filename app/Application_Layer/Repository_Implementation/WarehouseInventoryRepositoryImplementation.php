@@ -538,6 +538,31 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             ->toArray();
     }
 
+    public function findByWarehouseId(
+        int $warehouseId
+    ): array {
+
+        $obsolescenceQuery = '
+        ROUND(
+            (DATEDIFF(CURDATE(), manufacturing_date) /
+            NULLIF(DATEDIFF(expiration_date, manufacturing_date), 0))
+            * 100, 2
+        ) AS obsolescence
+        ';
+
+        $remainingDaysQuery = 'DATEDIFF(expiration_date, CURDATE()) AS days_remaining';
+
+        return WarehouseInventoryModel::selectRaw('wi.*, w.warehouses_name')
+            ->selectRaw($this->getQueryBase())
+            ->selectRaw($obsolescenceQuery)
+            ->selectRaw($remainingDaysQuery)
+            ->from('warehouse_inventory as wi')
+            ->join('warehouses as w', 'wi.warehouse_id', '=', 'w.id')
+            ->where('wi.warehouse_id', $warehouseId)
+            ->get()
+            ->toArray();
+    }
+
     public function getExpirationMetrics(
         int $warehouseId,
         string $productId): array

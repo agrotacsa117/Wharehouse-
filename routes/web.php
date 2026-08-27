@@ -142,6 +142,8 @@ Route::post('/output/process-cart', [
 
 Route::get('/reports/products/warehouse/{id}', [ReportController::class, 'getProductosByWarehouse'])
     ->name('reports.products.warehouse');
+Route::get('/reports/products/warehouse/{id}/lots', [ReportController::class, 'getStocksByWarehouse'])
+    ->name('reports.products.warehouse.lots');
 Route::get(
     '/reports/filter',
     [ReportController::class,

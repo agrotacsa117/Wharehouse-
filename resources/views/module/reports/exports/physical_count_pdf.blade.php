@@ -14,7 +14,11 @@
 </head>
 <body>
     <h1>LISTA DE CONTEO FÍSICO</h1>
-    <p>Producto: {{ $productName }} &middot; Código: {{ $productId }} &middot; Bodega: {{ $warehouseName }}</p>
+    @if ($isMultiProduct)
+        <p>Bodega: {{ $warehouseName }}</p>
+    @else
+        <p>Producto: {{ $productName }} &middot; Código: {{ $productId }} &middot; Bodega: {{ $warehouseName }}</p>
+    @endif
     <p>Generado: {{ now()->format('Y-m-d') }}</p>
     <table>
         <thead>

@@ -73,6 +73,8 @@ interface WarehouseInventoryServiceInterface
         int $warehouseId,
         string $productId): array;
 
+    public function getWarehouseInventory(int $warehouseId): array;
+
     public function getProductExpirationMetrics(
         int $warehouseId,
         string $productId

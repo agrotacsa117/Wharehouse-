@@ -92,6 +92,8 @@ interface WarehouseInventoryRepositoryInterface
         string $productId
     ): array;
 
+    public function findByWarehouseId(int $warehouseId): array;
+
     public function getExpirationMetrics(
         int $warehouseId,
         string $productId): array;

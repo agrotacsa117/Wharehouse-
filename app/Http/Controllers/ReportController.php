@@ -322,6 +322,18 @@ class ReportController extends Controller
         ], 200);
     }
 
+    public function getStocksByWarehouse(int $warehouseId): JsonResponse
+    {
+        $warehouseInventory = $this->warehouseInventoryService
+            ->getWarehouseInventory($warehouseId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Productos obtenidos exitosamente',
+            'products' => $warehouseInventory,
+        ], 200);
+    }
+
     public function getTransactionsByDateRange(
         Request $request
     ): JsonResponse {
@@ -434,6 +446,7 @@ class ReportController extends Controller
             'productName' => $context['productName'],
             'productId' => $context['productId'],
             'warehouseName' => $context['warehouseName'],
+            'isMultiProduct' => $context['isMultiProduct'],
             'rows' => $rows,
         ]);
 
@@ -462,6 +475,7 @@ class ReportController extends Controller
             'productName' => $context['productName'],
             'productId' => $context['productId'],
             'warehouseName' => $context['warehouseName'],
+            'isMultiProduct' => $context['isMultiProduct'],
             'rows' => $rows,
         ]);
 
@@ -478,12 +492,14 @@ class ReportController extends Controller
     private function extractLotsContext(array $lots): array
     {
         $first = $lots[0] ?? [];
+        $distinctProductIds = array_unique(array_column($lots, 'productId'));
 
         return [
             'productName' => $first['productName'] ?? '',
             'productId' => $first['productId'] ?? '',
             'warehouseName' => $first['warehouseName'] ?? '',
             'warehouseId' => $first['warehouseId'] ?? '',
+            'isMultiProduct' => count($distinctProductIds) > 1,
         ];
     }
 
@@ -493,6 +509,8 @@ class ReportController extends Controller
         foreach ($lots as $index => $lot) {
             $remainingDays = (int) ($lot['remainingDays'] ?? 0);
             $rows[] = [
+                'productCode' => $lot['productId'] ?? '-',
+                'productName' => $lot['productName'] ?? '-',
                 'number' => $index + 1,
                 'lotNumber' => $lot['lotNumber'] ?? '-',
                 'location' => $this->formatLotLocation($lot),
@@ -537,7 +555,7 @@ class ReportController extends Controller
     private function buildExportFilename(array $lots, string $extension, string $prefix): string
     {
         $context = $this->extractLotsContext($lots);
-        $productId = $context['productId'] ?: 'product';
+        $productId = $context['isMultiProduct'] ? 'TodosLosProductos' : ($context['productId'] ?: 'product');
         $warehouseName = $context['warehouseName'] ?: ($context['warehouseId'] ?: 'warehouse');
         $safe = preg_replace('/[^A-Za-z0-9_\-]/', '_', "{$prefix}_{$productId}_{$warehouseName}");
 

@@ -40,6 +40,8 @@ php artisan test --filter test_basic_test           # Single method
 Note: `tests/Unit` and `tests/Feature` currently only contain the framework's default `ExampleTest.php`
 stubs — there is no real test suite to run as a regression check yet. If you add logic, consider adding
 tests for it, but don't expect `php artisan test` to catch regressions in existing code.
+Note: `phpunit.xml`'s DB env overrides are commented out, so tests run against whatever database
+`.env` points to (not an isolated sqlite DB) — be cautious running the suite against a real/dev DB.
 
 ### Database & Cache
 ```bash
@@ -112,10 +114,6 @@ string to the right strategy instance; `TransferOutputService` and `WarehouseInv
 add a case here rather than branching on type elsewhere.
 
 ### Cart / batch output flow
-Note: `CartOutputService`/`CartOutputServiceInterface`/`WarehouseOutputDtoMapper` are currently
-untracked/uncommitted (per `git status`) — verify with `git status`/`git log` before assuming this
-flow is on the integrated baseline, since that can change as the branch progresses.
-
 `OutputController::processOutput` handles one movement at a time (`RELOCATION`, `SALE`, `OUT`,
 `TRANSFER`, `LOCATION_UPDATE`), each building its DTO via `WarehouseOutputDtoMapperI`
 (`app/Mappers/WarehouseOutputDtoMapper.php`) — one `toXxxDto()` method per movement type, plus a
@@ -172,9 +170,6 @@ version pins are inconsistent across views (e.g. `5.3.0` vs `5.3.3` seen); check
 touching rather than assuming a single pinned version.
 
 ### Report exports
-Note: `app/Exports/` is currently untracked/uncommitted (per `git status`) — verify with
-`git status`/`git log` before assuming this is on the integrated baseline.
-
 `ReportController` exposes POST endpoints (`reports.products.lots.export.excel` /
 `.export.pdf`) that accept a JSON-encoded `lots` payload from the client, reshape it with private
 helpers (`prepareLotExportRows`, `formatLotLocation`, etc.), then hand off to `maatwebsite/excel`
