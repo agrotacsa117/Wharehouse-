@@ -1638,14 +1638,56 @@
                 <div class="modal-footer justify-content-between" style="background: #f8fafc;">
                     <span class="text-muted small" id="countLotes">0 lotes</span>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-download me-1"></i> Exportar
-                        </button>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                id="btnExportLots" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download me-1"></i> Exportar
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btnExportLots">
+                                <li><a class="dropdown-item" href="#" onclick="exportLots('excel'); return false;">
+                                        <i class="bi bi-file-earmark-excel me-2 text-success"></i>Excel (.xlsx)</a>
+                                </li>
+                                <li><a class="dropdown-item" href="#" onclick="exportLots('pdf'); return false;">
+                                        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Lista Conteo Físico</h6></li>
+                                <li><a class="dropdown-item" href="#"
+                                        onclick="exportPhysicalCount('excel'); return false;">
+                                        <i class="bi bi-file-earmark-excel me-2 text-success"></i>Excel (.xlsx)</a>
+                                </li>
+                                <li><a class="dropdown-item" href="#"
+                                        onclick="exportPhysicalCount('pdf'); return false;">
+                                        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF</a></li>
+                            </ul>
+                        </div>
                         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
                             <i class="bi bi-x-circle me-1"></i> Cerrar
                         </button>
                     </div>
                 </div>
+
+                <form id="formExportLotsExcel" method="POST"
+                    action="{{ route('reports.products.lots.export.excel') }}" target="_blank" class="d-none">
+                    @csrf
+                    <input type="hidden" name="lots" id="exportLotsExcelData">
+                </form>
+                <form id="formExportLotsPdf" method="POST" action="{{ route('reports.products.lots.export.pdf') }}"
+                    target="_blank" class="d-none">
+                    @csrf
+                    <input type="hidden" name="lots" id="exportLotsPdfData">
+                </form>
+                <form id="formExportPhysicalCountExcel" method="POST"
+                    action="{{ route('reports.products.physicalcount.export.excel') }}" target="_blank"
+                    class="d-none">
+                    @csrf
+                    <input type="hidden" name="lots" id="exportPhysicalCountExcelData">
+                </form>
+                <form id="formExportPhysicalCountPdf" method="POST"
+                    action="{{ route('reports.products.physicalcount.export.pdf') }}" target="_blank"
+                    class="d-none">
+                    @csrf
+                    <input type="hidden" name="lots" id="exportPhysicalCountPdfData">
+                </form>
             </div>
         </div>
     </div>
@@ -2417,7 +2459,7 @@
             productoNombre, productCode,
             warehouseId, warehouseName, stock) {
 
-            actualizarKPIsLotes(stock);
+            let kpis = {};
 
             try {
                 const response = await fetch(
@@ -2429,32 +2471,18 @@
                         }
                     });
 
-                //if (!response.ok) throw new Error('Error al obtener productos');
-
-                try {
-                    const response = await fetch('tu-url-aqui');
-
-                    if (!response.ok) {
-                        // Aquí capturas el código de estado (ej: 404) y el mensaje
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    // procesar datos...
-
-                } catch (error) {
-                    // Aquí verás el mensaje de error completo
-                    console.error('Hubo un problema con la petición:', error.message);
-                }
+                if (!response.ok) throw new Error('Error al obtener productos');
 
                 const data = await response.json();
 
                 productStockDetails = data.products || [];
-
+                kpis = data.kpis || {};
 
             } catch (error) {
                 console.error('Error:', error);
             }
+
+            actualizarKPIsLotes(stock, kpis);
 
             document.getElementById(
                 'modalLotesProductoNombre').textContent = productoNombre;
@@ -2469,11 +2497,11 @@
             modal.show();
         }
 
-        function actualizarKPIsLotes(kpis) {
-            //document.getElementById('modalLotesTotalLotes').textContent = kpis || 0;
-            document.getElementById('modalLotesStockTotal').textContent = formatNumber(kpis);
-            //document.getElementById('modalLotesPorCaducar').textContent = kpis.por_caducar || 0;
-            //document.getElementById('modalLotesVencidos').textContent = kpis.vencidos || 0;
+           function actualizarKPIsLotes(stock, kpis = {}) {
+            document.getElementById('modalLotesStockTotal').textContent = formatNumber(stock || 0);
+            document.getElementById('modalLotesTotalLotes').textContent = formatNumber(kpis.endangered || 0);
+            document.getElementById('modalLotesPorCaducar').textContent = formatNumber(kpis.expiredSoon || 0);
+            document.getElementById('modalLotesVencidos').textContent = formatNumber(kpis.expired || 0);
         }
 
         function renderTableLotsProduct(lotes) {
@@ -2550,6 +2578,30 @@
             document.getElementById('filterLotesEstado').value = '';
             document.getElementById('filterLotesOrden').value = 'caducidad';
             //filtrarLotesProducto();
+        }
+
+        function exportLots(format) {
+            if (!productStockDetails || productStockDetails.length === 0) {
+                alert('No hay lotes para exportar.');
+                return;
+            }
+
+            const isExcel = format === 'excel';
+            document.getElementById(isExcel ? 'exportLotsExcelData' : 'exportLotsPdfData').value =
+                JSON.stringify(productStockDetails);
+            document.getElementById(isExcel ? 'formExportLotsExcel' : 'formExportLotsPdf').submit();
+        }
+
+        function exportPhysicalCount(format) {
+            if (!productStockDetails || productStockDetails.length === 0) {
+                alert('No hay productos para exportar.');
+                return;
+            }
+
+            const isExcel = format === 'excel';
+            document.getElementById(isExcel ? 'exportPhysicalCountExcelData' : 'exportPhysicalCountPdfData').value =
+                JSON.stringify(productStockDetails);
+            document.getElementById(isExcel ? 'formExportPhysicalCountExcel' : 'formExportPhysicalCountPdf').submit();
         }
 
         document.getElementById('modalLotesProducto')?.addEventListener('hidden.bs.modal', function() {

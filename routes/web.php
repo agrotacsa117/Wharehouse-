@@ -257,3 +257,28 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/inventory-management/update', [InventoryManagementController::class, 'update'])->name('inventory.update');
     Route::post('/inventory-management/transfer', [InventoryManagementController::class, 'transfer'])->name('inventory.transfer');
 });
+
+Route::post(
+    '/reports/products/lots/export/pdf',
+    [ReportController::class, 'exportProductLotsPdf']
+)->name('reports.products.lots.export.pdf');
+
+Route::post(
+    '/reports/products/lots/export/excel',
+    [ReportController::class, 'exportProductLotsExcel']
+)->name('reports.products.lots.export.excel');
+
+Route::post(
+    '/reports/products/lots/export/pdf',
+    [ReportController::class, 'exportProductLotsPdf']
+)->name('reports.products.lots.export.pdf');
+
+Route::post(
+    '/reports/products/physical-count/export/excel',
+    [ReportController::class, 'exportPhysicalCountExcel']
+)->name('reports.products.physicalcount.export.excel');
+
+Route::post(
+    '/reports/products/physical-count/export/pdf',
+    [ReportController::class, 'exportPhysicalCountPdf']
+)->name('reports.products.physicalcount.export.pdf');
