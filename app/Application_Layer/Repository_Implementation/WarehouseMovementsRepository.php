@@ -188,7 +188,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         return $movements->toArray();
     }
 
-     public function updateIsReversedStatus(
+    public function updateIsReversedStatus(
         string $folio,
         bool $status
     ): bool {
@@ -200,7 +200,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
             );
     }
 
-     public function findByFolio(string $folio): ?WarehouseInventoryMovements
+    public function findByFolio(string $folio): ?WarehouseInventoryMovements
     {
         $warehouseInventoryMovements = WarehouseInventoryMovementsModel::firstWhere(
             'folio',
@@ -225,7 +225,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
             $folio)->value('id');
     }
 
-     public function setReversedByFolio(
+    public function setReversedByFolio(
         string $folio,
         int $reversedBy): bool
     {
@@ -245,7 +245,7 @@ class WarehouseMovementsRepository implements WarehouseMovementsRepositoryI
         }
     }
 
-     public function isReversed(string $folio): bool
+    public function isReversed(string $folio): bool
     {
         return WarehouseInventoryMovementsModel::where(
             'folio',

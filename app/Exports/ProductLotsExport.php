@@ -23,6 +23,6 @@ class ProductLotsExport implements FromArray, WithHeadings
 
     public function headings(): array
     {
-        return ['#', 'Lote', 'Ubicación', 'Cantidad', 'Fecha Caducidad', 'Días Restantes', 'Obsolescencia', 'Estado'];
+        return ['Código', 'Producto', '#', 'Lote', 'Ubicación', 'Cantidad', 'Fecha Caducidad', 'Días Restantes', 'Obsolescencia', 'Estado'];
     }
 }

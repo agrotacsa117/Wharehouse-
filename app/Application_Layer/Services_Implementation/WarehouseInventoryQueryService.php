@@ -81,7 +81,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
         WarehouseInventoryOutDetailDTO $warehouseInventoryOutDetailDTO
     ): ResultPattern {
 
-     $manufacturingDate = $warehouseInventoryOutDetailDTO
+        $manufacturingDate = $warehouseInventoryOutDetailDTO
             ->getManufacturingDate();
 
         if ($removeWarehouseInventoryStockDTO
@@ -104,7 +104,7 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 $manufacturingDate
             );
 
-          if (! $warehouseInventoryEntity) {
+        if (! $warehouseInventoryEntity) {
             $timeZone = new \DateTimeZone('America/Mexico_City');
             $now = new \DateTime('now', $timeZone);
             $date = new \DateTime(
@@ -128,7 +128,6 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                 null
             );
 
-            
             $warehouseInventory
                 ->setModule(
                     $removeWarehouseInventoryStockDTO
@@ -153,15 +152,12 @@ class WarehouseInventoryQueryService implements WarehouseInventoryQueryServiceI
                     ->getManufacturingDate();
             }
 
-            
-
             $warehouseInventory->setManufacturingDate(
                 $manufacturingDate ? new \DateTime($manufacturingDate) : null
             );
 
             $warehouseInventory = $this->warehouseInventoryRepository
                 ->save($warehouseInventory);
-            
 
             return ResultPattern::success(
                 $warehouseInventory

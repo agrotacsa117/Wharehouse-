@@ -80,6 +80,8 @@ interface WarehouseInventoryRepositoryInterface
 
     public function getStockByWarehouseId(int $warehouseId): array;
 
+    public function findByWarehouseId(int $warehouseId): array;
+
     public function findByProductIdAndWarehouseId(
         int $warehouseId,
         string $productId

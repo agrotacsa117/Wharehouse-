@@ -31,6 +31,7 @@ use App\Contracts\LocationRequestDTOToLocationEntityMapperI;
 use App\Contracts\LocationServiceInterface;
 use App\Contracts\ProductRepositoryInterface;
 use App\Contracts\ProductServiceInterface;
+use App\Contracts\ReversalStrategyFactoryInterface;
 use App\Contracts\RoleRepositoryI;
 use App\Contracts\RoleServiceI;
 use App\Contracts\UserFinderRepositoryInterface;
@@ -63,6 +64,7 @@ use App\Contracts\WarehouseTypeModelToWarehouseTypeEntityMapperI;
 use App\Contracts\WarehouseTypeRepositoryInterface;
 use App\Contracts\WarehouseTypeRequestDTOToWarehouseTypeEntityMapperI;
 use App\Contracts\WarehouseTypeServiceInterface;
+use App\Infrastructure\Factories\ReversalStrategyFactory;
 use App\Infrastructure\Factories\WarehouseOutputStrategyFactory;
 use App\Mappers\LocationEntityToLocationDetailDTO;
 use App\Mappers\LocationEntityToLocationModel;
@@ -85,8 +87,6 @@ use App\Mappers\WarehouseTypeEntityToWarehouseTypeModel;
 use App\Mappers\WarehouseTypeModelToWarehouseTypeEntityMapper;
 use App\Mappers\WarehouseTypeRequestDTOToWarehouseTypeEntity;
 use Illuminate\Support\ServiceProvider;
-use App\Contracts\ReversalStrategyFactoryInterface;
-use App\Infrastructure\Factories\ReversalStrategyFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -302,7 +302,7 @@ class AppServiceProvider extends ServiceProvider
             WarehouseMovementEntityToDTOMapper::class
         );
 
-          $this->app->bind(
+        $this->app->bind(
             ReversalStrategyFactoryInterface::class,
             ReversalStrategyFactory::class
         );

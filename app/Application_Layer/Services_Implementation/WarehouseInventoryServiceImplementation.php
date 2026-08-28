@@ -4,6 +4,7 @@ namespace App\Application_Layer\Services_Implementation;
 
 use App\Application_Layer\ResultPattern;
 use App\Contracts\ProductServiceInterface;
+use App\Contracts\ReversalStrategyFactoryInterface;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryRequestDTOToWarehouseInventoryMapperI;
 use App\Contracts\WarehouseInventoryServiceInterface;
@@ -27,7 +28,6 @@ use App\Mappers\DTO\WarehouseStockDTO;
 use App\Mappers\DTO\WarehouseSummaryDTO;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Contracts\ReversalStrategyFactoryInterface;
 
 class WarehouseInventoryServiceImplementation implements WarehouseInventoryServiceInterface
 {
@@ -51,8 +51,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
     private WarehouseOutputStrategy $warehouseOutputStrategy;
 
-        private ReversalStrategyFactoryInterface $reversalStrategyFactory;
-        
+    private ReversalStrategyFactoryInterface $reversalStrategyFactory;
+
     public function __construct(
         WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
         WarehouseInventoryRequestDTOToWarehouseInventoryMapperI $warehouseInventoryRequestDTOToWarehouseInventory,
@@ -632,18 +632,18 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
     public function getStockSummaryPerWarehouse(): array
     {
         Log::info(
-            "Accessing to the method getStockSummaryPerWarehouse
-            to obtain stockSummary");
+            'Accessing to the method getStockSummaryPerWarehouse
+            to obtain stockSummary');
 
         $stockSummary = $this->warehouseInventoryRepository
             ->findStockAndProductCountGroupedByWarehouse();
 
         Log::info(
-            ["The result of
+            ['The result of
              consulting in warehouseInventoryRepository 
-             calling to the method is: " => $stockSummary]);
+             calling to the method is: ' => $stockSummary]);
 
-        Log::info("The size of stockSummary is: "
+        Log::info('The size of stockSummary is: '
         .count($stockSummary));
         $quantityExpiredByWarehouse = $this->warehouseInventoryRepository
             ->sumQuantityOfExpiredByWarehouse();
@@ -652,8 +652,8 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
 
         for ($i = 0; $i < count($stockSummary); $i++) {
             $statics = $stockSummary[$i];
-            Log::debug('Processing WarehouseSummaryDTO with index is: '.$i, 
-            ['statics' => $statics]);
+            Log::debug('Processing WarehouseSummaryDTO with index is: '.$i,
+                ['statics' => $statics]);
             $stockSummaryReport[$statics['warehouse_id']]
             = new WarehouseSummaryDTO(
                 $statics['stock'],
@@ -682,7 +682,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 (string) ($row['warehouse_name']),
                 (int) ($row['stock']),
                 null,
-                null  
+                null
             );
         }
 
@@ -700,6 +700,19 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
                 $warehouseId,
                 $productId
             );
+
+        $inventory = $this
+            ->generateWarehouseInventoryDetailDTO(
+                $inventory);
+
+        return $inventory;
+    }
+
+    public function getWarehouseInventory(int $warehouseId): array
+    {
+        $inventory = $this
+            ->warehouseInventoryRepository
+            ->findByWarehouseId($warehouseId);
 
         $inventory = $this
             ->generateWarehouseInventoryDetailDTO(
@@ -772,7 +785,7 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         int $responsableUserId,
         bool $foreceConfirm
     ): ResultPattern {
-        
+
         return $this->runInTransaction(function () use (
             $folio,
             $reason,
@@ -856,5 +869,4 @@ class WarehouseInventoryServiceImplementation implements WarehouseInventoryServi
         });
 
     }
-
 }

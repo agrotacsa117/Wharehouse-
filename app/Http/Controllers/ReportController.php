@@ -6,18 +6,18 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseSalesServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
+use App\Exports\PhysicalCountExport;
+use App\Exports\ProductLotsExport;
 use App\Mappers\DTO\InventoryStatsByStateDTO;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use App\Models\Producto;
 use App\Models\Rack;
 use App\Models\WarehouseModel;
 use Carbon\Carbon;
+use Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Exports\PhysicalCountExport;
-use App\Exports\ProductLotsExport;
-use Excel;
 use PDF;
 
 class ReportController extends Controller
@@ -318,6 +318,18 @@ class ReportController extends Controller
         ], 200);
     }
 
+    public function getStocksByWarehouse(int $warehouseId): JsonResponse
+    {
+        $warehouseInventory = $this->warehouseInventoryService
+            ->getWarehouseInventory($warehouseId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Productos obtenidos exitosamente',
+            'products' => $warehouseInventory,
+        ], 200);
+    }
+
     public function getTransactionsByDateRange(
         Request $request
     ): JsonResponse {
@@ -430,13 +442,14 @@ class ReportController extends Controller
             'productName' => $context['productName'],
             'productId' => $context['productId'],
             'warehouseName' => $context['warehouseName'],
+            'isMultiProduct' => $context['isMultiProduct'],
             'rows' => $rows,
         ]);
 
         return $pdf->download($filename);
     }
 
-      public function exportPhysicalCountPdf(Request $request)
+    public function exportPhysicalCountPdf(Request $request)
     {
         $lots = $this->decodeLotsPayload($request);
         $rows = $this->preparePhysicalCountRows($lots);
@@ -447,37 +460,42 @@ class ReportController extends Controller
             'productName' => $context['productName'],
             'productId' => $context['productId'],
             'warehouseName' => $context['warehouseName'],
+            'isMultiProduct' => $context['isMultiProduct'],
             'rows' => $rows,
         ]);
 
         return $pdf->download($filename);
     }
 
-     private function decodeLotsPayload(Request $request): array
+    private function decodeLotsPayload(Request $request): array
     {
         $decoded = json_decode((string) $request->input('lots', '[]'), true);
 
         return is_array($decoded) ? $decoded : [];
     }
 
-      private function extractLotsContext(array $lots): array
+    private function extractLotsContext(array $lots): array
     {
         $first = $lots[0] ?? [];
+        $distinctProductIds = array_unique(array_column($lots, 'productId'));
 
         return [
             'productName' => $first['productName'] ?? '',
             'productId' => $first['productId'] ?? '',
             'warehouseName' => $first['warehouseName'] ?? '',
             'warehouseId' => $first['warehouseId'] ?? '',
+            'isMultiProduct' => count($distinctProductIds) > 1,
         ];
     }
 
-      private function prepareLotExportRows(array $lots): array
+    private function prepareLotExportRows(array $lots): array
     {
         $rows = [];
         foreach ($lots as $index => $lot) {
             $remainingDays = (int) ($lot['remainingDays'] ?? 0);
             $rows[] = [
+                'productCode' => $lot['productId'] ?? '-',
+                'productName' => $lot['productName'] ?? '-',
                 'number' => $index + 1,
                 'lotNumber' => $lot['lotNumber'] ?? '-',
                 'location' => $this->formatLotLocation($lot),
@@ -492,7 +510,7 @@ class ReportController extends Controller
         return $rows;
     }
 
-     private function formatLotLocation(array $lot): string
+    private function formatLotLocation(array $lot): string
     {
         $parts = array_filter([
             ! empty($lot['rack']) ? 'Rack '.$lot['rack'] : null,
@@ -505,22 +523,22 @@ class ReportController extends Controller
         return $parts === [] ? 'Sin ubicación' : implode(' · ', $parts);
     }
 
-     private function formatRemainingDaysLabel(int $days): string
+    private function formatRemainingDaysLabel(int $days): string
     {
         return $days < 0 ? "Vencido hace {$days} días" : "{$days} días";
     }
 
-     private function buildExportFilename(array $lots, string $extension, string $prefix): string
+    private function buildExportFilename(array $lots, string $extension, string $prefix): string
     {
         $context = $this->extractLotsContext($lots);
-        $productId = $context['productId'] ?: 'product';
+        $productId = $context['isMultiProduct'] ? 'TodosLosProductos' : ($context['productId'] ?: 'product');
         $warehouseName = $context['warehouseName'] ?: ($context['warehouseId'] ?: 'warehouse');
         $safe = preg_replace('/[^A-Za-z0-9_\-]/', '_', "{$prefix}_{$productId}_{$warehouseName}");
 
         return "{$safe}.{$extension}";
     }
 
-     private function preparePhysicalCountRows(array $lots): array
+    private function preparePhysicalCountRows(array $lots): array
     {
         $rows = [];
         foreach ($lots as $lot) {

@@ -104,7 +104,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
         $warehouseIds = WarehouseInventoryModel::select(
             'warehouse_id'
         )->where('active_inventory', 1)
-        ->distinct()->get();
+            ->distinct()->get();
 
         $warehouseIds = $warehouseIds->toArray();
 
@@ -172,7 +172,6 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             '.$this->getQueryBase().',
             SUM(quantity) AS total_stock
         ');
-        
 
         return $query->groupBy('state')
             ->orderBy('state', 'DESC')
@@ -456,7 +455,7 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
                 'SUM(quantity) as stock')
             ->selectRaw(
                 'COUNT(DISTINCT product_id) as products')
-                ->where('active_inventory', 1)
+            ->where('active_inventory', 1)
             ->groupBy(
                 'warehouse_id')
             ->get();
@@ -504,13 +503,39 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
 
         $remainingDaysQuery = 'DATEDIFF(expiration_date, CURDATE()) AS days_remaining';
 
-        return WarehouseInventoryModel::select('*') // Mantiene todas las columnas de la tabla
+        return WarehouseInventoryModel::selectRaw('wi.*, w.warehouses_name') // Mantiene todas las columnas de la tabla más el nombre de la bodega
             ->selectRaw($this->getQueryBase())      // Inyecta el CASE de tu método privado
             ->selectRaw($obsolescenceQuery)         // Inyecta el cálculo de obsolescencia
             ->selectRaw($remainingDaysQuery)
-            ->where('product_id', $productId)
-            ->where('warehouse_id', $warehouseId)
-            ->where('active_inventory', 1)
+            ->from('warehouse_inventory as wi')
+            ->join('warehouses as w', 'wi.warehouse_id', '=', 'w.id')
+            ->where('wi.product_id', $productId)
+            ->where('wi.warehouse_id', $warehouseId)
+            ->get()
+            ->toArray();
+    }
+
+    public function findByWarehouseId(
+        int $warehouseId
+    ): array {
+
+        $obsolescenceQuery = '
+        ROUND(
+            (DATEDIFF(CURDATE(), manufacturing_date) /
+            NULLIF(DATEDIFF(expiration_date, manufacturing_date), 0))
+            * 100, 2
+        ) AS obsolescence
+        ';
+
+        $remainingDaysQuery = 'DATEDIFF(expiration_date, CURDATE()) AS days_remaining';
+
+        return WarehouseInventoryModel::selectRaw('wi.*, w.warehouses_name')
+            ->selectRaw($this->getQueryBase())
+            ->selectRaw($obsolescenceQuery)
+            ->selectRaw($remainingDaysQuery)
+            ->from('warehouse_inventory as wi')
+            ->join('warehouses as w', 'wi.warehouse_id', '=', 'w.id')
+            ->where('wi.warehouse_id', $warehouseId)
             ->get()
             ->toArray();
     }

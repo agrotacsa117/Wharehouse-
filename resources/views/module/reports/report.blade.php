@@ -954,12 +954,34 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-download me-1"></i> Excel
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-printer me-1"></i> Imprimir
-                                </button>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-download me-1"></i> Excel
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportWarehouseLots('excel'); return false;">Detalle de
+                                                Lotes</a></li>
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportWarehousePhysicalCount('excel'); return false;">Conteo
+                                                Físico</a></li>
+                                    </ul>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-printer me-1"></i> Imprimir
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportWarehouseLots('pdf'); return false;">Detalle de
+                                                Lotes</a></li>
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportWarehousePhysicalCount('pdf'); return false;">Conteo
+                                                Físico</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 
@@ -2199,6 +2221,7 @@
         let productosDetalleBodega = [];
         let productStockDetails = [];
         let currentWarehouseId = 0;
+        let currentWarehouseDetailId = 0;
         let warehouseName = "";
         let productosDetalleBodegaFiltrados = [];
         let isGeneralSaerch = false;
@@ -2300,6 +2323,7 @@
                 });
 
                 currentWarehouseId = almacenId;
+                currentWarehouseDetailId = almacenId;
                 warehouseName = almacenNombre;
                 if (!response.ok) throw new Error('Error al obtener productos');
 
@@ -2601,6 +2625,48 @@
             const isExcel = format === 'excel';
             document.getElementById(isExcel ? 'exportPhysicalCountExcelData' : 'exportPhysicalCountPdfData').value =
                 JSON.stringify(productStockDetails);
+            document.getElementById(isExcel ? 'formExportPhysicalCountExcel' : 'formExportPhysicalCountPdf').submit();
+        }
+
+  async function fetchWarehouseLots() {
+            if (!currentWarehouseDetailId) {
+                alert('Selecciona una bodega primero.');
+                return null;
+            }
+
+            const response = await fetch(`/reports/products/warehouse/${currentWarehouseDetailId}/lots`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+
+            return data.products || [];
+        }
+
+        async function exportWarehouseLots(format) {
+            const lots = await fetchWarehouseLots();
+            if (!lots || lots.length === 0) {
+                if (lots) alert('No hay lotes para exportar.');
+                return;
+            }
+
+            const isExcel = format === 'excel';
+            document.getElementById(isExcel ? 'exportLotsExcelData' : 'exportLotsPdfData').value =
+                JSON.stringify(lots);
+            document.getElementById(isExcel ? 'formExportLotsExcel' : 'formExportLotsPdf').submit();
+        }
+
+         async function exportWarehousePhysicalCount(format) {
+            const lots = await fetchWarehouseLots();
+            if (!lots || lots.length === 0) {
+                if (lots) alert('No hay productos para exportar.');
+                return;
+            }
+
+            const isExcel = format === 'excel';
+            document.getElementById(isExcel ? 'exportPhysicalCountExcelData' : 'exportPhysicalCountPdfData').value =
+                JSON.stringify(lots);
             document.getElementById(isExcel ? 'formExportPhysicalCountExcel' : 'formExportPhysicalCountPdf').submit();
         }
 

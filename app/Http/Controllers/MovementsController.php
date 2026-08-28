@@ -6,8 +6,8 @@ use App\Contracts\WarehouseInventoryServiceInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class MovementsController extends Controller

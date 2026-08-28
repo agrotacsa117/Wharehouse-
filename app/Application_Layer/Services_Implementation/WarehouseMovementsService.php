@@ -3,16 +3,14 @@
 namespace App\Application_Layer\Services_Implementation;
 
 use App\Application_Layer\ResultPattern;
-
 use App\Contracts\WarehouseInventoryMovementsMapperI;
+use App\Contracts\WarehouseMovementMapperI;
 use App\Contracts\WarehouseMovementsRepositoryI;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Mappers\DTO\DetailsOfMovements;
 use App\Mappers\DTO\MovementsByPeriodFilterDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
 use App\Mappers\DTO\WarehouseMovementsListDetailDTO;
-use App\Contracts\WarehouseMovementMapperI;
-use FontLib\Table\Type\kern;
 
 class WarehouseMovementsService implements WarehouseMovementsServiceI
 {
@@ -186,7 +184,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         return $relocationTotal + $internalRelocationTotal;
     }
 
-     public function getDependentMovements(
+    public function getDependentMovements(
         int $inventoryId,
         string $folio
     ): array {
@@ -203,7 +201,6 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             );
     }
 
-    
     private function convertToWarehouseMovementsListDetailDTO(
         array $movements
     ): array {
@@ -216,8 +213,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         return $movements;
     }
 
-
-     public function markStatusIsReserved(
+    public function markStatusIsReserved(
         string $folio, bool $status
     ): bool {
         return $this->warehouseMovementsRepository
@@ -227,7 +223,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             );
     }
 
-      public function getWarehouseMovementsByFolio(
+    public function getWarehouseMovementsByFolio(
         string $folio
     ): ?WarehouseMovementsDTO {
 
@@ -245,7 +241,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
         return null;
     }
 
-      public function getIdByFolio(string $folio): int
+    public function getIdByFolio(string $folio): int
     {
         return $this->warehouseMovementsRepository
             ->findIdByFolio(
@@ -253,7 +249,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             );
     }
 
-     public function reserveAMovementFolio(
+    public function reserveAMovementFolio(
         string $folio,
         int $countermovementId): bool
     {
@@ -264,8 +260,7 @@ class WarehouseMovementsService implements WarehouseMovementsServiceI
             );
     }
 
-
-     public function isReserved(string $folio): bool
+    public function isReserved(string $folio): bool
     {
         return $this->warehouseMovementsRepository
             ->isReversed(

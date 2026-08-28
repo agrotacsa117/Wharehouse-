@@ -61,6 +61,7 @@ class WarehouseInventoryMovementModelMapper implements WarehouseInventoryMovemen
         if ($warehouseInventoryMovementsModel->reversal_of !== null) {
             $entity->setReversalOf((int) $warehouseInventoryMovementsModel->reversal_of);
         }
+
         return $entity;
     }
 }
