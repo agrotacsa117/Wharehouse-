@@ -7,6 +7,7 @@ use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseOutputStrategy;
+use App\Enterprise_Layer\WarehouseInventory;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
@@ -17,6 +18,8 @@ abstract class BaseOutputService implements WarehouseOutputStrategy
     protected WarehouseInventoryRepositoryInterface $inventoryRepository;
 
     protected WarehouseMovementsServiceI $warehouseMovementsService;
+
+    private WarehouseInventory $warehouseInventory;
 
     public function __construct(
         WarehouseInventoryRepositoryInterface $inventoryRepository,
@@ -160,6 +163,14 @@ abstract class BaseOutputService implements WarehouseOutputStrategy
             $sourceInventory
         );
 
+        $this->warehouseInventory = $destinationResult
+            ->getValue();
+
+        $removeWarehouseInventoryStockDTO
+            ->setWarehouseInventoryId(
+                $this->warehouseInventory->getId()
+            );
+
         if ($destinationResult->isFailure()) {
             Log::error('BaseOutputService::relocateStock: fallo al actualizar/crear destino', [
                 'sourceInventoryId' => $sourceInventory->getInventoryId(),
@@ -176,6 +187,24 @@ abstract class BaseOutputService implements WarehouseOutputStrategy
             'sourceInventoryId' => $sourceInventory->getInventoryId(),
             'destinationInventoryId' => $destinationId,
         ]);
+
+        $removeWarehouseInventoryStockDTO
+            ->setReason(
+                sprintf(
+                    'Reubicación interna: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s→%s, Bahía %s→%s, Taríma %s→%s',
+                    $removeWarehouseInventoryStockDTO->getReason(),
+                    $sourceInventory->getRack(),
+                    $removeWarehouseInventoryStockDTO->getRack(),
+                    $sourceInventory->getLevel(),
+                    $removeWarehouseInventoryStockDTO->getLevel(),
+                    $sourceInventory->getModule(),
+                    $removeWarehouseInventoryStockDTO->getModule(),
+                    $sourceInventory->getBay(),
+                    $removeWarehouseInventoryStockDTO->getBay(),
+                    $sourceInventory->getPlatform(),
+                    $removeWarehouseInventoryStockDTO->getPlatform()
+                )
+            );
 
         $movementDTO = $this->recordMovement($removeWarehouseInventoryStockDTO);
 

@@ -11,6 +11,7 @@ use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
+use Illuminate\Support\Facades\Log;
 
 class InternalRelocationService extends BaseOutputService
 {

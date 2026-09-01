@@ -109,24 +109,6 @@ class IntraWarehouseTransferStrategy extends BaseOutputService
             $this->warehouseInventoryOutDetailDTO->getWarehouseId()
         );
 
-        $removeWarehouseInventoryStockDTO
-            ->setReason(
-                sprintf(
-                    'Reubicación interna: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s',
-                    $removeWarehouseInventoryStockDTO->getReason(),
-                    $this->warehouseInventoryOutDetailDTO->getRack(),
-                    $removeWarehouseInventoryStockDTO->getRack(),
-                    $this->warehouseInventoryOutDetailDTO->getLevel(),
-                    $removeWarehouseInventoryStockDTO->getLevel(),
-                    $this->warehouseInventoryOutDetailDTO->getModule(),
-                    $removeWarehouseInventoryStockDTO->getModule(),
-                    $this->warehouseInventoryOutDetailDTO->getBay(),
-                    $removeWarehouseInventoryStockDTO->getBay(),
-                    $this->warehouseInventoryOutDetailDTO->getPlatform(),
-                    $removeWarehouseInventoryStockDTO->getPlatform()
-                )
-            );
-
         $relocationResult = $this->relocateStock(
             $removeWarehouseInventoryStockDTO,
             $this->warehouseInventoryOutDetailDTO,

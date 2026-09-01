@@ -298,6 +298,11 @@ class OutputController extends Controller
             'items.*.new_module_r' => 'nullable|integer',
             'items.*.new_bay_r' => 'nullable|integer',
             'items.*.new_platform_r' => 'nullable|integer',
+            'items.*.new_rack' => 'nullable|integer|max:50',
+            'items.*.new_level' => 'nullable|integer|min:1',
+            'items.*.module' => 'nullable|integer|min:1',
+            'items.*.bay' => 'nullable|integer|min:1',
+            'items.*.platform' => 'nullable|integer|min:1',
         ]);
 
         $movementType = $request->movement_type;

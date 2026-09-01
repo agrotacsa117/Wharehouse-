@@ -450,10 +450,14 @@ class WarehouseInventoryRepositoryImplementation implements WarehouseInventoryRe
             return null;
         }
 
-        return $this->warehouseInventoryModelToWarehouseInventory
+        $warehouseInventory = $this->warehouseInventoryModelToWarehouseInventory
             ->convertWarehouseInventoryModelToWarehouseInventory(
                 $model
             );
+
+        $warehouseInventory->setId($model->id);
+
+        return $warehouseInventory;
     }
 
     public function updateActiveInventory(

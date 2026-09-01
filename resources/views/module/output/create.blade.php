@@ -578,36 +578,105 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Nuevo Rack *</label>
-                                                <input type="text" name="new_rack" id="input-new-rack"
-                                                    class="form-control" placeholder="Ej: A-01">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Nuevo Nivel *</label>
-                                                <input type="number" name="new_level" id="input-new-level"
-                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            <div id="relocation-single-fields" class="col-12">
+                                              <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Nuevo Rack *</label>
+                                                    <input type="text" name="new_rack" id="input-new-rack"
+                                                        class="form-control" placeholder="Ej: A-01">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Nuevo Nivel *</label>
+                                                    <input type="number" name="new_level" id="input-new-level"
+                                                        class="form-control" min="1" placeholder="Ej: 1">
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Modulo *</label>
+                                                    <input type="number" name="module" id="module"
+                                                        class="form-control" min="1" placeholder="Ej: 1">
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Bahía *</label>
+                                                    <input type="number" name="bay" id="bay"
+                                                        class="form-control" min="1" placeholder="Ej: 1">
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Taríma *</label>
+                                                    <input type="number" name="platform" id="platform"
+                                                        class="form-control" min="1" placeholder="Ej: 1">
+                                                </div>
+                                              </div>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Modulo *</label>
-                                                <input type="number" name="module" id="module"
-                                                    class="form-control" min="1" placeholder="Ej: 1">
+                                            <!-- Carrito: ubicación destino por producto, uno a la vez (igual patrón que LOCATION_UPDATE) -->
+                                            <div id="relocation-cart-fields" class="col-12 d-none">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <strong class="small" id="relocation-position">Producto 1 de 1</strong>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-secondary" id="btn-relocation-prev"
+                                                            onclick="goToRelocationItem(-1)">&larr; Anterior</button>
+                                                        <button type="button" class="btn btn-outline-secondary" id="btn-relocation-next"
+                                                            onclick="goToRelocationItem(1)">Siguiente &rarr;</button>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Ubicación actual (referencia) --}}
+                                                <div class="mb-3 p-3"
+                                                    style="background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+                                                    <p class="small fw-bold text-secondary mb-2">
+                                                        <i class="bi bi-geo-alt me-1"></i>Ubicación actual del lote:
+                                                    </p>
+                                                    <div class="d-flex gap-3 flex-wrap">
+                                                        <span class="badge-info">Rack: <strong
+                                                                id="reloc-current-rack">-</strong></span>
+                                                        <span class="badge-info">Nivel: <strong
+                                                                id="reloc-current-level">-</strong></span>
+                                                        <span class="badge-info">Módulo: <strong
+                                                                id="reloc-current-module">-</strong></span>
+                                                        <span class="badge-info">Bahía: <strong
+                                                                id="reloc-current-bay">-</strong></span>
+                                                        <span class="badge-info">Tarima: <strong
+                                                                id="reloc-current-platform">-</strong></span>
+                                                    </div>
+                                                </div>
+
+                                                <p class="small fw-bold text-secondary mb-2">Nueva ubicación en bodega destino:</p>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold">Nuevo Rack</label>
+                                                        <input type="text" id="input-reloc-rack"
+                                                            class="form-control" placeholder="Ej: A-01"
+                                                            onchange="saveCurrentRelocationItem()">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold">Nuevo Nivel</label>
+                                                        <input type="number" id="input-reloc-level"
+                                                            class="form-control" min="1" placeholder="Ej: 1"
+                                                            onchange="saveCurrentRelocationItem()">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small fw-bold">Módulo</label>
+                                                        <input type="number" id="input-reloc-module"
+                                                            class="form-control" min="1" placeholder="Ej: 1"
+                                                            onchange="saveCurrentRelocationItem()">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small fw-bold">Bahía</label>
+                                                        <input type="number" id="input-reloc-bay"
+                                                            class="form-control" min="1" placeholder="Ej: 1"
+                                                            onchange="saveCurrentRelocationItem()">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small fw-bold">Tarima</label>
+                                                        <input type="number" id="input-reloc-platform"
+                                                            class="form-control" min="1" placeholder="Ej: 1"
+                                                            onchange="saveCurrentRelocationItem()">
+                                                    </div>
+                                                </div>
                                             </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Bahía *</label>
-                                                <input type="number" name="bay" id="bay"
-                                                    class="form-control" min="1" placeholder="Ej: 1">
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <label class="form-label small fw-bold">Taríma *</label>
-                                                <input type="number" name="platform" id="platform"
-                                                    class="form-control" min="1" placeholder="Ej: 1">
-                                            </div>
-
-
                                         </div>
                                     </div>
 
@@ -796,11 +865,26 @@
                     fieldsRelocation.classList.remove('d-none');
                     document.getElementById('input-quantity').disabled = false;
                     document.getElementById('input-relocation-destination').required = true;
-                    document.getElementById('input-new-rack').required = true;
-                    document.getElementById('input-new-level').required = true;
-                    document.getElementById('module').required = true;
-                    document.getElementById('bay').required = true;
-                    document.getElementById('platform').required = true;
+
+                    if (mode === 'cart') {
+                        document.getElementById('relocation-single-fields').classList.add('d-none');
+                        document.getElementById('relocation-cart-fields').classList.remove('d-none');
+                        document.getElementById('input-new-rack').required = false;
+                        document.getElementById('input-new-level').required = false;
+                        document.getElementById('module').required = false;
+                        document.getElementById('bay').required = false;
+                        document.getElementById('platform').required = false;
+                        relocationIndex = 0;
+                        renderRelocationItem();
+                    } else {
+                        document.getElementById('relocation-single-fields').classList.remove('d-none');
+                        document.getElementById('relocation-cart-fields').classList.add('d-none');
+                        document.getElementById('input-new-rack').required = true;
+                        document.getElementById('input-new-level').required = true;
+                        document.getElementById('module').required = true;
+                        document.getElementById('bay').required = true;
+                        document.getElementById('platform').required = true;
+                    }
 
                     btnSubmit.textContent = 'Registrar Reubicación';
                     loadRelocationWarehouses();
@@ -1028,6 +1112,9 @@
             if (locationUpdateIndex >= cart.length) {
                 locationUpdateIndex = Math.max(0, cart.length - 1);
             }
+            if (relocationIndex >= cart.length) {
+                relocationIndex = Math.max(0, cart.length - 1);
+            }
         }
 
         // El carrito pertenece implícitamente a la bodega elegida en el
@@ -1046,6 +1133,7 @@
                 cart = [];
                 mode = 'single';
                 locationUpdateIndex = 0;
+                relocationIndex = 0;
                 renderCart();
 
                 btn.innerHTML = '<i class="bi bi-arrow-left"></i> Cambiar Bodega';
@@ -1112,6 +1200,58 @@
             saveCurrentLocationUpdateItem();
             locationUpdateIndex += delta;
             renderLocationUpdateItem();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // REUBICACIÓN entre bodegas — navegar la ubicación destino
+        // por cada producto del carrito, uno a la vez
+        // ═══════════════════════════════════════════════════════════
+        let relocationIndex = 0;
+
+        function renderRelocationItem() {
+            if (cart.length === 0) return;
+
+            if (relocationIndex >= cart.length) relocationIndex = cart.length - 1;
+            if (relocationIndex < 0) relocationIndex = 0;
+
+            const item = cart[relocationIndex];
+
+            document.getElementById('relocation-position').textContent =
+                `Producto ${relocationIndex + 1} de ${cart.length}: ${item.productCode} — ${item.productName}`;
+
+            document.getElementById('reloc-current-rack').textContent = item.rack ?? 'SR';
+            document.getElementById('reloc-current-level').textContent = item.level ?? 'SN';
+            document.getElementById('reloc-current-module').textContent = item.module ?? 'SM';
+            document.getElementById('reloc-current-bay').textContent = item.bay ?? 'SB';
+            document.getElementById('reloc-current-platform').textContent = item.platform ?? 'ST';
+
+            const newLocation = item.newLocation || {};
+            document.getElementById('input-reloc-rack').value = newLocation.rack ?? '';
+            document.getElementById('input-reloc-level').value = newLocation.level ?? '';
+            document.getElementById('input-reloc-module').value = newLocation.module ?? '';
+            document.getElementById('input-reloc-bay').value = newLocation.bay ?? '';
+            document.getElementById('input-reloc-platform').value = newLocation.platform ?? '';
+
+            document.getElementById('btn-relocation-prev').disabled = relocationIndex === 0;
+            document.getElementById('btn-relocation-next').disabled = relocationIndex === cart.length - 1;
+        }
+
+        function saveCurrentRelocationItem() {
+            if (cart.length === 0) return;
+
+            cart[relocationIndex].newLocation = {
+                rack: document.getElementById('input-reloc-rack').value,
+                level: document.getElementById('input-reloc-level').value,
+                module: document.getElementById('input-reloc-module').value,
+                bay: document.getElementById('input-reloc-bay').value,
+                platform: document.getElementById('input-reloc-platform').value
+            };
+        }
+
+        function goToRelocationItem(delta) {
+            saveCurrentRelocationItem();
+            relocationIndex += delta;
+            renderRelocationItem();
         }
 
         function clampQuantity(inventoryId, inputEl) {
@@ -1192,11 +1332,13 @@
             const btn = document.getElementById('btn-submit');
             const movementType = selectMovementType.value;
 
-            // Reubicación Interna: la ubicación nueva es por producto, no
-            // compartida — guarda lo que esté en pantalla del item actual
-            // antes de armar los envíos.
+            // Reubicación Interna / Reubicación entre bodegas: la ubicación
+            // nueva es por producto, no compartida — guarda lo que esté en
+            // pantalla del item actual antes de armar los envíos.
             if (movementType === 'LOCATION_UPDATE') {
                 saveCurrentLocationUpdateItem();
+            } else if (movementType === 'RELOCATION') {
+                saveCurrentRelocationItem();
             }
 
             const sharedFields = new FormData(form);
@@ -1220,7 +1362,12 @@
                         new_level_r: newLocation.level || null,
                         new_module_r: newLocation.module || null,
                         new_bay_r: newLocation.bay || null,
-                        new_platform_r: newLocation.platform || null
+                        new_platform_r: newLocation.platform || null,
+                        new_rack: newLocation.rack || null,
+                        new_level: newLocation.level || null,
+                        module: newLocation.module || null,
+                        bay: newLocation.bay || null,
+                        platform: newLocation.platform || null
                     };
                 })
             };
