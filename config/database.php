@@ -93,8 +93,10 @@ return [
             // ESTA ES LA PARTE IMPORTANTE
             'encrypt' => 'yes',
             'trust_server_certificate' => true,
-            'options' => [
+            'options' => extension_loaded('pdo_sqlsrv') ? [
                 PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8,
+                'TrustServerCertificate' => true,
+            ] : [
                 'TrustServerCertificate' => true,
             ],
         ],

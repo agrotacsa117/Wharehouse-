@@ -191,7 +191,7 @@ abstract class BaseOutputService implements WarehouseOutputStrategy
         $removeWarehouseInventoryStockDTO
             ->setReason(
                 sprintf(
-                    'Reubicación interna: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s→%s, Bahía %s→%s, Taríma %s→%s',
+                    '%s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s→%s, Bahía %s→%s, Taríma %s→%s',
                     $removeWarehouseInventoryStockDTO->getReason(),
                     $sourceInventory->getRack(),
                     $removeWarehouseInventoryStockDTO->getRack(),

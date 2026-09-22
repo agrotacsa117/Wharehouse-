@@ -12,7 +12,6 @@ use App\Contracts\WarehouseMovementsServiceI;
 use App\Contracts\WarehouseOutputStrategy;
 use App\Contracts\WarehouseOutputStrategyFactoryInterface;
 use App\Contracts\WarehouseSalesServiceI;
-use App\Contracts\WarehouseStorageServiceInterface;
 use Illuminate\Support\Facades\Log;
 
 class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryInterface
@@ -25,20 +24,16 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
 
     private WarehouseSalesServiceI $warehouseSalesService;
 
-    private WarehouseStorageServiceInterface $warehouseStorageService;
-
     public function __construct(
         WarehouseMovementsServiceI $warehouseMovementsService,
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
         WarehouseInventoryRepositoryInterface $inventoryRepository,
-        WarehouseSalesServiceI $warehouseSalesService,
-        WarehouseStorageServiceInterface $warehouseStorageService
+        WarehouseSalesServiceI $warehouseSalesService
     ) {
         $this->warehouseMovementsService = $warehouseMovementsService;
         $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->inventoryRepository = $inventoryRepository;
         $this->warehouseSalesService = $warehouseSalesService;
-        $this->warehouseStorageService = $warehouseStorageService;
     }
 
     public function make(string $type): WarehouseOutputStrategy
@@ -48,8 +43,7 @@ class WarehouseOutputStrategyFactory implements WarehouseOutputStrategyFactoryIn
                 return new InternalRelocationService(
                     $this->warehouseInventoryQueryService,
                     $this->warehouseMovementsService,
-                    $this->inventoryRepository,
-                    $this->warehouseStorageService
+                    $this->inventoryRepository
                 );
                 break;
 

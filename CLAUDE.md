@@ -169,6 +169,21 @@ Bootstrap 5 itself is loaded via CDN `<link>`/`<script>` tags per Blade view, no
 version pins are inconsistent across views (e.g. `5.3.0` vs `5.3.3` seen); check the view you're
 touching rather than assuming a single pinned version.
 
+### Concurrency test harness (`k6/`, `scripts/concurrency/`)
+An in-progress k6 load-testing setup probes whether `lockForUpdate()` actually prevents overselling on
+`warehouse_inventory` rows under simultaneous requests. It's driven end-to-end by
+`scripts/concurrency/run-scenario.ps1 -Scenario <OUT|SALE|RELOCATION|LOCATION_UPDATE|TRANSFER> [-Vus 20] [-Amount 10] [-InitialQty 100]`,
+which chains: `scripts/concurrency/seed.php` (creates a test user + one fresh `warehouse_inventory` row,
+writes `scripts/concurrency/last-seed-{SCENARIO}.json`, gitignored) → `k6 run k6/concurrency-test.js`
+(fires `VUS` concurrent `POST /output/process-cart` requests against that single row) →
+`scripts/concurrency/verify.php` (checks the row's final quantity in the DB against expected). Per the
+comment at the top of `k6/concurrency-test.js`: `BaseOutputService::validateStockAvailability()` (used
+by OUT/SALE/RELOCATION/LOCATION_UPDATE) takes the lock, but
+`WarehouseInventoryServiceImplementation::transferInventory()` (used by TRANSFER) does not — so the
+`TRANSFER` scenario is the one expected to expose a race. Keep this in mind if asked to fix overselling
+on transfers, or if extending the Output Strategy pattern with a new type that bypasses
+`validateStockAvailability()`.
+
 ### Report exports
 `ReportController` exposes POST endpoints (`reports.products.lots.export.excel` /
 `.export.pdf`) that accept a JSON-encoded `lots` payload from the client, reshape it with private

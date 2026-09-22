@@ -1,0 +1,512 @@
+ ▐▛███▜▌   Claude Code v2.1.203
+▝▜█████▛▘  Sonnet 5 · Claude Pro
+  ▘▘ ▝▝    ~\Desktop\Illuminaties\Wharehouse-
+
+
+● Bien, limpio. Ahora armé todo lo necesario para correr el test hoy mismo, sin
+  depender de Grafana/Prometheus/Docker:
+
+  Lo que se creó
+
+  Archivo: scripts/concurrency/db.php
+  Función: Conexión PDO directa a test_warehouse, sin pasar por artisan (que
+  está
+  roto por el mismatch de la extensión sqlsrv, ver nota abajo). Aborta si
+  APP_ENV=production.
+  ────────────────────────────────────────
+  Archivo: scripts/concurrency/seed.php
+  Función: Crea un usuario de prueba (k6.concurrency@test.local) y una fila 
+  fresca de warehouse_inventory (quantity=100 por defecto) para el escenario
+  que le pidas.
+  ────────────────────────────────────────
+  Archivo: scripts/concurrency/verify.php
+  Función: El veredicto real: compara cantidad final en BD y conteo de
+  movimientos exitosos contra lo matemáticamente esperado si el lock funcionó.
+  ────────────────────────────────────────
+  Archivo: k6/concurrency-test.js
+  Función: El ataque: N VUs simultáneos (executor per-vu-iterations) contra el
+  mismo warehouseInventoryId vía POST /output/process-cart.
+  ────────────────────────────────────────
+  Archivo: scripts/concurrency/run-scenario.ps1
+  Función: Orquesta un escenario completo: seed → k6 → verify.
+  ────────────────────────────────────────
+  Archivo: scripts/concurrency/run-all.ps1
+  Función: Corre los 5 tipos de movimiento (OUT, SALE, RELOCATION,
+  LOCATION_UPDATE, TRANSFER) en secuencia y arma la tabla resumen.
+
+  Antes de correrlo
+
+  1. Levanta el server: php artisan serve — pero ojo, encontré que tu php del
+  PATH no puede arrancar artisan (Undefined constant PDO::SQLSRV_ATTR_ENCODING,
+  extensión sqlsrv desalineada de versión). Si normalmente levantas el server
+  con este mismo PHP, probablemente tampoco arranque ahora mismo. Dime cómo lo
+  levantas normalmente (XAMPP/Laragon con otro PHP, o hay que arreglar esa
+  extensión primero).
+  2. Confirmá que sigue apuntando a test_warehouse (ya lo verifiqué en tu .env).
+
+  Cómo correr
+
+  ./scripts/concurrency/run-all.ps1
+  # o uno solo:
+  ./scripts/concurrency/run-scenario.ps1 -Scenario TRANSFER -Vus 30 -Amount 10
+
+  Hallazgo de más al armar esto
+
+  output.get, output/process y output/process-cart (routes/web.php:110-141) no 
+  tienen middleware auth — quedaron fuera de los bloques
+  Route::middleware('auth')->group(). Cualquiera sin sesión puede mutar
+  inventario ahora mismo. Lo dejo anotado, no lo toqué.
+
+  ¿Arrancamos resolviendo lo del PHP/artisan para poder levantar el server, o ya
+  lo tienes corriendo por otra vía y solo pruebo?
+
+✻ Crunched for 7m 50s
+
+※ recap: Auditamos el flujo de salida/carrito y armé un test de concurrencia k6+SQL para probar si lockForUpdate evita sobreventa. Falta confirmar cómo levantas el server local (tu PHP CLI tiene la extensión sqlsrv rota) antes de correr los 5 escenarios. (disable recaps in /config)
+
+❯ /compact                                                                      
+  ⎿  Compacted 
+  ⎿  Read .gitignore (15 lines)
+  ⎿  Read scripts\concurrency\run-all.ps1 (39 lines)
+  ⎿  Read scripts\concurrency\run-scenario.ps1 (61 lines)
+  ⎿  Read scripts\concurrency\seed.php (103 lines)
+  ⎿  Read k6\concurrency-test.js (162 lines)
+
+❯  Interesante script pero me encataría que me explicaras algunas pautas para   
+  que sirven las variables Vus, Amount y InitialQty                             
+  ⎿  ⧉ Selected 1 lines from scripts\concurrency\run-scenario.ps1 in Visual 
+     Studio Code
+
+● Claro, las tres son los parámetros que definen la forma del ataque:
+
+  InitialQty — stock inicial de la fila de prueba
+
+  En seed.php:67, es el quantity con el que se crea la fila de
+  warehouse_inventory antes de disparar el test. Es el "saldo en caja" que todos
+  los VUs van a pelear por descontar simultáneamente.
+
+  - Default: 100.
+  - Debe ser lo bastante grande para que el resultado sea interesante: si es muy
+  chico, hasta con lock correcto casi todos van a fallar por "stock
+  insuficiente" y no se ve nada. Si es gigante, es difícil que ninguno choque
+  aunque el lock esté roto.
+
+  Vus — cuántos "usuarios" atacan a la vez
+
+  Es el número de Virtual Users que k6 lanza en paralelo
+  (k6/concurrency-test.js:31-39, executor per-vu-iterations con iterations: 1).
+  Cada VU hace login, agarra su propio CSRF token/cookie, y dispara un solo POST
+  /output/process-cart — todos contra el mismo warehouseInventoryId, todos casi
+  al mismo instante.
+
+  - Default: 20 → 20 requests simultáneos contra la misma fila.
+  - Es la variable que estresa el lockForUpdate(): más VUs = más probabilidad de
+  que dos threads lean el stock "viejo" antes de que el primero confirme su
+  UPDATE, si el lock no está haciendo su trabajo.
+
+  Amount — cuánto descuenta cada request individual
+
+  Es la quantity que cada VU manda en su item del carrito (buildItem() en el k6,
+  línea 91). Cada uno de los Vus VUs intenta restar esta misma cantidad.
+
+  - Default: 10.
+  - Junto con InitialQty y Vus define el umbral de "debería fallar
+  matemáticamente": con InitialQty=100, Amount=10, Vus=20, solo 10 de los 20
+  deberían poder completarse (10×10=100); los otros 10 deberían recibir stock 
+  insuficiente. verify.php usa exactamente esta cuenta (floor(InitialQty / 
+  Amount) como máximo de éxitos esperados) para emitir el veredicto:
+    - Si el conteo de éxitos ≤ el esperado y quantity_final = InitialQty - 
+  (éxitos × Amount) cuadra exactamente → OK (el lock funcionó, no hubo
+  sobreventa).
+    - Si más VUs de los matemáticamente posibles lograron descontar, o la
+  cantidad final en BD no cuadra con los movimientos registrados → VIOLACION
+  (race condition confirmada).
+
+  En resumen, la relación
+
+  éxitos_máximos_esperados = floor(InitialQty / Amount)
+
+  Si querés forzar el choque de forma más agresiva (más VUs peleando por menos
+  "cupos" disponibles), subí Vus relativo a éxitos_máximos_esperados. Por
+  ejemplo InitialQty=50, Amount=10, Vus=30 deja solo 5 cupos para 30 corredores
+  — mucha más presión sobre el lock que el default.
+
+  ¿Seguimos y confirmamos si el server local está arriba en
+  http://127.0.0.1:8000 para correr el primer escenario?
+
+✻ Cooked for 16s
+
+※ recap: We're building a k6+SQL test to check if stock locking prevents overselling during concurrent requests; the toolchain is ready but unrun. Next: confirm your local server is up at 127.0.0.1:8000, then run the first scenario. (disable recaps in /config)
+
+❯ Ok me parece bien ahora me gustaría que me expliques la clase seed.php        
+
+● seed.php no es una clase, es un script procedural (un archivo que se ejecuta
+  de arriba a abajo con php scripts/concurrency/seed.php OUT 100). Te lo explico
+  por bloques:
+
+  1. Cabecera y parseo de argumentos (líneas 1-25)
+
+  require __DIR__.'/db.php';
+  $scenario = $argv[1] ?? null;
+  $initialQty = isset($argv[2]) ? (int) $argv[2] : 100;
+
+  $argv son los argumentos de línea de comandos. $argv[0] es el nombre del
+  script, $argv[1] es el primer parámetro real (el escenario: OUT, SALE, etc.),
+  $argv[2] es opcional (el InitialQty que acabamos de ver). Si no se pasa, cae
+  al default 100.
+
+  Luego valida que el escenario sea uno de los 5 soportados; si no, escribe el
+  error a STDERR (no STDOUT, para no ensuciar el JSON) y sale con código 1.
+
+  require __DIR__.'/db.php' carga makePdo() — la conexión PDO directa que
+  armamos para saltarnos el artisan roto.
+
+  2. Usuario de prueba idempotente (líneas 29-49)
+
+  $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
+  $stmt->execute([$testEmail]);
+  $userId = $stmt->fetchColumn();
+
+  if (! $userId) {
+      // INSERT ...
+  }
+
+  Busca primero si ya existe k6.concurrency@test.local. Si no existe, lo crea
+  con una contraseña hasheada (password_hash(..., PASSWORD_BCRYPT) — igual que
+  como Laravel la validaría en el login real). Esto es idempotente: podés correr
+  seed.php cien veces y no vas a duplicar usuarios ni fallar por unique
+  constraint en el email.
+
+  Fíjate que $userId en realidad no se usa después en el payload — es un
+  remanente de que el login lo hace k6 vía HTTP (usuario/contraseña), no algo
+  que este script necesite propagar directamente. Solo garantiza que la cuenta
+  exista y sea logueable.
+
+  3. La fila de inventario (líneas 51-72)
+
+  $lotNumber = 'K6-'.$scenario.'-'.time();
+
+  $pdo->prepare('INSERT INTO warehouse_inventory (...) VALUES (...)')
+      ->execute([$warehouseId, $productId, 'Productos TACSA', $initialQty,
+  $lotNumber, 'k6 concurrency seed']);
+
+  $inventoryId = (int) $pdo->lastInsertId();
+
+  A diferencia del usuario, esta fila no es idempotente a propósito — cada
+  corrida crea una fila nueva y fresca con quantity = $initialQty. Eso es clave
+  para que el test sea limpio: no querés que restos de una corrida anterior
+  contaminen el conteo matemático de verify.php.
+
+  - warehouse_id=25 y product_id='tac036' están hardcodeados porque ya existen
+  como datos reales en la BD test_warehouse (necesarios por las foreign keys).
+  - lot_number incluye time() (timestamp Unix) para que cada corrida tenga un
+  lote único identificable — útil para hacer limpieza después (como hicimos con
+  el DELETE ... WHERE lot_number IN (...)).
+  - $pdo->lastInsertId() captura el ID autogenerado de la fila recién insertada
+  — este es el warehouseInventoryId contra el que todos los VUs van a pelear.
+
+  4. El payload de salida (líneas 74-102)
+
+  $payload = [
+      'scenario' => $scenario,
+      'inventoryId' => $inventoryId,
+      ...
+      'destWarehouseId' => 22,
+      'newRack' => 3, 'newLevel' => 2,
+      'newRackR' => 5, 'newLevelR' => 1,
+      'destWarehouseName' => 'campeche',
+      'folioTransfer' => random_int(100000, 999999),
+      'invoiceSap' => random_int(1000, 9999),
+  ];
+
+  Arma todos los campos que cualquiera de los 5 escenarios podría necesitar,
+  aunque un escenario dado solo use un subconjunto (el k6 script decide cuáles
+  usar según SCENARIO, ver buildItem()/buildShared()). Por ejemplo:
+  - newRack/newLevel → solo los usa RELOCATION.
+  - newRackR/newLevelR → solo LOCATION_UPDATE.
+  - destWarehouseName ('campeche', una opción hardcodeada válida del <select> en
+  create.blade.php) → solo TRANSFER.
+  - folioTransfer/invoiceSap son aleatorios (random_int) para no chocar con
+  folios/facturas ya usados en corridas previas.
+
+  Generarlos todos de una vez, sin if ($scenario === ...), simplifica el script
+  — es más barato generar 3 campos de más que ramificar.
+
+  5. Doble salida: archivo + stdout (líneas 94-102)
+
+  $outFile = __DIR__."/last-seed-{$scenario}.json";
+  file_put_contents($outFile, json_encode($payload, JSON_PRETTY_PRINT));
+
+  fwrite(STDERR, "Seed OK -> {$outFile}\n");
+  echo json_encode($payload, JSON_PRETTY_PRINT), "\n";
+
+  Esto es el workaround que armamos por el bug de entorno: el PHP CLI de esta
+  máquina imprime warnings de arranque (por el sqlsrv desalineado) directo a
+  stdout por defecto, lo cual rompería un ConvertFrom-Json en PowerShell si solo
+  confiáramos en parsear la salida estándar.
+
+  Por eso el resultado se escribe dos veces:
+  1. A un archivo de punto fijo last-seed-{SCENARIO}.json — esto es lo que
+  realmente lee run-scenario.ps1 (Get-Content $seedFile -Raw | 
+  ConvertFrom-Json), robusto frente a cualquier basura que se cuele en stdout.
+  2. También a echo por si se quiere inspeccionar corriendo el script suelto
+  (como hicimos manualmente para validarlo).
+
+  El mensaje de confirmación va a STDERR en vez de mezclarse con el JSON de
+  STDOUT, manteniendo cada canal limpio para su propósito.
+
+  ---
+  En resumen: seed.php prepara el "estado inicial" del experimento — un usuario
+  logueable + una fila de inventario con cantidad conocida — y le entrega a k6
+  (vía el archivo JSON) todos los IDs y datos que necesita para atacarla, sin
+  que ninguno de los dos scripts tenga que adivinar nada del otro.
+
+✻ Cogitated for 26s
+
+❯ Ok pero y a todo esto por que no usamos los endpoints                         
+
+● Buena pregunta, y hay una distinción importante entre la fila de inventario
+  (setup/arrange) y el ataque en sí (act):
+
+  El ataque SÍ usa el endpoint real
+
+  k6/concurrency-test.js no toca la BD directamente para el experimento — todo
+  el tráfico que estamos midiendo pasa por POST /output/process-cart,
+  exactamente la misma ruta que usa un usuario real desde create.blade.php. Eso
+  es lo que realmente importa: estamos probando si lockForUpdate() +
+  DB::transaction() en el código real de producción evita la sobreventa, no una
+  simulación aparte.
+
+  El seed (crear la fila inicial) NO usa el endpoint, y es a propósito
+
+  1. No hay un endpoint de "crear inventario con cantidad arbitraria" simple y 
+  aislado. Entrar stock normalmente pasa por el flujo de input (registro de
+  entrada), que tiene su propia lógica de negocio (folios, movimientos
+  asociados, validaciones, quizás hasta otro DB::transaction()). Usar ese
+  endpoint para el seed mezclaría dos sistemas bajo prueba en un solo
+  experimento.
+  2. Necesitamos un estado 100% determinístico y limpio. El objetivo de
+  verify.php es una cuenta exacta: quantity_final debe cuadrar matemáticamente
+  contra InitialQty - (éxitos × Amount). Si el seed pasara por un endpoint con
+  su propia lógica (que podría redondear, crear movimientos extra, fusionar con
+  lotes existentes, etc.), perderíamos esa certeza de "sabemos exactamente el
+  punto de partida".
+  3. Es el patrón estándar Arrange-Act-Assert en testing. Preparás el estado con
+  acceso directo (rápido, determinístico, sin efectos secundarios) → ejecutás
+  la acción bajo prueba a través del sistema real (HTTP) → verificás el
+  resultado también con acceso directo. Mezclar "preparar" y "probar" en el
+  mismo canal HTTP diluye qué es lo que realmente se está midiendo.
+  4. Es más rápido y no compite por recursos. Si el seed también pasara por HTTP
+  + login + CSRF, cada corrida de escenario sería más lenta y dependería de que
+  ese otro endpoint funcione y no tenga bugs propios que interfieran con el
+  resultado del test de concurrencia.
+
+  En resumen: usamos el endpoint real para lo que estamos probando (la salida
+  concurrente), y accedemos directo a la BD solo para plantar un dato inicial
+  conocido y desmontarlo después — igual que un INSERT de fixture en cualquier
+  suite de tests de integración.
+
+  ¿Seguimos entonces con correr el primer escenario, o querés repasar también
+  verify.php antes de ejecutar?
+
+✻ Cogitated for 23s
+
+❯ Ok entonces chequemos sobre verify.php antes de hacer las pruebas             
+
+  Read 1 file (ctrl+o to expand)
+
+● Ahora sí, con el archivo real delante. verify.php hace de juez después del
+  ataque: agarra el estado final de la BD y lo compara contra lo que
+  matemáticamente debería haber pasado si lockForUpdate() funcionó.
+
+  1. Argumentos (líneas 18-28)
+
+  Recibe los 4 datos necesarios para calcular el resultado esperado:
+  php verify.php <SCENARIO> <inventory_id> <initial_qty> <amount_per_request>
+  run-scenario.ps1 se los pasa automáticamente usando los mismos valores que usó
+  seed.php, así que no hay que escribirlos a mano.
+
+  2. Cantidad final real (líneas 32-34)
+
+  SELECT quantity FROM warehouse_inventory WHERE id = ?
+  Simple: lee el quantity que quedó en la fila después de que los VUs de k6
+  terminaron de pelear por ella.
+
+  3. Contar movimientos exitosos — aquí está el detalle fino (líneas 36-51)
+
+  Esto es la parte que corregimos durante la construcción: la columna que 
+  identifica "a qué fila de inventario pertenece este movimiento" cambia de 
+  significado según el tipo.
+
+  - Para OUT, SALE, TRANSFER: el movimiento apunta a la fila origen vía
+  warehouse_inventory_id directamente.
+  - Para RELOCATION/LOCATION_UPDATE: descubrimos leyendo
+  BaseOutputService::relocateStock() que el código reasigna
+  warehouse_inventory_id al ID de la fila destino antes de grabar el movimiento.
+  Si quisiéramos rastrear la fila origen (la que sembramos con seed.php y la
+  que de verdad importa para el race condition), hay que consultar por
+  relocated_from_inventory_id en cambio.
+
+  Por eso el if ($relocationTypes) cambia de columna — si no lo hiciéramos, para
+  esos dos escenarios el conteo de "éxitos" saldría en 0 aunque el ataque haya
+  funcionado perfecto, dando un falso VIOLACION o un falso OK sin sentido.
+
+  COALESCE(SUM(quantity), 0) suma todo lo retirado en esos movimientos exitosos
+  — esto es $sumWithdrawn, el segundo pilar de la verificación.
+
+  4. La matemática del veredicto (líneas 55-61)
+
+  $maxSafeSuccesses = intdiv($initialQty, $amount);       // ej. intdiv(100,10) 
+  = 10
+  $expectedFinalQty = $initialQty - ($maxSafeSuccesses * $amount);  // 100 - 100
+  = 0
+
+  $oversold = $finalQty < 0;                                // ¿quedó stock 
+  negativo?
+  $tooManySuccesses = $successCount > $maxSafeSuccesses;     // ¿más éxitos de 
+  los que caben?
+  $mismatchedMath = ($initialQty - $sumWithdrawn) !== (int) $finalQty; // ¿la 
+  resta cuadra?
+
+  Tres chequeos independientes:
+
+  1. $oversold — si quantity terminó negativo, es la señal más directa de
+  sobreventa (dos requests pasaron el if (stock >= solicitado) con el mismo
+  stock "viejo" antes de que cualquiera de las dos escribiera).
+  2. $tooManySuccesses — si el conteo de movimientos exitosos supera lo que el
+  stock inicial permitía matemáticamente, hubo sobreventa aunque el quantity
+  final no haya quedado negativo (por ejemplo si reduceStock topa en 0 en vez de
+  dejarlo negativo, pero igual dejó pasar más solicitudes de las que cabían).
+  3. $mismatchedMath (solo genera advertencia, no determina el veredicto) — si
+  initial - retirado ≠ final, es la huella de un lost update: dos requests
+  leyeron el mismo valor de quantity, cada uno restó su cantidad sobre esa
+  lectura vieja, y el segundo UPDATE pisó el resultado del primero sin tomar en
+  cuenta lo que el otro ya había restado. Esto puede pasar incluso sin que nadie
+  "sobrevendiera" en el sentido de dejar stock negativo — es una corrupción de
+  datos silenciosa.
+
+  5. Veredicto final (línea 62)
+
+  $verdict = ($oversold || $tooManySuccesses) ? 'VIOLACION (race condition)' :
+  'OK (lock sostuvo la fila)';
+
+  Nota que $mismatchedMath no entra en el veredicto — solo imprime una
+  advertencia (línea 72-75). Es información extra útil para diagnosticar cómo
+  falló, pero el criterio duro de pasa/no-pasa es: ¿se vendió más stock del que
+  existía, sí o no?
+
+  ---
+  Con esto los tres scripts (seed → k6 → verify) ya están claros. ¿Corremos
+  ahora el primer escenario, o querés que primero confirme si el server local
+  está arriba en 127.0.0.1:8000?
+
+✻ Brewed for 24s
+
+※ recap: Estamos probando si el lock de stock evita sobreventa con carga concurrente vía k6; ya expliqué seed.php y verify.php. Próximo paso: confirmar que el server local está corriendo en 127.0.0.1:8000 y lanzar el primer escenario. (disable recaps in /config)
+
+❯ A ver ya estoy confundido cuales serían el orden en el que se ejecuta el      
+  script para hacer los test?}                                                  
+  ⎿  ⧉ Selected 1 lines from scripts\concurrency\run-scenario.ps1 in Visual 
+     Studio Code
+
+● Updated plan
+  ⎿  /plan to preview
+● User approved Claude's plan
+  ⎿  Plan saved to: ~\.claude\plans\ok-te-acuerdas-en-snazzy-noodle.md · /plan 
+     to edit
+     Aclaración: orden de ejecución del test de concurrencia
+
+     Contexto
+
+     El usuario construyó junto con el asistente un toolchain de 3 scripts
+     (seed.php →
+     k6/concurrency-test.js → verify.php) para probar si lockForUpdate() evita
+     la sobreventa de
+     stock bajo requests concurrentes contra /output/process-cart. Después de
+     repasar qué hace cada
+     pieza por separado, el usuario pidió aclarar el orden real de ejecución —
+     no se requiere ningún
+     cambio de código, es una pregunta de uso/documentación sobre herramientas
+     ya existentes.
+
+     No hay implementación pendiente en este plan: es una respuesta explicativa.
+
+     Orden de ejecución
+
+     Hay dos formas de correrlo, según si se quiere 1 escenario o los 5:
+
+     Opción A — un solo escenario (para probar/depurar)
+
+     ./scripts/concurrency/run-scenario.ps1 -Scenario OUT
+     Este único comando ya encadena internamente, en orden, los 3 pasos:
+     1. php scripts/concurrency/seed.php OUT 100 — crea usuario + fila de
+     inventario fresca.
+     2. k6 run k6/concurrency-test.js (con las env vars leídas del JSON que
+     generó el seed) — dispara
+     el ataque concurrente contra /output/process-cart.
+     3. php scripts/concurrency/verify.php OUT <inventoryId> 100 10 — lee el
+     estado final de la BD y
+     emite el VEREDICTO.
+
+     No hace falta llamar a seed.php, k6, o verify.php manualmente —
+     run-scenario.ps1 ya hace esa
+     orquestación.
+
+     Opción B — los 5 escenarios en secuencia (corrida completa)
+
+     ./scripts/concurrency/run-all.ps1
+     Este script simplemente llama a run-scenario.ps1 una vez por cada tipo de
+     movimiento
+     (OUT, SALE, RELOCATION, LOCATION_UPDATE, TRANSFER), en ese orden, y al
+     final imprime una
+     tabla resumen con el veredicto de cada uno.
+
+     Prerrequisito antes de correr cualquiera de los dos
+
+     El servidor Laravel local debe estar arriba y respondiendo en
+     http://127.0.0.1:8000 (o pasar
+     -BaseUrl con la URL correcta). Esto todavía no se confirmó con el usuario —
+     dado que php artisan
+     está roto en esta máquina por el mismatch de la extensión sqlsrv, existe la
+     duda de si
+     php artisan serve funciona o si el usuario levanta el server por otra vía
+     (XAMPP/Laragon/etc.).
+
+     Verificación
+
+     No aplica cambio de código — la "verificación" de este plan es simplemente
+     confirmar con el usuario
+     que el server está arriba, y luego correr run-scenario.ps1 -Scenario OUT
+     como primera prueba real.
+
+● No hay ningún cambio de código que hacer aquí, era solo una aclaración de uso.
+  Resumen directo:
+
+  Orden de ejecución
+
+  No corres seed.php, k6, y verify.php a mano — todo eso ya está encadenado
+  dentro de run-scenario.ps1.
+
+  Para probar un solo tipo de movimiento:
+  ./scripts/concurrency/run-scenario.ps1 -Scenario OUT
+  Este único comando internamente hace, en orden:
+  1. seed.php → crea la fila de inventario fresca.
+  2. k6 run → dispara el ataque concurrente.
+  3. verify.php → lee la BD y te da el VEREDICTO.
+
+  Para correr los 5 tipos de movimiento seguidos:
+  ./scripts/concurrency/run-all.ps1
+  Esto llama a run-scenario.ps1 una vez por cada tipo (OUT, SALE, RELOCATION,
+  LOCATION_UPDATE, TRANSFER) y al final te muestra la tabla resumen.
+
+  Antes de correr cualquiera de los dos
+
+  Falta confirmar que tu servidor Laravel esté arriba en http://127.0.0.1:8000.
+  ¿Cómo lo levantas normalmente — php artisan serve, XAMPP, Laragon, otro? Lo
+  pregunto porque php artisan está roto en esta máquina (mismatch de la
+  extensión sqlsrv), así que necesito saber si eso también afecta cómo levantas
+  el server antes de lanzar la primera prueba real.
+
+✻ Churned for 33s
+
+※ recap: Building a k6+SQL concurrency test to check if lockForUpdate prevents stock overselling across 5 movement types. Next: confirm how you start your local Laravel server, since php artisan is broken here, then run the first scenario. (disable recaps in /config)

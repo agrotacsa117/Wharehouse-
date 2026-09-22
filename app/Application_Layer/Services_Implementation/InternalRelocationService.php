@@ -7,7 +7,6 @@ use App\Contracts\WarehouseInventoryQueryServiceI;
 use App\Contracts\WarehouseInventoryRepositoryInterface;
 use App\Contracts\WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI;
 use App\Contracts\WarehouseMovementsServiceI;
-use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\WarehouseInventoryOutDetailDTO;
 use App\Mappers\DTO\WarehouseMovementsDTO;
@@ -25,17 +24,13 @@ class InternalRelocationService extends BaseOutputService
 
     private WarehouseInventoryToWarehouseInventoryOutDetailDTOMapperI $warehouseInventoryToWarehouseInventoryOutDetailDTOMapper;
 
-    private WarehouseStorageServiceInterface $warehouseStorageService;
-
     public function __construct(
         WarehouseInventoryQueryServiceI $warehouseInventoryQueryService,
         WarehouseMovementsServiceI $warehouseMovementsService,
-        WarehouseInventoryRepositoryInterface $warehouseInventoryRepository,
-        WarehouseStorageServiceInterface $warehouseStorageService
+        WarehouseInventoryRepositoryInterface $warehouseInventoryRepository
     ) {
         $this->warehouseInventoryQueryService = $warehouseInventoryQueryService;
         $this->warehouseMovementsService = $warehouseMovementsService;
-        $this->warehouseStorageService = $warehouseStorageService;
         parent::__construct(
             $warehouseInventoryRepository,
             $warehouseMovementsService
@@ -45,11 +40,6 @@ class InternalRelocationService extends BaseOutputService
     public function processOutput(
         RemoveWarehouseInventoryStockDTO $removeWarehouseInventoryStockDTO
     ): ResultPattern {
-
-        $warehouseDestination = $this->warehouseStorageService
-            ->getWarehouseNameById(
-                $removeWarehouseInventoryStockDTO->getWarehouseId()
-            );
 
         $this->result = $this->warehouseInventoryQueryService
             ->getInventoryById(
@@ -80,21 +70,6 @@ class InternalRelocationService extends BaseOutputService
         }
 
         $this->warehouseInventoryOutDetailDTO = $inventoryDTO;
-
-        $removeWarehouseInventoryStockDTO->setReason(
-            sprintf(
-                'Reubicación por bodega: %s | Rack: %s→%s, Nivel: %d→%d, Modulo: %s, Bahía %s, Taríma %s| Destino: %s',
-                $removeWarehouseInventoryStockDTO->getReason(),
-                $inventoryDTO->getRack(),
-                $removeWarehouseInventoryStockDTO->getRack(),
-                $inventoryDTO->getLevel(),
-                $removeWarehouseInventoryStockDTO->getLevel(),
-                $removeWarehouseInventoryStockDTO->getModule(),
-                $removeWarehouseInventoryStockDTO->getBay(),
-                $removeWarehouseInventoryStockDTO->getPlatform(),
-                $warehouseDestination
-            )
-        );
 
         try {
             return $this->relocateStock(
