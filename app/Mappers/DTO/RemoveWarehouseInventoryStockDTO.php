@@ -12,23 +12,23 @@ class RemoveWarehouseInventoryStockDTO
 
     private string $movementType;
 
-    private string $operationDate;
+    private string $operationDate = '';
 
-    private int $warehouseId;
+    private int $warehouseId = 0;
 
-    private ?int $rack;
+    private ?int $rack = null;
 
-    private ?int $level;
+    private ?int $level = null;
 
-    private int $invoiceId;
+    private int $invoiceId = 0;
 
     private int $userId;
 
-    private ?int $module;
+    private ?int $module = null;
 
-    private ?int $bay;
+    private ?int $bay = null;
 
-    private ?int $platform;
+    private ?int $platform = null;
 
     private bool $forceNegativeStock;
 
@@ -43,16 +43,7 @@ class RemoveWarehouseInventoryStockDTO
         $this->quantity = $quantity;
         $this->reason = $reason;
         $this->forceNegativeStock = false;
-    }
-
-    public function getManufacturingDate(): ?string
-    {
-        return $this->manufacturingDate;
-    }
-
-    public function setManufacturingDate(?string $manufacturingDate): void
-    {
-        $this->manufacturingDate = $manufacturingDate;
+        $this->manufacturingDate = null;
     }
 
     // Getter y Setter para $module
@@ -168,12 +159,12 @@ class RemoveWarehouseInventoryStockDTO
         $this->rack = $rack;
     }
 
-    public function getLevel(): int
+    public function getLevel(): ?int
     {
         return $this->level;
     }
 
-    public function setLevel(int $level): void
+    public function setLevel(?int $level): void
     {
         $this->level = $level;
     }
@@ -202,5 +193,23 @@ class RemoveWarehouseInventoryStockDTO
     public function setForceNegativeStock(bool $forceNegativeStock): void
     {
         $this->forceNegativeStock = $forceNegativeStock;
+    }
+
+    /**
+     * Obtiene la fecha de fabricación.
+     */
+    public function getManufacturingDate(): ?string
+    {
+        return $this->manufacturingDate;
+    }
+
+    /**
+     * Establece la fecha de fabricación.
+     *
+     * @return self
+     */
+    public function setManufacturingDate(?string $manufacturingDate): void
+    {
+        $this->manufacturingDate = $manufacturingDate;
     }
 }

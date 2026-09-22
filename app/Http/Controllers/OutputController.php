@@ -7,7 +7,9 @@ use App\Contracts\WarehouseStorageServiceInterface;
 use App\Mappers\DTO\RemoveWarehouseInventoryStockDTO;
 use App\Mappers\DTO\TransferInventoryDTO;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Request;
+use App\Contracts\CartOutputServiceInterface;
+use App\Contracts\WarehouseOutputDtoMapperI;
+use Illuminate\Http\Request;
 
 class OutputController extends Controller
 {
